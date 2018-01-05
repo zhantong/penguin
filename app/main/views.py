@@ -1,5 +1,9 @@
+from flask import render_template
 from . import main
+from ..models import Post
+
 
 @main.route('/')
 def index():
-    return '<h1>Hello World!</h1>'
+    posts = Post.query.order_by(Post.timestamp.desc())
+    return render_template('index.html', posts=posts)
