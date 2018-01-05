@@ -7,6 +7,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     BOOTSTRAP_SERVE_LOCAL = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PENGUIN_POSTS_PER_PAGE = 20
 
     @staticmethod
     def init_app(app):

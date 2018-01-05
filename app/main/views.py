@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request, current_app
 from . import main
 from ..models import Post, Comment
 from ..utils import format_comments
@@ -6,8 +6,11 @@ from ..utils import format_comments
 
 @main.route('/')
 def index():
-    posts = Post.query.order_by(Post.timestamp.desc())
-    return render_template('index.html', posts=posts)
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    return render_template('index.html', posts=posts, pagination=pagination)
 
 
 @main.route('/archives/<slug>.html')
