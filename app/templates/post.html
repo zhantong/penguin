@@ -9,4 +9,23 @@
             {{ post.body_html | safe }}
         </div>
     </article>
+    <div>
+        <h3>评论</h3>
+        {% for comment in comments recursive %}
+            <div class="panel panel-default" style="margin-bottom: 10px">
+                <div class="panel-heading" style="padding-top: 2px;padding-bottom: 2px">
+                    <h4>
+                        {{ comment['comment'].author.name }}
+                        <small style="padding-left: 10px"><em>{{ comment['comment'].timestamp }}</em></small>
+                    </h4>
+                </div>
+                <div class="panel-body" style="padding-bottom: 5px">
+                    {{ comment['comment'].body_html | safe }}
+                    {% if comment['children'] %}
+                        {{ loop(comment['children']) }}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}
