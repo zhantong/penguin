@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Penguin{% endblock %}
+
+{% block main %}
+    <article>
+        <h1>{{ post.title }}</h1>
+        <div>
+            {{ post.body_html | safe }}
+        </div>
+    </article>
+{% endblock %}
