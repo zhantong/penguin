@@ -14,7 +14,7 @@ def login():
             login_user(user, form.remember_me.data)
             next = request.args.get('next')
             if next is None or not next.startswith('/'):
-                next = url_for('main.index')
+                next = url_for('admin.index')
             return redirect(next)
         flash('用户名或密码错误')
     return render_template('auth/login.html', form=form)

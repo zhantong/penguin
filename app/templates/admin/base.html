@@ -1,0 +1,39 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Penguin{% endblock %}
+
+{% block navbar %}
+    {% include "admin/_navbar.html" %}
+{% endblock %}
+
+{% block body_attribs %}
+    style = "padding-top: 70px;"
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-3" style="height: 100vh;">
+            <div class="panel-group" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="nav-post-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#nav-post-collapse"
+                               aria-expanded="true" aria-controls="nav-post-collapse">
+                                文章
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="nav-post-collapse" class="panel-collapse collapse in" role="tabpanel"
+                         aria-labelledby="nav-post-heading">
+                        <ul class="list-group">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            {% block page_content %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
