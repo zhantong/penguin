@@ -11,9 +11,9 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-lg-3" style="height: 100vh;">
-            <div class="panel-group" role="tablist" aria-multiselectable="true">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" id="nav-post-heading">
                         <h4 class="panel-title">
@@ -26,14 +26,15 @@
                     <div id="nav-post-collapse" class="panel-collapse collapse in" role="tabpanel"
                          aria-labelledby="nav-post-heading">
                         <ul class="list-group">
+                            <li class="list-group-item"><a href="{{ url_for('.write_post') }}">撰写文章</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-9">
-            {% block page_content %}
-            {% endblock %}
+            <div class="col-md-10">
+                {% block page_content %}
+                {% endblock %}
+            </div>
         </div>
     </div>
 {% endblock %}
