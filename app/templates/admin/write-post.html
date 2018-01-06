@@ -15,6 +15,30 @@
             </div>
         </div>
         <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="option-submit-heading">
+                    <h4 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#option-submit-collapse"
+                           aria-expanded="true" aria-controls="option-submit-collapse">
+                            发布
+                        </a>
+                    </h4>
+                </div>
+                <div id="option-submit-collapse" class="panel-collapse collapse in" role="tabpanel"
+                     aria-labelledby="option-submit-heading">
+                    <div class="panel-body">
+                        <div class="form-group form-inline">
+                            <label for="submit-datetime">发布时间</label>
+                            <input type="text" class="form-control" id="submit-datetime"
+                                   placeholder="yyyy-MM-dd HH:mm:ss">
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="button" class="btn btn-default">保存草稿</button>
+                        <button type="button" class="btn btn-primary pull-right">发布</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -22,6 +46,7 @@
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='editormd/editormd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='laydate/laydate.js') }}"></script>
     <script type="text/javascript">
         var markdownEditor;
 
@@ -32,6 +57,11 @@
                 height: 640,
                 path: "{{ url_for('static',filename='editormd/lib/') }}"
             });
+        });
+
+        laydate.render({
+            elem: '#submit-datetime',
+            type: 'datetime'
         });
     </script>
 {% endblock %}
