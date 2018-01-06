@@ -7,26 +7,26 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 {% endblock %}
 
+{% block navbar %}
+    {% include "_navbar.html" %}
+{% endblock %}
+
+{% block body_attribs %}
+    style = "padding-top: 70px;"
+{% endblock %}
+
 {% block content %}
-    <div class="row-fluid">
-        <div class="col-xs-12 col-sm-2 col-md-3 col-lg-3">
-            <div class="row">
-                <div class="col-sm-12 col-md-4">
-                    {% block navbar %}
-                    {% endblock %}
-                </div>
-                <div class="col-md-8 hidden-xs hidden-sm">
-                    {% block left_sidebar %}
-                    {% endblock %}
-                </div>
-            </div>
+    <div class="row">
+        <div class="col-lg-2">
+            {% block sidebar_left %}
+            {% endblock %}
         </div>
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+        <div class="col-lg-8">
             {% block main %}
             {% endblock %}
         </div>
-        <div class="col-lg-2 visible-lg-block">
-            {% block right_sidebar %}
+        <div class="col-lg-2">
+            {% block sidebar_right %}
             {% endblock %}
         </div>
     </div>
