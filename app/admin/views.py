@@ -1,7 +1,8 @@
-from flask import render_template, request, current_app
+from flask import render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required
+from flask_wtf import FlaskForm
 from . import admin
-from ..models import Post
+from ..models import Post, db
 
 
 @admin.before_request
@@ -21,7 +22,7 @@ def write_post():
 
 
 @admin.route('/manage-posts')
-def manage_posts():
+def list_posts():
     action = request.args.get('action', 'list', type=str)
     if action == 'list':
         page = request.args.get('page', 1, type=int)
@@ -29,4 +30,26 @@ def manage_posts():
         pagination = Post.query.filter(Post.title.contains(keyword)).order_by(Post.timestamp.desc()).paginate(
             page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         posts = pagination.items
-        return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword)
+        form = FlaskForm()
+        return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword,
+                               form=form)
+
+
+@admin.route('/manage-posts', methods=['POST'])
+def manage_posts():
+    form = FlaskForm()
+    if form.validate_on_submit():
+        action = request.form.get('action')
+        if action == 'delete':
+            ids = request.form.getlist('id')
+            ids = [int(id) for id in ids]
+            if ids:
+                first_post_title = Post.query.filter(Post.id == ids[0]).first().title
+                for post in Post.query.filter(Post.id.in_(ids)):
+                    db.session.delete(post)
+                db.session.commit()
+                message = '已删除文章《' + first_post_title + '》'
+                if len(ids) > 1:
+                    message += '以及剩下的' + str(len(ids) - 1) + '篇文章'
+                flash(message)
+            return redirect(url_for('.list_posts'))
