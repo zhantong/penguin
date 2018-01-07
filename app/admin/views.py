@@ -1,6 +1,7 @@
-from flask import render_template
+from flask import render_template, request, current_app
 from flask_login import login_required
 from . import admin
+from ..models import Post
 
 
 @admin.before_request
@@ -21,4 +22,11 @@ def write_post():
 
 @admin.route('/manage-posts')
 def manage_posts():
-    return render_template('admin/manage-posts.html')
+    action = request.args.get('action', 'list', type=str)
+    if action == 'list':
+        page = request.args.get('page', 1, type=int)
+        keyword = request.args.get('keyword', '', type=str)
+        pagination = Post.query.filter(Post.title.contains(keyword)).order_by(Post.timestamp.desc()).paginate(
+            page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        posts = pagination.items
+        return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword)

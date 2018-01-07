@@ -10,6 +10,7 @@
     <option name="TEMPLATE_FOLDERS">
       <list>
         <option value="$MODULE_DIR$/app/templates" />
+        <option value="$MODULE_DIR$/venv/lib/python3.6/site-packages/flask_bootstrap/templates" />
       </list>
     </option>
   </component>
