@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+
+{% block title %}管理文章 - Penguin{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-table/src/bootstrap-table.css') }}">
+{% endblock %}
+
+{% block page_content %}
+    <table id="table"></table>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='bootstrap-table/src/bootstrap-table.js') }}"></script>
+    <script type="text/javascript">
+        var $table = $('#table');
+        $table.bootstrapTable({
+            ajax: ajaxRequest,
+            sidePagination: 'server',
+            pagination: true,
+            pageSize:{{ config['PENGUIN_POSTS_PER_PAGE'] }},
+            pageList: ['All'],
+            queryParamsType: 'Else',
+            columns: [
+                {
+                    checkbox: true
+                },
+                {
+                    field: 'title',
+                    title: '标题',
+                    formatter: titleFormatter
+                },
+                {
+                    field: 'author',
+                    title: '作者'
+                },
+                {
+                    field: 'timestamp',
+                    title: '日期'
+                }
+            ]
+        });
+
+        function ajaxRequest(params) {
+            $.ajax({
+                type: "GET",
+                url: "/api/posts",
+                data: {
+                    type: 'admin',
+                    page: $table.bootstrapTable("getOptions").pageNumber
+                },
+                dataType: "json",
+                success: function (data) {
+
+                    params.success({
+                        rows: data['posts'],
+                        total: data['total_post']
+                    });
+                },
+                error: function (er) {
+                    params.error(er)
+                }
+            })
+        }
+
+        function titleFormatter(value, row, index) {
+            return "<a href='" + row.url + "'>" + value + "</a>";
+        }
+
+    </script>
+{% endblock %}

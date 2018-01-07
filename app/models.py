@@ -3,6 +3,7 @@ from datetime import datetime
 import markdown2
 import re
 from flask_login import UserMixin
+from flask import url_for
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -48,6 +49,25 @@ class Post(db.Model):
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = markdown2.markdown(value)
         target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+
+    def to_json(self, type='view'):
+        json_post = {
+            'title': self.title,
+            'author': self.author.name,
+            'timestamp': self.timestamp,
+            'comment_count': self.comments.count()
+        }
+        if type == 'view':
+            json_post.update({
+                'url': url_for('main.show_post', slug=self.slug)
+            })
+        elif type == 'admin':
+            json_post.update({
+                'url': url_for('admin.write_post', id=self.id)
+            })
+        elif type == 'api':
+            pass
+        return json_post
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
