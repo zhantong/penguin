@@ -11,7 +11,8 @@ def get_posts():
         if not current_user.is_authenticated:
             return abort(401)
     page = request.args.get('page', 1, type=int)
-    pagination = Post.query.paginate(
+    search = request.args.get('search', '', type=str)
+    pagination = Post.query.filter(Post.title.contains(search)).paginate(
         page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
         error_out=False)
     posts = pagination.items

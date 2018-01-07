@@ -8,6 +8,14 @@
 {% endblock %}
 
 {% block page_content %}
+    <div id="toolbar">
+        <div class="input-group">
+            <input name="search" type="text" class="form-control" placeholder="Search for...">
+            <span class="input-group-btn">
+                <button id="submit" class="btn btn-default" type="button">搜索</button>
+            </span>
+        </div>
+    </div>
     <table id="table"></table>
 {% endblock %}
 
@@ -17,6 +25,12 @@
     <script src="{{ url_for('static', filename='bootstrap-table/src/bootstrap-table.js') }}"></script>
     <script type="text/javascript">
         var $table = $('#table');
+        var $submit = $('#submit');
+        $(function () {
+            $submit.click(function () {
+                $table.bootstrapTable('refresh')
+            })
+        });
         $table.bootstrapTable({
             ajax: ajaxRequest,
             sidePagination: 'server',
@@ -24,6 +38,7 @@
             pageSize:{{ config['PENGUIN_POSTS_PER_PAGE'] }},
             pageList: ['All'],
             queryParamsType: 'Else',
+            toolbar: "#toolbar",
             columns: [
                 {
                     checkbox: true
@@ -50,7 +65,8 @@
                 url: "/api/posts",
                 data: {
                     type: 'admin',
-                    page: $table.bootstrapTable("getOptions").pageNumber
+                    page: $table.bootstrapTable("getOptions").pageNumber,
+                    search: $('#toolbar').find('input[name="search"]').val()
                 },
                 dataType: "json",
                 success: function (data) {
