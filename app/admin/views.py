@@ -1,9 +1,11 @@
-from flask import render_template, request, current_app, flash, redirect, url_for
+from flask import render_template, request, current_app, flash, redirect, url_for, jsonify
 from flask_login import login_required
 from flask_wtf import FlaskForm
 from werkzeug.utils import secure_filename
 from . import admin
-from ..models import Post, db
+from ..models import Post, Attachment, db
+import os.path
+import uuid
 
 
 @admin.before_request
@@ -59,11 +61,34 @@ def manage_posts():
 @admin.route('/upload', methods=['POST'])
 def upload():
     if 'files[]' not in request.files:
-        flash('No file part')
-        return 'WRONG'
-
+        return jsonify({
+            'code': 1,
+            'message': '上传文件不存在'
+        })
     file = request.files['files[]']
+    if file.filename == '':
+        return jsonify({
+            'code': 2,
+            'message': '未选择上传文件'
+        })
     filename = secure_filename(file.filename)
-    print(filename)
+    if '.' not in filename \
+            or filename.rsplit('.', 1)[1].lower() not in current_app.config['ALLOWED_UPLOAD_FILE_EXTENSIONS']:
+        return jsonify({
+            'code': 3,
+            'message': '禁止上传的文件类型'
+        })
+    filename_without_extension = filename.rsplit('.', 1)[0]
+    extension = filename.rsplit('.', 1)[1]
+    filename_generated = filename_without_extension + '_' + str(uuid.uuid4()) + '.' + extension
+    save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename_generated)
+    file.save(save_path)
+    attachment = Attachment(original_filename=filename, file_path=save_path, file_type=file.mimetype)
+    db.session.add(attachment)
+    db.session.commit()
     print(request.form)
-    return 'OK'
+    return jsonify({
+        'code': 0,
+        'message': '上传成功',
+        'file_size': attachment.file_size
+    })

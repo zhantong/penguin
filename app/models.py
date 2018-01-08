@@ -4,6 +4,8 @@ import markdown2
 import re
 from flask_login import UserMixin
 from flask import url_for
+import os.path
+from .utils import md5
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -44,6 +46,7 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    attachments = db.relationship('Attachment', backref='attachment', lazy='dynamic')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -91,3 +94,23 @@ class Comment(db.Model):
 
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+
+class Attachment(db.Model):
+    __tablename__ = 'attachments'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    original_filename = db.Column(db.String(200))
+    file_path = db.Column(db.String(200))
+    file_size = db.Column(db.Integer)
+    file_type = db.Column(db.String(64))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    md5 = db.Column(db.String(32))
+
+    @staticmethod
+    def on_change_file_path(target, value, oldvalue, initiator):
+        target.file_size = os.path.getsize(value)
+        target.md5 = md5(value)
+
+
+db.event.listen(Attachment.file_path, 'set', Attachment.on_change_file_path)
