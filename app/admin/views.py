@@ -90,5 +90,6 @@ def upload():
     return jsonify({
         'code': 0,
         'message': '上传成功',
-        'file_size': attachment.file_size
+        'file_size': attachment.file_size,
+        'relative_path': filename
     })

@@ -67,7 +67,8 @@
                      style="width: 0;">
                 </div>
             </div>
-            <strong></strong>
+            <strong style="display: none;"></strong>
+            <span style="display: none;">相对链接：<mark></mark></span>
         </section>
     </div>
 {% endblock %}
@@ -111,17 +112,20 @@
                 fail: function (e, data) {
                     data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
                     data.context.find('.progress-bar').addClass('progress-bar-danger');
-                    data.context.find('strong').text('未知错误');
+                    data.context.find('strong').text('未知错误').show();
                 },
                 done: function (e, data) {
                     if (data.result['code'] === 0) {
                         data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
                         data.context.find('.progress-bar').addClass('progress-bar-success');
                         data.context.find('h5').append('<small>' + data.result['file_size'] + '</small>');
+                        data.context.find('span mark').text(data.result['relative_path'])
+                        data.context.find('span').show();
+
                     } else {
                         data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
                         data.context.find('.progress-bar').addClass('progress-bar-danger');
-                        data.context.find('strong').text(data.result['message']);
+                        data.context.find('strong').text(data.result['message']).show();
                     }
                 }
             });
