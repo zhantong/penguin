@@ -1,6 +1,7 @@
 from flask import render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required
 from flask_wtf import FlaskForm
+from werkzeug.utils import secure_filename
 from . import admin
 from ..models import Post, db
 
@@ -53,3 +54,16 @@ def manage_posts():
                     message += '以及剩下的' + str(len(ids) - 1) + '篇文章'
                 flash(message)
             return redirect(url_for('.list_posts'))
+
+
+@admin.route('/upload', methods=['POST'])
+def upload():
+    if 'files[]' not in request.files:
+        flash('No file part')
+        return 'WRONG'
+
+    file = request.files['files[]']
+    filename = secure_filename(file.filename)
+    print(filename)
+    print(request.form)
+    return 'OK'

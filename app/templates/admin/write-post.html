@@ -39,7 +39,35 @@
                     </div>
                 </div>
             </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="option-attachment-heading">
+                    <h4 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion"
+                           href="#option-attachment-collapse"
+                           aria-expanded="true" aria-controls="option-attachment-collapse">
+                            附件
+                        </a>
+                    </h4>
+                </div>
+                <div id="option-attachment-collapse" class="panel-collapse collapse in" role="tabpanel"
+                     aria-labelledby="option-attachment-heading">
+                    <div id="panel-body-upload" class="panel-body">
+                        <input id="fileupload" type="file" multiple>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+    <div id="hide-area" style="display: none;">
+        <section class="upload-item">
+            <h5>文件名</h5>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                     style="width: 0;">
+                </div>
+            </div>
+        </section>
     </div>
 {% endblock %}
 
@@ -47,8 +75,11 @@
     {{ super() }}
     <script src="{{ url_for('static', filename='editormd/editormd.min.js') }}"></script>
     <script src="{{ url_for('static', filename='laydate/laydate.js') }}"></script>
+    <script src="{{ url_for('static', filename='jQuery-File-Upload/js/vendor/jquery.ui.widget.js') }}"></script>
+    <script src="{{ url_for('static', filename='jQuery-File-Upload/js/jquery.fileupload.js') }}"></script>
     <script type="text/javascript">
         var markdownEditor;
+        var origUploadItem = $('#hide-area').find('.upload-item');
 
         $(function () {
             markdownEditor = editormd({
@@ -56,6 +87,29 @@
                 width: "100%",
                 height: 640,
                 path: "{{ url_for('static',filename='editormd/lib/') }}"
+            });
+
+            $('#fileupload').fileupload({
+                url: "{{ url_for('.upload') }}",
+                formData: {
+                    'id': 1
+                },
+                dropZone: $('#option-attachment-collapse'),
+                add: function (e, data) {
+                    console.log(data);
+                    var clonedUploadItem = $(origUploadItem).clone().show();
+                    clonedUploadItem.appendTo('#panel-body-upload');
+                    data.context = clonedUploadItem;
+                    data.submit();
+                    data.context.find('h5').text(data.files[0].name);
+                },
+                progress: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    data.context.find('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress);
+                },
+                fail: function (e, data) {
+                    console.log(data);
+                }
             });
         });
 
