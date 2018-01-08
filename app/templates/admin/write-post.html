@@ -61,12 +61,13 @@
     </div>
     <div id="hide-area" style="display: none;">
         <section class="upload-item">
-            <h5>文件名</h5>
+            <h5></h5>
             <div class="progress">
                 <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
                      style="width: 0;">
                 </div>
             </div>
+            <strong></strong>
         </section>
     </div>
 {% endblock %}
@@ -108,7 +109,20 @@
                     data.context.find('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress);
                 },
                 fail: function (e, data) {
-                    console.log(data);
+                    data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                    data.context.find('.progress-bar').addClass('progress-bar-danger');
+                    data.context.find('strong').text('未知错误');
+                },
+                done: function (e, data) {
+                    if (data.result['code'] === 0) {
+                        data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                        data.context.find('.progress-bar').addClass('progress-bar-success');
+                        data.context.find('h5').append('<small>' + data.result['file_size'] + '</small>');
+                    } else {
+                        data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                        data.context.find('.progress-bar').addClass('progress-bar-danger');
+                        data.context.find('strong').text(data.result['message']);
+                    }
                 }
             });
         });
