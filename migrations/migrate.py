@@ -15,7 +15,8 @@ def from_typecho(db_url):
     db.session.flush()
 
     for content in session.query(Content).filter_by(type='post'):
-        db.session.add(content.to_post(post_type=models.PostType.get_article()))
+        db.session.add(
+            content.to_post(post_type=models.PostType.get_article(), post_status=models.PostStatus.get_published()))
     db.session.flush()
 
     for comment in session.query(Comment):

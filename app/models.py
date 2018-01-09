@@ -188,3 +188,7 @@ class PostStatus(db.Model):
             post_status.default = (post_status.name == default_post_status)
             db.session.add(post_status)
         db.session.commit()
+
+    @staticmethod
+    def get_published():
+        return PostStatus.query.filter_by(name='已发布').first()

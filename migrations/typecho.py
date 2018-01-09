@@ -63,11 +63,12 @@ class Content(Base):
     parent = Column(Integer)
     viewsNum = Column(Integer)
 
-    def to_post(self, post_type):
+    def to_post(self, post_type, post_status):
         return models.Post(id=self.cid
                            , title=self.title
                            , slug=self.slug
                            , post_type=post_type
+                           , post_status=post_status
                            , body=self.text.replace('<!--markdown-->', '')
                            , timestamp=datetime.fromtimestamp(self.created)
                            , author_id=self.authorId
