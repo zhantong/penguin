@@ -61,7 +61,8 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     slug = db.Column(db.String(200))
-    post_type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
+    status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     body_abstract = db.Column(db.Text)
@@ -74,6 +75,8 @@ class Post(db.Model):
         super(Post, self).__init__(**kwargs)
         if self.post_type is None:
             self.post_type = PostType.query.filter_by(default=True).first()
+        if self.post_status is None:
+            self.post_status = PostStatus.query.filter_by(default=True).first()
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -152,15 +155,36 @@ class PostType(db.Model):
 
     @staticmethod
     def insert_post_types():
-        names = (('草稿', True), ('文章', False))
-        for name, is_default in names:
-            post_type = PostType.query.filter_by(name=name).first()
+        post_types = ('文章', '页面')
+        default_post_type = '文章'
+        for t in post_types:
+            post_type = PostType.query.filter_by(name=t).first()
             if post_type is None:
-                post_type = PostType(name=name)
-            post_type.default = is_default
+                post_type = PostType(name=t)
+            post_type.default = (post_type.name == default_post_type)
             db.session.add(post_type)
         db.session.commit()
 
     @staticmethod
     def get_article():
         return PostType.query.filter_by(name='文章').first()
+
+
+class PostStatus(db.Model):
+    __tablename__ = 'post_statuses'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    posts = db.relationship('Post', backref='post_status', lazy='dynamic')
+
+    @staticmethod
+    def insert_post_statuses():
+        post_statuses = ('已发布', '草稿')
+        default_post_status = '草稿'
+        for s in post_statuses:
+            post_status = PostStatus.query.filter_by(name=s).first()
+            if post_status is None:
+                post_status = PostStatus(name=s)
+            post_status.default = (post_status.name == default_post_status)
+            db.session.add(post_status)
+        db.session.commit()

@@ -1,6 +1,6 @@
 import os
 from app import create_app, db
-from app.models import PostType, Role
+from app.models import PostType, Role,PostStatus
 import click
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
@@ -12,6 +12,7 @@ def deploy():
 
     Role.insert_roles()
     PostType.insert_post_types()
+    PostStatus.insert_post_statuses()
 
 
 @app.cli.command()
