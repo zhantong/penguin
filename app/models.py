@@ -173,22 +173,23 @@ class PostType(db.Model):
 class PostStatus(db.Model):
     __tablename__ = 'post_statuses'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    key = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))
     default = db.Column(db.Boolean, default=False, index=True)
     posts = db.relationship('Post', backref='post_status', lazy='dynamic')
 
     @staticmethod
     def insert_post_statuses():
-        post_statuses = ('已发布', '草稿')
-        default_post_status = '草稿'
-        for s in post_statuses:
-            post_status = PostStatus.query.filter_by(name=s).first()
+        post_statuses = (('已发布', 'published'), ('草稿', 'draft'))
+        default_post_status_key = 'draft'
+        for name, key in post_statuses:
+            post_status = PostStatus.query.filter_by(key=key).first()
             if post_status is None:
-                post_status = PostStatus(name=s)
-            post_status.default = (post_status.name == default_post_status)
+                post_status = PostStatus(key=key, name=name)
+            post_status.default = (post_status.key == default_post_status_key)
             db.session.add(post_status)
         db.session.commit()
 
     @staticmethod
     def get_published():
-        return PostStatus.query.filter_by(name='已发布').first()
+        return PostStatus.query.filter_by(key='published').first()
