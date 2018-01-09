@@ -4,6 +4,16 @@
 {% block title %}管理文章 - Penguin{% endblock %}
 
 {% block page_content %}
+    <ul class="nav nav-tabs">
+        <li {% if selected_post_status_key == 'all' %} class="active" {% endif %}>
+            <a href="{{ url_for('.list_posts',status='all') }}">全部</a>
+        </li>
+        {% for post_status in post_statuses %}
+            <li {% if post_status.key == selected_post_status_key %} class="active" {% endif %}>
+                <a href="{{ url_for('.list_posts',status=post_status.key) }}">{{ post_status.name }}</a>
+            </li>
+        {% endfor %}
+    </ul>
     <div id="toolbar">
         <div class="row">
             <div class="col-md-2">

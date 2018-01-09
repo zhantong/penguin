@@ -3,7 +3,7 @@ from flask_login import login_required
 from flask_wtf import FlaskForm
 from werkzeug.utils import secure_filename
 from . import admin
-from ..models import Post, Attachment, db
+from ..models import Post, Attachment, db, PostStatus
 import os.path
 import uuid
 
@@ -30,12 +30,16 @@ def list_posts():
     if action == 'list':
         page = request.args.get('page', 1, type=int)
         keyword = request.args.get('keyword', '', type=str)
-        pagination = Post.query.filter(Post.title.contains(keyword)).order_by(Post.timestamp.desc()).paginate(
-            page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        status = request.args.get('status', 'all', type=str)
+        pagination = Post.query \
+            .filter(Post.title.contains(keyword)) \
+            .filter(status == 'all' or Post.post_status.has(key=status)) \
+            .order_by(Post.timestamp.desc()) \
+            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         posts = pagination.items
         form = FlaskForm()
         return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword,
-                               form=form)
+                               form=form, post_statuses=PostStatus.query.all(), selected_post_status_key=status)
 
 
 @admin.route('/manage-posts', methods=['POST'])
