@@ -60,7 +60,7 @@ class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default='')
-    slug = db.Column(db.String(200))
+    slug = db.Column(db.String(200), default='')
     type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text, default='')

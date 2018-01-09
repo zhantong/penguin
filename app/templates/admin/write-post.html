@@ -13,6 +13,12 @@
         <input name="id" type="hidden" value="{{ post.id }}">
         <div class="row">
             <div class="col-lg-8">
+                <input name="title" type="text" class="form-control" placeholder="标题" value="{{ post.title }}">
+                <div class="input-group">
+                    <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
+                    <input name="slug" type="text" class="form-control" value="{{ post.slug }}">
+                    <span class="input-group-addon">.html</span>
+                </div>
                 <div id="markdown-editor">
                     <textarea name="body" style="display:none;">{{ post.body }}</textarea>
                 </div>

@@ -39,6 +39,8 @@ def submit_post():
         action = request.form.get('action')
         if action in ['save-draft', 'publish']:
             id = request.form['id']
+            title = request.form['title']
+            slug = request.form['slug']
             body = request.form['body']
             timestamp = request.form['timestamp']
             if timestamp == '':
@@ -46,6 +48,8 @@ def submit_post():
             else:
                 timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
             post = Post.query.get(int(id))
+            post.title = title
+            post.slug = slug
             post.body = body
             post.timestamp = timestamp
             if action == 'save-draft':

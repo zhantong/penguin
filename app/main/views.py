@@ -13,6 +13,11 @@ def index():
     return render_template('index.html', posts=posts, pagination=pagination)
 
 
+@main.route('/archives/')
+def show_none_post():
+    pass
+
+
 @main.route('/archives/<slug>.html')
 def show_post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
