@@ -6,6 +6,7 @@ from . import admin
 from ..models import Post, Attachment, db, PostStatus
 import os.path
 import uuid
+from datetime import datetime
 
 
 @admin.before_request
@@ -28,7 +29,33 @@ def write_post():
         db.session.add(post)
         db.session.commit()
         db.session.flush(post)
-    return render_template('admin/write-post.html', post=post)
+    return render_template('admin/write-post.html', post=post, form=FlaskForm())
+
+
+@admin.route('/write-post', methods=['POST'])
+def submit_post():
+    form = FlaskForm()
+    if form.validate_on_submit():
+        action = request.form.get('action')
+        if action in ['save-draft', 'publish']:
+            id = request.form['id']
+            body = request.form['body']
+            timestamp = request.form['timestamp']
+            if timestamp == '':
+                timestamp = datetime.now()
+            else:
+                timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            post = Post.query.get(int(id))
+            post.body = body
+            post.timestamp = timestamp
+            if action == 'save-draft':
+                post.post_status = PostStatus.get_draft()
+                db.session.commit()
+                return redirect(url_for('.write_post', id=id))
+            elif action == 'publish':
+                post.post_status = PostStatus.get_published()
+                db.session.commit()
+                return redirect(url_for('.list_posts'))
 
 
 @admin.route('/manage-posts')

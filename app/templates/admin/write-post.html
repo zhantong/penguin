@@ -8,57 +8,63 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="row">
-        <div class="col-lg-8">
-            <div id="markdown-editor">
-                <textarea style="display:none;"></textarea>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="option-submit-heading">
-                    <h4 class="panel-title">
-                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#option-submit-collapse"
-                           aria-expanded="true" aria-controls="option-submit-collapse">
-                            发布
-                        </a>
-                    </h4>
+    <form method="post">
+        {{ form.csrf_token }}
+        <input name="id" type="hidden" value="{{ post.id }}">
+        <div class="row">
+            <div class="col-lg-8">
+                <div id="markdown-editor">
+                    <textarea name="body" style="display:none;"></textarea>
                 </div>
-                <div id="option-submit-collapse" class="panel-collapse collapse in" role="tabpanel"
-                     aria-labelledby="option-submit-heading">
-                    <div class="panel-body">
-                        <div class="form-group form-inline">
-                            <label for="submit-datetime">发布时间</label>
-                            <input type="text" class="form-control" id="submit-datetime"
-                                   placeholder="yyyy-MM-dd HH:mm:ss">
+            </div>
+            <div class="col-lg-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="option-submit-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion"
+                               href="#option-submit-collapse"
+                               aria-expanded="true" aria-controls="option-submit-collapse">
+                                发布
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="option-submit-collapse" class="panel-collapse collapse in" role="tabpanel"
+                         aria-labelledby="option-submit-heading">
+                        <div class="panel-body">
+                            <div class="form-group form-inline">
+                                <label for="submit-datetime">发布时间</label>
+                                <input id="submit-datetime" name="timestamp" type="text" class="form-control"
+                                       placeholder="yyyy-MM-dd HH:mm:ss">
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="submit" name="action" value="save-draft" class="btn btn-default">保存草稿</button>
+                            <button type="submit" name="action" value="publish" class="btn btn-primary pull-right">发布
+                            </button>
                         </div>
                     </div>
-                    <div class="panel-footer">
-                        <button type="button" class="btn btn-default">保存草稿</button>
-                        <button type="button" class="btn btn-primary pull-right">发布</button>
-                    </div>
                 </div>
-            </div>
 
-            <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="option-attachment-heading">
-                    <h4 class="panel-title">
-                        <a role="button" data-toggle="collapse" data-parent="#accordion"
-                           href="#option-attachment-collapse"
-                           aria-expanded="true" aria-controls="option-attachment-collapse">
-                            附件
-                        </a>
-                    </h4>
-                </div>
-                <div id="option-attachment-collapse" class="panel-collapse collapse in" role="tabpanel"
-                     aria-labelledby="option-attachment-heading">
-                    <div id="panel-body-upload" class="panel-body">
-                        <input id="fileupload" type="file" multiple>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="option-attachment-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion"
+                               href="#option-attachment-collapse"
+                               aria-expanded="true" aria-controls="option-attachment-collapse">
+                                附件
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="option-attachment-collapse" class="panel-collapse collapse in" role="tabpanel"
+                         aria-labelledby="option-attachment-heading">
+                        <div id="panel-body-upload" class="panel-body">
+                            <input id="fileupload" type="file" multiple>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
     <div id="hide-area" style="display: none;">
         <section class="upload-item">
             <h5></h5>
@@ -133,7 +139,8 @@
 
         laydate.render({
             elem: '#submit-datetime',
-            type: 'datetime'
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm:ss'
         });
     </script>
 {% endblock %}

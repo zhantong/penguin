@@ -193,3 +193,7 @@ class PostStatus(db.Model):
     @staticmethod
     def get_published():
         return PostStatus.query.filter_by(key='published').first()
+
+    @staticmethod
+    def get_draft():
+        return PostStatus.query.filter_by(key='draft').first()
