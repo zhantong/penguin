@@ -14,7 +14,28 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
+
+    @staticmethod
+    def insert_roles():
+        roles = ('管理员', '访客')
+        default_role = '访客'
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.default = (role.name == default_role)
+            db.session.add(role)
+        db.session.commit()
+
+    @staticmethod
+    def get_admin():
+        return Role.query.filter_by(name='管理员').first()
+
+    @staticmethod
+    def get_guest():
+        return Role.query.filter_by(name='访客').first()
 
 
 class User(UserMixin, db.Model):
@@ -40,6 +61,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     slug = db.Column(db.String(200))
+    post_type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     body_abstract = db.Column(db.Text)
@@ -47,6 +69,11 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
     attachments = db.relationship('Attachment', backref='attachment', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(Post, self).__init__(**kwargs)
+        if self.post_type is None:
+            self.post_type = PostType.query.filter_by(default=True).first()
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -114,3 +141,26 @@ class Attachment(db.Model):
 
 
 db.event.listen(Attachment.file_path, 'set', Attachment.on_change_file_path)
+
+
+class PostType(db.Model):
+    __tablename__ = 'post_types'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    posts = db.relationship('Post', backref='post_type', lazy='dynamic')
+
+    @staticmethod
+    def insert_post_types():
+        names = (('草稿', True), ('文章', False))
+        for name, is_default in names:
+            post_type = PostType.query.filter_by(name=name).first()
+            if post_type is None:
+                post_type = PostType(name=name)
+            post_type.default = is_default
+            db.session.add(post_type)
+        db.session.commit()
+
+    @staticmethod
+    def get_article():
+        return PostType.query.filter_by(name='文章').first()
