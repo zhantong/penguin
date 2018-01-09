@@ -1,5 +1,5 @@
 from flask import render_template, request, current_app, flash, redirect, url_for, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from werkzeug.utils import secure_filename
 from . import admin
@@ -21,7 +21,14 @@ def index():
 
 @admin.route('/write-post')
 def write_post():
-    return render_template('admin/write-post.html')
+    if 'id' in request.args:
+        post = Post.query.get(int(request.args['id']))
+    else:
+        post = Post(author=current_user._get_current_object())
+        db.session.add(post)
+        db.session.commit()
+        db.session.flush(post)
+    return render_template('admin/write-post.html', post=post)
 
 
 @admin.route('/manage-posts')
