@@ -132,9 +132,22 @@ def upload():
                             , file_path=relative_file_path, file_extension=extension, mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
+    db.session.flush(attachment)
     return jsonify({
         'code': 0,
         'message': '上传成功',
         'file_size': attachment.file_size,
-        'relative_path': random_filename
+        'relative_path': random_filename,
+        'delete_url': url_for('.delete_upload', id=attachment.id)
+    })
+
+
+@admin.route('/upload/<int:id>', methods=['DELETE'])
+def delete_upload(id):
+    attachment = Attachment.query.get(id)
+    db.session.delete(attachment)
+    db.session.commit()
+    return jsonify({
+        'code': 0,
+        'message': '删除成功'
     })

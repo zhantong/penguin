@@ -76,7 +76,11 @@
                                     <h5>{{ attachment.original_filename }}
                                         <small>{{ attachment.timestamp }}</small>
                                     </h5>
-                                    <span>相对链接：<mark>{{ attachment.filename }}</mark></span>
+                                    相对链接：
+                                    <mark>{{ attachment.filename }}</mark>
+                                    <button class="btn btn-danger delete" type="button"
+                                            data-url="{{ url_for('.delete_upload',id=attachment.id) }}">删除
+                                    </button>
                                 </section>
                             {% endfor %}
                         </div>
@@ -95,6 +99,9 @@
             </div>
             <strong style="display: none;"></strong>
             <span style="display: none;">相对链接：<mark></mark></span>
+            <button class="btn btn-danger delete" type="button"
+                    data-url="" style="display: none;">删除
+            </button>
         </section>
     </div>
 {% endblock %}
@@ -150,6 +157,8 @@
                         data.context.find('h5').text(data.result['file_name']).append('<small>' + data.result['file_size'] + '</small>');
                         data.context.find('span mark').text(data.result['relative_path']);
                         data.context.find('span').show();
+                        data.context.find('button').data('url', data.result['delete_url']);
+                        data.context.find('button').show();
 
                     } else {
                         data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
@@ -157,6 +166,19 @@
                         data.context.find('strong').text(data.result['message']).show();
                     }
                 }
+            });
+
+            $(document).on('click', '.upload-item button.delete', function (event) {
+                $.ajax({
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                    },
+                    type: 'DELETE',
+                    url: $(this).data('url'),
+                    success: function () {
+                        $(event.target).parents('section').remove();
+                    }
+                })
             });
         });
 
