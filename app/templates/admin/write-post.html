@@ -2,6 +2,8 @@
 
 {% block title %}撰写文章 - Penguin{% endblock %}
 
+{% block page_title %}<h1>撰写文章</h1>{% endblock %}
+
 {% block styles %}
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='editormd/css/editormd.css') }}">
@@ -13,11 +15,15 @@
         <input name="id" type="hidden" value="{{ post.id }}">
         <div class="row">
             <div class="col-lg-8">
-                <input name="title" type="text" class="form-control" placeholder="标题" value="{{ post.title }}">
-                <div class="input-group">
-                    <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
-                    <input name="slug" type="text" class="form-control" value="{{ post.slug }}">
-                    <span class="input-group-addon">.html</span>
+                <div class="form-group">
+                    <input name="title" type="text" class="form-control" placeholder="标题" value="{{ post.title }}">
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
+                        <input name="slug" type="text" class="form-control" value="{{ post.slug }}">
+                        <span class="input-group-addon">.html</span>
+                    </div>
                 </div>
                 <div id="markdown-editor">
                     <textarea name="body" style="display:none;">{{ post.body }}</textarea>
@@ -67,10 +73,10 @@
                             <input id="fileupload" type="file" multiple>
                             {% for attachment in attachments %}
                                 <section class="upload-item">
-                                    <h5>{{ attachment.filename }}
+                                    <h5>{{ attachment.original_filename }}
                                         <small>{{ attachment.timestamp }}</small>
                                     </h5>
-                                    <span>相对链接：<mark>{{ attachment.file_path }}</mark></span>
+                                    <span>相对链接：<mark>{{ attachment.filename }}</mark></span>
                                 </section>
                             {% endfor %}
                         </div>

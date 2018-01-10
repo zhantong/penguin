@@ -3,6 +3,8 @@
 
 {% block title %}管理文章 - Penguin{% endblock %}
 
+{% block page_title %}<h1>管理文章</h1>{% endblock %}
+
 {% block page_content %}
     <ul class="nav nav-tabs">
         <li {% if selected_post_status_key == 'all' %} class="active" {% endif %}>
@@ -57,7 +59,15 @@
             {% for post in posts %}
                 <tr>
                     <td><input type="checkbox" name="id" value="{{ post.id }}"></td>
-                    <td><a href="{{ url_for('.write_post',id=post.id) }}">{{ post.title }}</a></td>
+                    <td>
+                        <a href="{{ url_for('.write_post',id=post.id) }}">
+                            {% if post.title %}
+                                {{ post.title }}
+                            {% else %}
+                                （无标题）
+                            {% endif %}
+                        </a>
+                    </td>
                     <td>{{ post.author.name }}</td>
                     <td>{{ post.timestamp }}</td>
                 </tr>
