@@ -65,6 +65,14 @@
                          aria-labelledby="option-attachment-heading">
                         <div id="panel-body-upload" class="panel-body">
                             <input id="fileupload" type="file" multiple>
+                            {% for attachment in attachments %}
+                                <section class="upload-item">
+                                    <h5>{{ attachment.filename }}
+                                        <small>{{ attachment.timestamp }}</small>
+                                    </h5>
+                                    <span>相对链接：<mark>{{ attachment.file_path }}</mark></span>
+                                </section>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -106,7 +114,7 @@
             $('#fileupload').fileupload({
                 url: "{{ url_for('.upload') }}",
                 formData: {
-                    'id': 1
+                    'post_id': {{ post.id }}
                 },
                 dropZone: $('#option-attachment-collapse'),
                 add: function (e, data) {
@@ -130,8 +138,8 @@
                     if (data.result['code'] === 0) {
                         data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
                         data.context.find('.progress-bar').addClass('progress-bar-success');
-                        data.context.find('h5').append('<small>' + data.result['file_size'] + '</small>');
-                        data.context.find('span mark').text(data.result['relative_path'])
+                        data.context.find('h5').text(data.result['file_name']).append('<small>' + data.result['file_size'] + '</small>');
+                        data.context.find('span mark').text(data.result['relative_path']);
                         data.context.find('span').show();
 
                     } else {

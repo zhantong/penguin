@@ -29,7 +29,8 @@ def write_post():
         db.session.add(post)
         db.session.commit()
         db.session.flush(post)
-    return render_template('admin/write-post.html', post=post, form=FlaskForm())
+    attachments = Attachment.query.filter_by(post_id=post.id).all()
+    return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments)
 
 
 @admin.route('/write-post', methods=['POST'])
@@ -113,25 +114,27 @@ def upload():
             'code': 2,
             'message': '未选择上传文件'
         })
-    filename = secure_filename(file.filename)
+    filename = file.filename
     if '.' not in filename \
             or filename.rsplit('.', 1)[1].lower() not in current_app.config['ALLOWED_UPLOAD_FILE_EXTENSIONS']:
         return jsonify({
             'code': 3,
             'message': '禁止上传的文件类型'
         })
-    filename_without_extension = filename.rsplit('.', 1)[0]
-    extension = filename.rsplit('.', 1)[1]
-    filename_generated = filename_without_extension + '_' + str(uuid.uuid4()) + '.' + extension
-    save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename_generated)
-    file.save(save_path)
-    attachment = Attachment(original_filename=filename, file_path=save_path, file_type=file.mimetype)
+    post_id = request.form['post_id']
+    extension = filename.rsplit('.', 1)[1].lower()
+    random_filename = uuid.uuid4().hex + '.' + extension
+    relative_file_path = os.path.join(str(datetime.today().year), '%02d' % datetime.today().month, random_filename)
+    abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
+    os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+    file.save(abs_file_path)
+    attachment = Attachment(post_id=post_id, original_filename=filename, filename=random_filename
+                            , file_path=relative_file_path, file_extension=extension, mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
-    print(request.form)
     return jsonify({
         'code': 0,
         'message': '上传成功',
         'file_size': attachment.file_size,
-        'relative_path': filename
+        'relative_path': random_filename
     })
