@@ -145,8 +145,14 @@ class Attachment(db.Model):
         target.file_size = os.path.getsize(abs_file_path)
         target.md5 = md5(abs_file_path)
 
+    @staticmethod
+    def after_delete(mapper, connection, target):
+        abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], target.file_path)
+        os.remove(abs_file_path)
+
 
 db.event.listen(Attachment.file_path, 'set', Attachment.on_change_file_path)
+db.event.listen(Attachment, 'after_delete', Attachment.after_delete)
 
 
 class PostType(db.Model):
