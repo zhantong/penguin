@@ -118,6 +118,9 @@
             });
 
             $('#fileupload').fileupload({
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                },
                 url: "{{ url_for('.upload') }}",
                 formData: {
                     'post_id': {{ post.id }}
