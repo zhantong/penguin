@@ -2,6 +2,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Text
 from app import models
 from datetime import datetime
+import phpserialize
+import os.path
+import os
+import uuid
+from flask import current_app
+import shutil
 
 Base = declarative_base()
 
@@ -73,6 +79,37 @@ class Content(Base):
                            , timestamp=datetime.fromtimestamp(self.created)
                            , author_id=self.authorId
                            )
+
+    def to_attachment(self, upload_parent_directory_path):
+        def parse_meta(raw):
+            result = {}
+            for key, value in phpserialize.loads(bytes(raw, 'utf-8')).items():
+                if type(key) is bytes:
+                    key = key.decode('utf-8')
+                if type(value) is bytes:
+                    value = value.decode('utf-8')
+                result[key] = value
+            return result
+
+        meta = parse_meta(self.text)
+        original_filename = self.title
+        original_relative_file_path = meta['path']
+        original_abs_file_path = os.path.join(upload_parent_directory_path, original_relative_file_path[1:])
+        extension = original_filename.rsplit('.', 1)[1].lower()
+        filename = uuid.uuid4().hex + '.' + extension
+        timestamp = datetime.fromtimestamp(self.created)
+        relative_file_path = os.path.join(str(timestamp.year), '%02d' % timestamp.month, filename)
+        abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
+        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+        shutil.copyfile(original_abs_file_path, abs_file_path)
+        post = models.Post.query.get(self.parent)
+        if post is not None:
+            post.body = post.body.replace(original_relative_file_path, filename)
+        else:
+            print('a attachment (id = ' + str(self.cid) + ') has no corresponding post (id = ' + str(self.parent) + ')')
+        return models.Attachment(post_id=self.parent, original_filename=original_filename, filename=filename,
+                                 file_path=relative_file_path, file_extension=extension, mime=meta['mime'],
+                                 timestamp=timestamp)
 
 
 class Meta(Base):

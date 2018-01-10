@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from app import db, models
 
 
-def from_typecho(db_url):
+def from_typecho(db_url, upload_parent_directory_path):
     engine = create_engine(db_url)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -28,6 +28,12 @@ def from_typecho(db_url):
         else:
             user = models.User.query.get(comment.authorId)
         db.session.add(comment.to_comment(author=user))
+    db.session.flush()
+
+    for content in session.query(Content).filter_by(type='attachment'):
+        attachment = content.to_attachment(upload_parent_directory_path=upload_parent_directory_path)
+        db.session.add(attachment)
+        db.session.flush()
     db.session.flush()
     session.close()
     db.session.commit()
