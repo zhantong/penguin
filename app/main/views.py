@@ -1,6 +1,6 @@
-from flask import render_template, request, current_app
+from flask import render_template, request, current_app, send_from_directory
 from . import main
-from ..models import Post, Comment
+from ..models import Post, Comment, Attachment
 from ..utils import format_comments
 
 
@@ -18,9 +18,16 @@ def show_none_post():
     pass
 
 
-@main.route('/archives/<slug>.html')
+@main.route('/archives/<string:slug>.html')
 def show_post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
     comments = Comment.query.filter_by(post_id=post.id).order_by(Comment.timestamp.desc()).all()
     comments = format_comments(comments)
     return render_template('post.html', post=post, comments=comments)
+
+
+@main.route('/archives/<string:filename>')
+def show_attachment(filename):
+    attachment = Attachment.query.filter_by(filename=filename).first()
+    path = attachment.file_path
+    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
