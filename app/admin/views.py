@@ -66,15 +66,15 @@ def submit_post():
 def list_posts():
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('keyword', '', type=str)
-    category = request.args.get('category', 'all', type=str)
-    tag = request.args.get('tag', 'all', type=str)
-    status = request.args.get('status', 'all', type=str)
+    category = request.args.get('category', '', type=str)
+    tag = request.args.get('tag', '', type=str)
+    status = request.args.get('status', '', type=str)
     query = Post.query.filter(Post.title.contains(keyword))
-    if category != 'all':
+    if category != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == category and Meta.type == 'category')
-    if status != 'all':
+    if status != '':
         query = query.filter(Post.post_status.has(key=status))
-    if tag != 'all':
+    if tag != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == tag and Meta.type == 'tag')
     query = query.order_by(Post.timestamp.desc())
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
@@ -82,14 +82,15 @@ def list_posts():
     form = FlaskForm()
     return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword
                            , category=category, tag=tag, form=form, post_statuses=PostStatus.query.all()
-                           , selected_post_status_key=status)
+                           , selected_post_status_key=status
+                           , categories=Meta.query.filter_by(type='category').order_by(Meta.value).all())
 
 
 @admin.route('/manage-posts', methods=['POST'])
 def manage_posts():
     form = FlaskForm()
     if form.validate_on_submit():
-        action = request.form.get('action')
+        action = request.form.get('action', '', type=str)
         if action == 'delete':
             ids = request.form.getlist('id')
             ids = [int(id) for id in ids]
@@ -102,7 +103,7 @@ def manage_posts():
                 if len(ids) > 1:
                     message += '以及剩下的' + str(len(ids) - 1) + '篇文章'
                 flash(message)
-            return redirect(url_for('.list_posts'))
+    return redirect(url_for('.list_posts'))
 
 
 @admin.route('/upload', methods=['POST'])
