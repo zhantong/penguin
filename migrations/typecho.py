@@ -111,6 +111,9 @@ class Content(Base):
                                  file_path=relative_file_path, file_extension=extension, mime=meta['mime'],
                                  timestamp=timestamp)
 
+    def to_post_meta(self, meta):
+        return models.PostMeta(post_id=self.cid, meta=meta)
+
 
 class Meta(Base):
     __tablename__ = 'typecho_metas'
@@ -122,6 +125,9 @@ class Meta(Base):
     count = Column(Integer)
     order = Column(Integer)
     parent = Column(Integer)
+
+    def to_meta_category(self):
+        return models.Meta(key=self.slug, value=self.name, type='category', description=self.description)
 
 
 class Option(Base):

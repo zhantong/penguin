@@ -8,7 +8,7 @@ def from_typecho(db_url, upload_parent_directory_path):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    from .typecho import User, Content, Comment
+    from .typecho import User, Content, Comment, Meta, Relationship
 
     for user in session.query(User).filter_by(group='administrator'):
         db.session.add(user.to_user(role=models.Role.get_admin()))
@@ -35,5 +35,18 @@ def from_typecho(db_url, upload_parent_directory_path):
         db.session.add(attachment)
         db.session.flush()
     db.session.flush()
+
+    for meta in session.query(Meta).filter_by(type='category'):
+        meta_category = meta.to_meta_category()
+        db.session.add(meta_category)
+        db.session.flush()
+        db.session.refresh(meta_category)
+        for content in session.query(Content) \
+                .filter(Content.cid == Relationship.cid) \
+                .filter(Relationship.mid == meta.mid):
+            post_meta = content.to_post_meta(meta_category)
+            db.session.add(post_meta)
+    db.session.flush()
+
     session.close()
     db.session.commit()
