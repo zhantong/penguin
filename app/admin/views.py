@@ -170,6 +170,24 @@ def list_categories():
     return render_template('admin/manage-categories.html', categories=categories, pagination=pagination, form=form)
 
 
+@admin.route('/manage-categories', methods=['POST'])
+def manage_categories():
+    action = request.form.get('action', '', type=str)
+    if action == 'delete':
+        ids = request.form.getlist('id')
+        ids = [int(id) for id in ids]
+        if ids:
+            first_category_name = Meta.query.get(ids[0]).value
+            for category in Meta.query.filter(Meta.id.in_(ids)):
+                db.session.delete(category)
+            db.session.commit()
+            message = '已删除分类"' + first_category_name + '"'
+            if len(ids) > 1:
+                message += '以及剩下的' + str(len(ids) - 1) + '种分类'
+            flash(message)
+    return redirect(url_for('.list_categories'))
+
+
 @admin.route('/edit-category')
 def show_category():
     id = request.args.get('id', type=int)
@@ -207,6 +225,24 @@ def list_tags():
     tags = pagination.items
     form = FlaskForm()
     return render_template('admin/manage-tags.html', tags=tags, pagination=pagination, form=form)
+
+
+@admin.route('/manage-tags', methods=['POST'])
+def manage_tags():
+    action = request.form.get('action', '', type=str)
+    if action == 'delete':
+        ids = request.form.getlist('id')
+        ids = [int(id) for id in ids]
+        if ids:
+            first_tag_name = Meta.query.get(ids[0]).value
+            for tag in Meta.query.filter(Meta.id.in_(ids)):
+                db.session.delete(tag)
+            db.session.commit()
+            message = '已删除标签"' + first_tag_name + '"'
+            if len(ids) > 1:
+                message += '以及剩下的' + str(len(ids) - 1) + '个标签'
+            flash(message)
+    return redirect(url_for('.list_tags'))
 
 
 @admin.route('/edit-tag')
