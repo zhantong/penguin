@@ -162,3 +162,30 @@ def list_categories():
     categories = pagination.items
     form = FlaskForm()
     return render_template('admin/manage-categories.html', categories=categories, pagination=pagination, form=form)
+
+
+@admin.route('/edit-category')
+def show_category():
+    id = request.args.get('id', type=int)
+    if id is None:
+        category = Meta()
+    else:
+        category = Meta.query.get(id)
+    return render_template('admin/edit-category.html', category=category)
+
+
+@admin.route('/edit-category', methods=['POST'])
+def manage_category():
+    id = request.form.get('id', type=int)
+    if id is None:
+        category = Meta()
+        category.type = 'category'
+    else:
+        category = Meta.query.get(id)
+    category.key = request.form['key']
+    category.value = request.form['value']
+    category.description = request.form['description']
+    if category.id is None:
+        db.session.add(category)
+    db.session.commit()
+    return redirect(url_for('.list_categories'))

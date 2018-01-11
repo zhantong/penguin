@@ -39,7 +39,11 @@
             {% for category in categories %}
                 <tr>
                     <td><input type="checkbox" name="id" value="{{ category.id }}"></td>
-                    <td>{{ category.value }}</td>
+                    <td>
+                        <a href="{{ url_for('.show_category',id=category.id) }}">
+                            {{ category.value }}
+                        </a>
+                    </td>
                     <td>{{ category.key }}</td>
                     <td>{{ category.post_metas.count() }}</td>
                 </tr>

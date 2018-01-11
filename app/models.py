@@ -221,10 +221,10 @@ class PostStatus(db.Model):
 class Meta(db.Model):
     __tablename__ = 'metas'
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(200))
-    value = db.Column(db.String(400))
+    key = db.Column(db.String(200), default='')
+    value = db.Column(db.String(400), default='')
     type = db.Column(db.String(200))
-    description = db.Column(db.Text)
+    description = db.Column(db.Text, default='')
     post_metas = db.relationship('PostMeta', backref='meta', lazy='dynamic')
 
 
