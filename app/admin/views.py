@@ -1,9 +1,8 @@
 from flask import render_template, request, current_app, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
-from werkzeug.utils import secure_filename
 from . import admin
-from ..models import Post, Attachment, db, PostStatus
+from ..models import Post, Attachment, db, PostStatus, Meta
 import os.path
 import uuid
 from datetime import datetime
@@ -28,7 +27,7 @@ def write_post():
         post = Post(author=current_user._get_current_object())
         db.session.add(post)
         db.session.commit()
-        db.session.flush(post)
+        db.session.refresh(post)
     attachments = Attachment.query.filter_by(post_id=post.id).all()
     return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments)
 
@@ -132,7 +131,7 @@ def upload():
                             , file_path=relative_file_path, file_extension=extension, mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
-    db.session.flush(attachment)
+    db.session.refresh(attachment)
     return jsonify({
         'code': 0,
         'message': '上传成功',
@@ -151,3 +150,15 @@ def delete_upload(id):
         'code': 0,
         'message': '删除成功'
     })
+
+
+@admin.route('/manage-categories')
+def list_categories():
+    page = request.args.get('page', 1, type=int)
+    pagination = Meta.query \
+        .filter_by(type='category') \
+        .order_by(Meta.value) \
+        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    categories = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-categories.html', categories=categories, pagination=pagination, form=form)

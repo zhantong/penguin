@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="nav-post-heading">
         <h4 class="panel-title">
-            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#nav-post-collapse"
+            <a role="button" data-toggle="collapse" href="#nav-post-collapse"
                aria-expanded="true" aria-controls="nav-post-collapse">
                 文章
             </a>
@@ -12,6 +12,21 @@
         <ul class="list-group">
             <li class="list-group-item"><a href="{{ url_for('.write_post') }}">撰写文章</a></li>
             <li class="list-group-item"><a href="{{ url_for('.list_posts') }}">管理文章</a></li>
+        </ul>
+    </div>
+
+    <div class="panel-heading" role="tab" id="nav-category-heading">
+        <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" href="#nav-category-collapse"
+               aria-expanded="true" aria-controls="nav-category-collapse">
+                分类
+            </a>
+        </h4>
+    </div>
+    <div id="nav-category-collapse" class="panel-collapse collapse in" role="tabpanel"
+         aria-labelledby="nav-category-heading">
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{{ url_for('.list_categories') }}">管理分类</a></li>
         </ul>
     </div>
 </div>
