@@ -129,6 +129,9 @@ class Meta(Base):
     def to_meta_category(self):
         return models.Meta(key=self.slug, value=self.name, type='category', description=self.description)
 
+    def to_meta_tag(self):
+        return models.Meta(key=self.slug, value=self.name, type='tag', description=self.description)
+
 
 class Option(Base):
     __tablename__ = 'typecho_options'
