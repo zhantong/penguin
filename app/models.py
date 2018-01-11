@@ -70,6 +70,11 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
     attachments = db.relationship('Attachment', backref='post', lazy='dynamic')
+    categories = db.relationship('PostMeta',
+                                 primaryjoin="and_(Post.id==PostMeta.post_id, "
+                                             "PostMeta.meta_id==Meta.id, "
+                                             "Meta.type=='category')",
+                                 backref='post', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -206,3 +211,24 @@ class PostStatus(db.Model):
     @staticmethod
     def get_draft():
         return PostStatus.query.filter_by(key='draft').first()
+
+
+class Meta(db.Model):
+    __tablename__ = 'metas'
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(200))
+    value = db.Column(db.String(400))
+    type = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    post_metas = db.relationship('PostMeta', backref='meta', lazy='dynamic')
+
+
+class PostMeta(db.Model):
+    __tablename__ = 'post_metas'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    key = db.Column(db.String(200))
+    value = db.Column(db.String(400))
+    description = db.Column(db.Text)
+    meta_id = db.Column(db.Integer, db.ForeignKey('metas.id'))
+    order = db.Column(db.Integer, default=0)
