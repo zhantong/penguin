@@ -189,3 +189,41 @@ def manage_category():
         db.session.add(category)
     db.session.commit()
     return redirect(url_for('.list_categories'))
+
+
+@admin.route('/manage-tags')
+def list_tags():
+    page = request.args.get('page', 1, type=int)
+    pagination = Meta.query \
+        .filter_by(type='tag') \
+        .order_by(Meta.value) \
+        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    tags = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-tags.html', tags=tags, pagination=pagination, form=form)
+
+
+@admin.route('/edit-tag')
+def show_tag():
+    id = request.args.get('id', type=int)
+    tag = None
+    if id is not None:
+        tag = Meta.query.get(id)
+    return render_template('admin/edit-tag.html', tag=tag)
+
+
+@admin.route('/edit-tag', methods=['POST'])
+def manage_tag():
+    id = request.form.get('id', type=int)
+    if id is None:
+        tag = Meta()
+        tag.type = 'tag'
+    else:
+        tag = Meta.query.get(id)
+    tag.key = request.form['key']
+    tag.value = request.form['value']
+    tag.description = request.form['description']
+    if tag.id is None:
+        db.session.add(tag)
+    db.session.commit()
+    return redirect(url_for('.list_tags'))
