@@ -52,6 +52,8 @@
                 <th><input id="selectAll" type="checkbox"></th>
                 <th>标题</th>
                 <th>作者</th>
+                <th>分类</th>
+                <th>标签</th>
                 <th>时间</th>
             </tr>
             </thead>
@@ -69,6 +71,22 @@
                         </a>
                     </td>
                     <td>{{ post.author.name }}</td>
+                    <td>
+                        {% for meta_category in post.categories.all() %}
+                            <a href="{{ url_for('.list_posts',category=meta_category.meta.key) }}">
+                                {{ meta_category.meta.value }}
+                            </a>
+                            {{ ', ' if not loop.last }}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for meta_tag in post.tags.all() %}
+                            <a href="{{ url_for('.list_posts',tag=meta_tag.meta.key) }}">
+                                {{ meta_tag.meta.value }}
+                            </a>
+                            {{ ', ' if not loop.last }}
+                        {% endfor %}
+                    </td>
                     <td>{{ post.timestamp }}</td>
                 </tr>
             {% endfor %}
@@ -78,7 +96,7 @@
     </form>
     {% if pagination %}
         <div class="text-right">
-            {{ macros.pagination_widget(pagination, '.list_posts',action='list',keyword=keyword) }}
+            {{ macros.pagination_widget(pagination, '.list_posts' , keyword=keyword, category=category, tag=tag) }}
         </div>
     {% endif %}
 {% endblock %}

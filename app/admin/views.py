@@ -2,7 +2,7 @@ from flask import render_template, request, current_app, flash, redirect, url_fo
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from . import admin
-from ..models import Post, Attachment, db, PostStatus, Meta
+from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta
 import os.path
 import uuid
 from datetime import datetime
@@ -64,20 +64,25 @@ def submit_post():
 
 @admin.route('/manage-posts')
 def list_posts():
-    action = request.args.get('action', 'list', type=str)
-    if action == 'list':
-        page = request.args.get('page', 1, type=int)
-        keyword = request.args.get('keyword', '', type=str)
-        status = request.args.get('status', 'all', type=str)
-        pagination = Post.query \
-            .filter(Post.title.contains(keyword)) \
-            .filter(status == 'all' or Post.post_status.has(key=status)) \
-            .order_by(Post.timestamp.desc()) \
-            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-        posts = pagination.items
-        form = FlaskForm()
-        return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword,
-                               form=form, post_statuses=PostStatus.query.all(), selected_post_status_key=status)
+    page = request.args.get('page', 1, type=int)
+    keyword = request.args.get('keyword', '', type=str)
+    category = request.args.get('category', 'all', type=str)
+    tag = request.args.get('tag', 'all', type=str)
+    status = request.args.get('status', 'all', type=str)
+    query = Post.query.filter(Post.title.contains(keyword))
+    if category != 'all':
+        query = query.join(PostMeta, Meta).filter(Meta.key == category and Meta.type == 'category')
+    if status != 'all':
+        query = query.filter(Post.post_status.has(key=status))
+    if tag != 'all':
+        query = query.join(PostMeta, Meta).filter(Meta.key == tag and Meta.type == 'tag')
+    query = query.order_by(Post.timestamp.desc())
+    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword
+                           , category=category, tag=tag, form=form, post_statuses=PostStatus.query.all()
+                           , selected_post_status_key=status)
 
 
 @admin.route('/manage-posts', methods=['POST'])

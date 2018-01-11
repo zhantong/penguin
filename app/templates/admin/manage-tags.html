@@ -45,7 +45,11 @@
                         </a>
                     </td>
                     <td>{{ tag.key }}</td>
-                    <td>{{ tag.post_metas.count() }}</td>
+                    <td>
+                        <a href="{{ url_for('.list_posts',tag=tag.key) }}">
+                            {{ tag.post_metas.count() }}
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
