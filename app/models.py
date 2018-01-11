@@ -74,7 +74,7 @@ class Post(db.Model):
                                  primaryjoin="and_(Post.id==PostMeta.post_id, "
                                              "PostMeta.meta_id==Meta.id, "
                                              "Meta.type=='category')",
-                                 backref='category_post', lazy='dynamic')
+                                 backref='category_post', lazy='dynamic', cascade="all, delete-orphan")
     tags = db.relationship('PostMeta',
                            primaryjoin="and_(Post.id==PostMeta.post_id, "
                                        "PostMeta.meta_id==Meta.id, "

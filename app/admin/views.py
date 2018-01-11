@@ -29,7 +29,9 @@ def write_post():
         db.session.commit()
         db.session.refresh(post)
     attachments = Attachment.query.filter_by(post_id=post.id).all()
-    return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments)
+    return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments
+                           , all_categories=Meta.query.filter_by(type='category').order_by(Meta.value).all()
+                           , category_ids=[p.meta_id for p in post.categories.all()])
 
 
 @admin.route('/write-post', methods=['POST'])
@@ -43,6 +45,7 @@ def submit_post():
             slug = request.form['slug']
             body = request.form['body']
             timestamp = request.form['timestamp']
+            category_ids = request.form.getlist('category-id')
             if timestamp == '':
                 timestamp = datetime.now()
             else:
@@ -52,6 +55,7 @@ def submit_post():
             post.slug = slug
             post.body = body
             post.timestamp = timestamp
+            post.categories = [PostMeta(category_post=post, meta_id=category_id) for category_id in category_ids]
             if action == 'save-draft':
                 post.post_status = PostStatus.get_draft()
                 db.session.commit()
