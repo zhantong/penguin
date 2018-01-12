@@ -31,7 +31,9 @@ def write_post():
     attachments = Attachment.query.filter_by(post_id=post.id).all()
     return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments
                            , all_categories=Meta.query.filter_by(type='category').order_by(Meta.value).all()
-                           , category_ids=[p.meta_id for p in post.categories.all()])
+                           , category_ids=[p.meta_id for p in post.categories.all()]
+                           , all_tags=Meta.query.filter_by(type='tag').order_by(Meta.value).all(),
+                           tags=[p.meta.value for p in post.tags.all()])
 
 
 @admin.route('/write-post', methods=['POST'])
@@ -46,6 +48,7 @@ def submit_post():
             body = request.form['body']
             timestamp = request.form['timestamp']
             category_ids = request.form.getlist('category-id')
+            tag_names = request.form.getlist('tag')
             if timestamp == '':
                 timestamp = datetime.now()
             else:
@@ -56,6 +59,17 @@ def submit_post():
             post.body = body
             post.timestamp = timestamp
             post.categories = [PostMeta(category_post=post, meta_id=category_id) for category_id in category_ids]
+            post_meta_tags = []
+            for tag_name in tag_names:
+                tag = Meta.query.filter_by(type='tag', value=tag_name).first()
+                if tag is None:
+                    tag = Meta(key=tag_name, value=tag_name, type='tag')
+                    db.session.add(tag)
+                    db.session.flush()
+                    db.session.refresh(tag)
+                post_meta_tag = PostMeta(tag_post=post, meta=tag)
+                post_meta_tags.append(post_meta_tag)
+            post.tags = post_meta_tags
             if action == 'save-draft':
                 post.post_status = PostStatus.get_draft()
                 db.session.commit()

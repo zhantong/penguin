@@ -112,6 +112,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="option-tag-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion"
+                               href="#option-tag-collapse"
+                               aria-expanded="true" aria-controls="option-tag-collapse">
+                                标签
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="option-tag-collapse" class="panel-collapse collapse in" role="tabpanel"
+                         aria-labelledby="option-tag-heading">
+                        <div class="panel-body">
+                            <div class="input-group">
+                                <input list="tags" type="text" class="form-control" placeholder="标签">
+                                <span class="input-group-btn">
+                                    <button id="add-tag" class="btn btn-default" type="button">添加</button>
+                                </span>
+                            </div>
+
+                            <datalist id="tags">
+                                {% for tag in all_tags %}
+                                    <option value="{{ tag.value }}"></option>
+                                {% endfor %}
+                            </datalist>
+
+                            <ul id="tag-list" class="list-group"></ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
@@ -141,7 +172,8 @@
     <script type="text/javascript">
         var markdownEditor;
         var origUploadItem = $('#hide-area').find('.upload-item');
-
+        var $btnAddTag = $('#add-tag');
+        var $ulTagList = $('#tag-list');
         $(function () {
             markdownEditor = editormd({
                 id: "markdown-editor",
@@ -194,6 +226,13 @@
                 }
             });
 
+            laydate.render({
+                elem: '#submit-datetime',
+                type: 'datetime',
+                value: '{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+
             $(document).on('click', '.upload-item button.delete', function (event) {
                 $.ajax({
                     beforeSend: function (xhr, settings) {
@@ -206,13 +245,24 @@
                     }
                 })
             });
+
+            $btnAddTag.click(function () {
+                addTag($(this).parent().prev('input').val());
+            });
+
+            $ulTagList.on('click', 'li a', function (event) {
+                event.preventDefault();
+                $(this).parent().remove();
+            });
+
+            var tagNames ={{ tags | tojson }};
+            tagNames.forEach(function (tagName) {
+                addTag(tagName);
+            })
         });
 
-        laydate.render({
-            elem: '#submit-datetime',
-            type: 'datetime',
-            value: '{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}',
-            format: 'yyyy-MM-dd HH:mm:ss'
-        });
+        function addTag(tagName) {
+            $ulTagList.append('<li class="list-group-item"><a href="#"><span class="glyphicon glyphicon-remove"></span></a> ' + tagName + '<input name="tag" type="hidden" value="' + tagName + '"></li>')
+        }
     </script>
 {% endblock %}

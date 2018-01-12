@@ -79,7 +79,7 @@ class Post(db.Model):
                            primaryjoin="and_(Post.id==PostMeta.post_id, "
                                        "PostMeta.meta_id==Meta.id, "
                                        "Meta.type=='tag')",
-                           backref='tag_post', lazy='dynamic')
+                           backref='tag_post', lazy='dynamic', cascade="all, delete-orphan")
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
