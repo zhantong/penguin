@@ -188,6 +188,10 @@ class PostType(db.Model):
     def get_article():
         return PostType.query.filter_by(name='文章').first()
 
+    @staticmethod
+    def get_page():
+        return PostType.query.filter_by(name='页面').first()
+
 
 class PostStatus(db.Model):
     __tablename__ = 'post_statuses'

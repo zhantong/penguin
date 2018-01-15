@@ -19,6 +19,11 @@ def from_typecho(db_url, upload_parent_directory_path):
             content.to_post(post_type=models.PostType.get_article(), post_status=models.PostStatus.get_published()))
     db.session.flush()
 
+    for content in session.query(Content).filter_by(type='page'):
+        db.session.add(
+            content.to_post(post_type=models.PostType.get_page(), post_status=models.PostStatus.get_published()))
+    db.session.flush()
+
     for comment in session.query(Comment):
         if comment.authorId == 0:
             user = comment.to_user(role=models.Role.get_guest())
