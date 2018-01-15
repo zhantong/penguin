@@ -8,11 +8,11 @@
 {% block page_content %}
     <ul class="nav nav-tabs">
         <li {% if selected_post_status_key == 'all' %} class="active" {% endif %}>
-            <a href="{{ url_for('.list_posts',status='all') }}">全部</a>
+            <a href="{{ url_for('.list_articles',status='all') }}">全部</a>
         </li>
         {% for post_status in post_statuses %}
             <li {% if post_status.key == selected_post_status_key %} class="active" {% endif %}>
-                <a href="{{ url_for('.list_posts',status=post_status.key) }}">{{ post_status.name }}</a>
+                <a href="{{ url_for('.list_articles',status=post_status.key) }}">{{ post_status.name }}</a>
             </li>
         {% endfor %}
     </ul>
@@ -69,7 +69,7 @@
                 <tr>
                     <td><input type="checkbox" name="id" value="{{ post.id }}"></td>
                     <td>
-                        <a href="{{ url_for('.write_post',id=post.id) }}">
+                        <a href="{{ url_for('.edit_article',id=post.id) }}">
                             {% if post.title %}
                                 {{ post.title }}
                             {% else %}
@@ -80,7 +80,7 @@
                     <td>{{ post.author.name }}</td>
                     <td>
                         {% for meta_category in post.categories.all() %}
-                            <a href="{{ url_for('.list_posts',category=meta_category.meta.key) }}">
+                            <a href="{{ url_for('.list_articles',category=meta_category.meta.key) }}">
                                 {{ meta_category.meta.value }}
                             </a>
                             {{ ', ' if not loop.last }}
@@ -88,7 +88,7 @@
                     </td>
                     <td>
                         {% for meta_tag in post.tags.all() %}
-                            <a href="{{ url_for('.list_posts',tag=meta_tag.meta.key) }}">
+                            <a href="{{ url_for('.list_articles',tag=meta_tag.meta.key) }}">
                                 {{ meta_tag.meta.value }}
                             </a>
                             {{ ', ' if not loop.last }}
@@ -103,7 +103,7 @@
     </form>
     {% if pagination %}
         <div class="text-right">
-            {{ macros.pagination_widget(pagination, '.list_posts' , keyword=keyword, category=category, tag=tag) }}
+            {{ macros.pagination_widget(pagination, '.list_articles' , keyword=keyword, category=category, tag=tag) }}
         </div>
     {% endif %}
 {% endblock %}

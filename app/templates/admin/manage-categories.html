@@ -46,7 +46,7 @@
                     </td>
                     <td>{{ category.key }}</td>
                     <td>
-                        <a href="{{ url_for('.list_posts',category=category.key) }}">
+                        <a href="{{ url_for('.list_articles',category=category.key) }}">
                             {{ category.post_metas.count() }}
                         </a>
                     </td>

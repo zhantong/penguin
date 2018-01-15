@@ -19,8 +19,8 @@ def index():
     return render_template('admin/index.html')
 
 
-@admin.route('/write-post')
-def write_post():
+@admin.route('/edit-article')
+def edit_article():
     if 'id' in request.args:
         post = Post.query.get(int(request.args['id']))
     else:
@@ -29,15 +29,15 @@ def write_post():
         db.session.commit()
         db.session.refresh(post)
     attachments = Attachment.query.filter_by(post_id=post.id).all()
-    return render_template('admin/write-post.html', post=post, form=FlaskForm(), attachments=attachments
+    return render_template('admin/edit-article.html', post=post, form=FlaskForm(), attachments=attachments
                            , all_categories=Meta.query.filter_by(type='category').order_by(Meta.value).all()
                            , category_ids=[p.meta_id for p in post.categories.all()]
                            , all_tags=Meta.query.filter_by(type='tag').order_by(Meta.value).all(),
                            tags=[p.meta.value for p in post.tags.all()])
 
 
-@admin.route('/write-post', methods=['POST'])
-def submit_post():
+@admin.route('/edit-article', methods=['POST'])
+def submit_article():
     form = FlaskForm()
     if form.validate_on_submit():
         action = request.form.get('action')
@@ -73,15 +73,15 @@ def submit_post():
             if action == 'save-draft':
                 post.post_status = PostStatus.get_draft()
                 db.session.commit()
-                return redirect(url_for('.write_post', id=id))
+                return redirect(url_for('.edit_article', id=id))
             elif action == 'publish':
                 post.post_status = PostStatus.get_published()
                 db.session.commit()
-                return redirect(url_for('.list_posts'))
+                return redirect(url_for('.list_articles'))
 
 
-@admin.route('/manage-posts')
-def list_posts():
+@admin.route('/manage-articles')
+def list_articles():
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('keyword', '', type=str)
     category = request.args.get('category', '', type=str)
@@ -98,14 +98,14 @@ def list_posts():
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
     form = FlaskForm()
-    return render_template('admin/manage-posts.html', posts=posts, pagination=pagination, keyword=keyword
+    return render_template('admin/manage-articles.html', posts=posts, pagination=pagination, keyword=keyword
                            , category=category, tag=tag, form=form, post_statuses=PostStatus.query.all()
                            , selected_post_status_key=status
                            , categories=Meta.query.filter_by(type='category').order_by(Meta.value).all())
 
 
-@admin.route('/manage-posts', methods=['POST'])
-def manage_posts():
+@admin.route('/manage-articles', methods=['POST'])
+def manage_articles():
     form = FlaskForm()
     if form.validate_on_submit():
         action = request.form.get('action', '', type=str)
@@ -121,7 +121,7 @@ def manage_posts():
                 if len(ids) > 1:
                     message += '以及剩下的' + str(len(ids) - 1) + '篇文章'
                 flash(message)
-    return redirect(url_for('.list_posts'))
+    return redirect(url_for('.list_articles'))
 
 
 @admin.route('/upload', methods=['POST'])

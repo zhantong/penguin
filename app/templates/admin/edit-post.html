@@ -1,10 +1,6 @@
 {% extends "admin/base.html" %}
 {% import "admin/_option-macros.html" as options %}
 
-{% block title %}撰写文章 - Penguin{% endblock %}
-
-{% block page_title %}<h1>撰写文章</h1>{% endblock %}
-
 {% block styles %}
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='editormd/css/editormd.css') }}">
@@ -31,10 +27,8 @@
                 </div>
             </div>
             <div class="col-lg-4">
-                {{ options.submit() }}
-                {{ options.attachment(attachments) }}
-                {{ options.category(all_categories,category_ids) }}
-                {{ options.tag(all_tags) }}
+                {% block options_content %}
+                {% endblock %}
             </div>
         </div>
     </form>
@@ -54,7 +48,6 @@
             });
         });
     </script>
-    {{ options.submit_script(post) }}
-    {{ options.attachment_script(post) }}
-    {{ options.tag_script(tags) }}
+    {% block options_scripts %}
+    {% endblock %}
 {% endblock %}

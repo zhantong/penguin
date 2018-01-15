@@ -106,7 +106,7 @@ class Post(db.Model):
             })
         elif type == 'admin':
             json_post.update({
-                'url': url_for('admin.write_post', id=self.id)
+                'url': url_for('admin.edit_article', id=self.id)
             })
         elif type == 'api':
             pass

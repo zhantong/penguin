@@ -1,0 +1,19 @@
+{% extends "admin/edit-post.html" %}
+
+{% block title %}撰写文章 - Penguin{% endblock %}
+
+{% block page_title %}<h1>撰写文章</h1>{% endblock %}
+
+{% block options_content %}
+    {{ options.submit() }}
+    {{ options.attachment(attachments) }}
+    {{ options.category(all_categories,category_ids) }}
+    {{ options.tag(all_tags) }}
+{% endblock %}
+
+{% block options_scripts %}
+    {{ options.submit_script(post) }}
+    {{ options.attachment_script(post) }}
+    {{ options.tag_script(tags) }}
+{% endblock %}
+
