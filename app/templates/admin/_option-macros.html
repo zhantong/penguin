@@ -1,0 +1,243 @@
+{% macro submit() %}
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="option-submit-heading">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion"
+                   href="#option-submit-collapse"
+                   aria-expanded="true" aria-controls="option-submit-collapse">
+                    发布
+                </a>
+            </h4>
+        </div>
+        <div id="option-submit-collapse" class="panel-collapse collapse in" role="tabpanel"
+             aria-labelledby="option-submit-heading">
+            <div class="panel-body">
+                <div class="form-group form-inline">
+                    <label for="submit-datetime">发布时间</label>
+                    <input id="submit-datetime" name="timestamp" type="text" class="form-control"
+                           placeholder="yyyy-MM-dd HH:mm:ss">
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button type="submit" name="action" value="save-draft" class="btn btn-default">保存草稿</button>
+                <button type="submit" name="action" value="publish" class="btn btn-primary pull-right">发布
+                </button>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro submit_script(post) %}
+    <script src="{{ url_for('static', filename='laydate/laydate.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+            laydate.render({
+                elem: '#submit-datetime',
+                type: 'datetime',
+                value: '{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            })
+        });
+    </script>
+{% endmacro %}
+
+{% macro attachment(attachments) %}
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="option-attachment-heading">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion"
+                   href="#option-attachment-collapse"
+                   aria-expanded="true" aria-controls="option-attachment-collapse">
+                    附件
+                </a>
+            </h4>
+        </div>
+        <div id="option-attachment-collapse" class="panel-collapse collapse in" role="tabpanel"
+             aria-labelledby="option-attachment-heading">
+            <div id="panel-body-upload" class="panel-body">
+                <input id="fileupload" type="file" multiple>
+                {% for attachment in attachments %}
+                    <section class="upload-item">
+                        <h5>{{ attachment.original_filename }}
+                            <small>{{ attachment.timestamp }}</small>
+                        </h5>
+                        相对链接：
+                        <mark>{{ attachment.filename }}</mark>
+                        <button class="btn btn-danger delete" type="button"
+                                data-url="{{ url_for('.delete_upload',id=attachment.id) }}">删除
+                        </button>
+                    </section>
+                {% endfor %}
+            </div>
+        </div>
+        <div id="hide-area" style="display: none;">
+            <section class="upload-item">
+                <h5></h5>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                         style="width: 0;">
+                    </div>
+                </div>
+                <strong style="display: none;"></strong>
+                <span style="display: none;">相对链接：<mark></mark></span>
+                <button class="btn btn-danger delete" type="button"
+                        data-url="" style="display: none;">删除
+                </button>
+            </section>
+        </div>
+    </div>
+
+{% endmacro %}
+
+{% macro attachment_script(post) %}
+    <script src="{{ url_for('static', filename='jQuery-File-Upload/js/vendor/jquery.ui.widget.js') }}"></script>
+    <script src="{{ url_for('static', filename='jQuery-File-Upload/js/jquery.fileupload.js') }}"></script>
+    <script type="text/javascript">
+        var origUploadItem = $('#hide-area').find('.upload-item');
+        $(function () {
+            $('#fileupload').fileupload({
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                },
+                url: "{{ url_for('.upload') }}",
+                formData: {
+                    'post_id': {{ post.id }}
+                },
+                dropZone: $('#option-attachment-collapse'),
+                add: function (e, data) {
+                    console.log(data);
+                    var clonedUploadItem = $(origUploadItem).clone().show();
+                    clonedUploadItem.appendTo('#panel-body-upload');
+                    data.context = clonedUploadItem;
+                    data.submit();
+                    data.context.find('h5').text(data.files[0].name);
+                },
+                progress: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    data.context.find('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress);
+                },
+                fail: function (e, data) {
+                    data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                    data.context.find('.progress-bar').addClass('progress-bar-danger');
+                    data.context.find('strong').text('未知错误').show();
+                },
+                done: function (e, data) {
+                    if (data.result['code'] === 0) {
+                        data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                        data.context.find('.progress-bar').addClass('progress-bar-success');
+                        data.context.find('h5').text(data.result['file_name']).append('<small>' + data.result['file_size'] + '</small>');
+                        data.context.find('span mark').text(data.result['relative_path']);
+                        data.context.find('span').show();
+                        data.context.find('button').data('url', data.result['delete_url']);
+                        data.context.find('button').show();
+
+                    } else {
+                        data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                        data.context.find('.progress-bar').addClass('progress-bar-danger');
+                        data.context.find('strong').text(data.result['message']).show();
+                    }
+                }
+            });
+
+            $(document).on('click', '.upload-item button.delete', function (event) {
+                $.ajax({
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                    },
+                    type: 'DELETE',
+                    url: $(this).data('url'),
+                    success: function () {
+                        $(event.target).parents('section').remove();
+                    }
+                })
+            });
+        });
+    </script>
+{% endmacro %}
+
+{% macro category(all_categories,category_ids) %}
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="option-category-heading">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion"
+                   href="#option-category-collapse"
+                   aria-expanded="true" aria-controls="option-category-collapse">
+                    分类
+                </a>
+            </h4>
+        </div>
+        <div id="option-category-collapse" class="panel-collapse collapse in" role="tabpanel"
+             aria-labelledby="option-category-heading">
+            <div class="panel-body">
+                {% for category in all_categories %}
+                    <div class="checkbox">
+                        <label>
+                            <input name="category-id" value="{{ category.id }}" type="checkbox"
+                                   {% if category.id in category_ids %}checked="checked"{% endif %}>
+                            {{ category.value }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro tag(all_tags) %}
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="option-tag-heading">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion"
+                   href="#option-tag-collapse"
+                   aria-expanded="true" aria-controls="option-tag-collapse">
+                    标签
+                </a>
+            </h4>
+        </div>
+        <div id="option-tag-collapse" class="panel-collapse collapse in" role="tabpanel"
+             aria-labelledby="option-tag-heading">
+            <div class="panel-body">
+                <div class="input-group">
+                    <input list="tags" type="text" class="form-control" placeholder="标签">
+                    <span class="input-group-btn">
+                                    <button id="add-tag" class="btn btn-default" type="button">添加</button>
+                                </span>
+                </div>
+
+                <datalist id="tags">
+                    {% for tag in all_tags %}
+                        <option value="{{ tag.value }}"></option>
+                    {% endfor %}
+                </datalist>
+
+                <ul id="tag-list" class="list-group"></ul>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro tag_script(tags) %}
+    <script type="text/javascript">
+        var $btnAddTag = $('#add-tag');
+        var $ulTagList = $('#tag-list');
+        $(function () {
+            $btnAddTag.click(function () {
+                addTag($(this).parent().prev('input').val());
+            });
+
+            $ulTagList.on('click', 'li a', function (event) {
+                event.preventDefault();
+                $(this).parent().remove();
+            });
+
+            var tagNames ={{ tags | tojson }};
+            tagNames.forEach(function (tagName) {
+                addTag(tagName);
+            })
+        });
+
+        function addTag(tagName) {
+            $ulTagList.append('<li class="list-group-item"><a href="#"><span class="glyphicon glyphicon-remove"></span></a> ' + tagName + '<input name="tag" type="hidden" value="' + tagName + '"></li>')
+        }
+    </script>
+{% endmacro %}
