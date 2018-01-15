@@ -2,7 +2,7 @@ from flask import render_template, request, current_app, flash, redirect, url_fo
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from . import admin
-from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta
+from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta, PostType
 import os.path
 import uuid
 from datetime import datetime
@@ -24,7 +24,7 @@ def edit_article():
     if 'id' in request.args:
         post = Post.query.get(int(request.args['id']))
     else:
-        post = Post(author=current_user._get_current_object())
+        post = Post(author=current_user._get_current_object(), post_type=PostType.get_article())
         db.session.add(post)
         db.session.commit()
         db.session.refresh(post)
@@ -87,7 +87,7 @@ def list_articles():
     category = request.args.get('category', '', type=str)
     tag = request.args.get('tag', '', type=str)
     status = request.args.get('status', '', type=str)
-    query = Post.query.filter(Post.title.contains(keyword))
+    query = Post.query.filter_by(post_type=PostType.get_article()).filter(Post.title.contains(keyword))
     if category != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == category and Meta.type == 'category')
     if status != '':
@@ -287,3 +287,83 @@ def manage_tag():
         db.session.add(tag)
     db.session.commit()
     return redirect(url_for('.list_tags'))
+
+
+@admin.route('/edit-page')
+def edit_page():
+    if 'id' in request.args:
+        post = Post.query.get(int(request.args['id']))
+    else:
+        post = Post(author=current_user._get_current_object(), post_type=PostType.get_page())
+        db.session.add(post)
+        db.session.commit()
+        db.session.refresh(post)
+    attachments = Attachment.query.filter_by(post_id=post.id).all()
+    return render_template('admin/edit-page.html', post=post, form=FlaskForm(), attachments=attachments)
+
+
+@admin.route('/edit-page', methods=['POST'])
+def submit_page():
+    form = FlaskForm()
+    if form.validate_on_submit():
+        action = request.form.get('action')
+        if action in ['save-draft', 'publish']:
+            id = request.form['id']
+            title = request.form['title']
+            slug = request.form['slug']
+            body = request.form['body']
+            timestamp = request.form['timestamp']
+            if timestamp == '':
+                timestamp = datetime.now()
+            else:
+                timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            post = Post.query.get(int(id))
+            post.title = title
+            post.slug = slug
+            post.body = body
+            post.timestamp = timestamp
+            if action == 'save-draft':
+                post.post_status = PostStatus.get_draft()
+                db.session.commit()
+                return redirect(url_for('.edit_page', id=id))
+            elif action == 'publish':
+                post.post_status = PostStatus.get_published()
+                db.session.commit()
+                return redirect(url_for('.list_pages'))
+
+
+@admin.route('/manage-pages')
+def list_pages():
+    page = request.args.get('page', 1, type=int)
+    keyword = request.args.get('keyword', '', type=str)
+    status = request.args.get('status', '', type=str)
+    query = Post.query.filter_by(post_type=PostType.get_page()).filter(Post.title.contains(keyword))
+    if status != '':
+        query = query.filter(Post.post_status.has(key=status))
+    query = query.order_by(Post.timestamp.desc())
+    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-pages.html', posts=posts, pagination=pagination, keyword=keyword
+                           , form=form, post_statuses=PostStatus.query.all()
+                           , selected_post_status_key=status)
+
+
+@admin.route('/manage-pages', methods=['POST'])
+def manage_pages():
+    form = FlaskForm()
+    if form.validate_on_submit():
+        action = request.form.get('action', '', type=str)
+        if action == 'delete':
+            ids = request.form.getlist('id')
+            ids = [int(id) for id in ids]
+            if ids:
+                first_post_title = Post.query.filter(Post.id == ids[0]).first().title
+                for post in Post.query.filter(Post.id.in_(ids)):
+                    db.session.delete(post)
+                db.session.commit()
+                message = '已删除页面《' + first_post_title + '》'
+                if len(ids) > 1:
+                    message += '以及剩下的' + str(len(ids) - 1) + '个页面'
+                flash(message)
+    return redirect(url_for('.list_pages'))

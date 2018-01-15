@@ -46,4 +46,20 @@
             <li class="list-group-item"><a href="{{ url_for('.list_tags') }}">管理标签</a></li>
         </ul>
     </div>
+
+    <div class="panel-heading" role="tab" id="nav-page-heading">
+        <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" href="#nav-page-collapse"
+               aria-expanded="true" aria-controls="nav-page-collapse">
+                页面
+            </a>
+        </h4>
+    </div>
+    <div id="nav-page-collapse" class="panel-collapse collapse in" role="tabpanel"
+         aria-labelledby="nav-page-heading">
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{{ url_for('.edit_page') }}">编撰页面</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.list_pages') }}">管理页面</a></li>
+        </ul>
+    </div>
 </div>
