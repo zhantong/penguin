@@ -4,10 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import config
 from flask_wtf.csrf import CSRFProtect
+from flask_nav import Nav, register_renderer
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 csrf = CSRFProtect()
+nav = Nav()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
@@ -26,6 +28,10 @@ def create_app(config_name):
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
+    from .main import navbar as main_navbar, NavbarRenderer as main_NavbarRenderer
+    register_renderer(app, 'main', main_NavbarRenderer)
+    nav.register_element('main', main_navbar)
+
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
@@ -34,5 +40,7 @@ def create_app(config_name):
 
     from .api import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
+
+    nav.init_app(app)
 
     return app
