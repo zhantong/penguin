@@ -112,6 +112,12 @@ class Post(db.Model):
             pass
         return json_post
 
+    def url(self):
+        if self.post_type == PostType.get_article():
+            return url_for('main.show_post', slug=self.slug)
+        if self.post_type == PostType.get_page():
+            return url_for('main.show_post_page', slug=self.slug)
+
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 

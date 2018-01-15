@@ -18,6 +18,7 @@ def show_none_post():
     pass
 
 
+@main.route('/<string:slug>.html', endpoint='show_post_page')
 @main.route('/archives/<string:slug>.html')
 def show_post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
@@ -26,6 +27,7 @@ def show_post(slug):
     return render_template('post.html', post=post, comments=comments)
 
 
+@main.route('/<string:filename>', endpoint='show_attachment_page')
 @main.route('/archives/<string:filename>')
 def show_attachment(filename):
     attachment = Attachment.query.filter_by(filename=filename).first()
