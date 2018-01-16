@@ -7,6 +7,7 @@ import os.path
 import uuid
 from datetime import datetime
 from sqlalchemy.orm import load_only
+from ..utils import slugify
 
 
 @admin.before_request
@@ -360,3 +361,10 @@ def manage_pages():
                     message += '以及剩下的' + str(len(ids) - 1) + '个页面'
                 flash(message)
     return redirect(url_for('.list_pages'))
+
+
+@admin.route('/trans-slug')
+def trans_slug():
+    return jsonify({
+        'slug': slugify(request.args['string'])
+    })
