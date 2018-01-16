@@ -1,5 +1,14 @@
 {% macro toc_style() %}
     <style type="text/css">
+        /* fix navbar hides initial content when jumping to in-page anchor */
+        *[id]:before {
+            display: block;
+            content: " ";
+            margin-top: -70px;
+            height: 70px;
+            visibility: hidden;
+        }
+
         /* all links */
         .bs-docs-sidebar .nav > li > a {
             color: #999;
