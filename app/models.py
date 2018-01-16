@@ -6,6 +6,7 @@ from flask_login import current_user, UserMixin
 from flask import url_for, current_app
 import os.path
 from .utils import md5, slugify
+from sqlalchemy.ext.hybrid import hybrid_property
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -85,7 +86,7 @@ class Post(db.Model):
                                                              'Meta.type=="tag")'
                                      , backref='tag_post', lazy='dynamic', cascade='all, delete-orphan')
 
-    @property
+    @hybrid_property
     def slug(self):
         return self._slug
 
@@ -278,7 +279,7 @@ class Meta(db.Model):
     description = db.Column(db.Text, default='')
     post_metas = db.relationship('PostMeta', back_populates='meta', lazy='dynamic', cascade='all, delete-orphan')
 
-    @property
+    @hybrid_property
     def key(self):
         return self._key
 
