@@ -3,6 +3,14 @@
 
 {% block title %}{{ post.title }} - Penguin{% endblock %}
 
+{% block metas %}
+    {{ super() }}
+    <meta name="description" content="{{ post.body_abstract[:100]|replace('\n',' ') }}"/>
+    <meta name="keywords" content="{{ post.categories_and_tags_string() }}"/>
+    <meta name="author" content="{{ post.author.name }}"/>
+    <meta name="last-modified" content="{{ post.timestamp }}">
+{% endblock %}
+
 {% block styles %}
     {{ super() }}
     {{ panels.toc_style() }}

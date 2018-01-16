@@ -157,6 +157,15 @@ class Post(db.Model):
         if self.post_type == PostType.page():
             return url_for('main.show_post_page', slug=self.slug)
 
+    def categories_and_tags_string(self):
+        result = ', '.join(category_post_meta.meta.value for category_post_meta in self.category_post_metas)
+        result += ', '
+        result += ', '.join(tag_post_meta.meta.value for tag_post_meta in self.tag_post_metas)
+        result = result.strip()
+        if result[-1] == ',':
+            result = result[:-1]
+        return result
+
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 
