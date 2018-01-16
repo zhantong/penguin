@@ -155,7 +155,7 @@
     </script>
 {% endmacro %}
 
-{% macro category(all_categories,category_ids) %}
+{% macro category(all_category_metas,category_meta_ids) %}
     <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="option-category-heading">
             <h4 class="panel-title">
@@ -169,12 +169,12 @@
         <div id="option-category-collapse" class="panel-collapse collapse in" role="tabpanel"
              aria-labelledby="option-category-heading">
             <div class="panel-body">
-                {% for category in all_categories %}
+                {% for category_meta in all_category_metas %}
                     <div class="checkbox">
                         <label>
-                            <input name="category-id" value="{{ category.id }}" type="checkbox"
-                                   {% if category.id in category_ids %}checked="checked"{% endif %}>
-                            {{ category.value }}
+                            <input name="category-id" value="{{ category_meta.id }}" type="checkbox"
+                                   {% if category_meta.id in category_meta_ids %}checked="checked"{% endif %}>
+                            {{ category_meta.value }}
                         </label>
                     </div>
                 {% endfor %}
@@ -183,7 +183,7 @@
     </div>
 {% endmacro %}
 
-{% macro tag(all_tags) %}
+{% macro tag(all_tag_metas) %}
     <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="option-tag-heading">
             <h4 class="panel-title">
@@ -205,8 +205,8 @@
                 </div>
 
                 <datalist id="tags">
-                    {% for tag in all_tags %}
-                        <option value="{{ tag.value }}"></option>
+                    {% for tag_meta in all_tag_metas %}
+                        <option value="{{ tag_meta.value }}"></option>
                     {% endfor %}
                 </datalist>
 

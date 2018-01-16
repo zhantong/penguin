@@ -38,9 +38,10 @@
                                value="{{ keyword }}" style="width:50%;">
                         <select class="form-control" name="category" style="width:50%;">
                             <option>全部分类</option>
-                            {% for c in categories %}
-                                <option value="{{ c.key }}" {% if c.key==category %}selected="selected"{% endif %}>
-                                    {{ c.value }}
+                            {% for category_meta in category_metas %}
+                                <option value="{{ category_meta.key }}"
+                                        {% if category_meta.key==category %}selected="selected"{% endif %}>
+                                    {{ category_meta.value }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -79,17 +80,17 @@
                     </td>
                     <td>{{ post.author.name }}</td>
                     <td>
-                        {% for meta_category in post.categories.all() %}
-                            <a href="{{ url_for('.list_articles',category=meta_category.meta.key) }}">
-                                {{ meta_category.meta.value }}
+                        {% for category_post_meta in post.category_post_metas.all() %}
+                            <a href="{{ url_for('.list_articles',category=category_post_meta.meta.key) }}">
+                                {{ category_post_meta.meta.value }}
                             </a>
                             {{ ', ' if not loop.last }}
                         {% endfor %}
                     </td>
                     <td>
-                        {% for meta_tag in post.tags.all() %}
-                            <a href="{{ url_for('.list_articles',tag=meta_tag.meta.key) }}">
-                                {{ meta_tag.meta.value }}
+                        {% for tag_post_meta in post.tag_post_metas.all() %}
+                            <a href="{{ url_for('.list_articles',tag=tag_post_meta.meta.key) }}">
+                                {{ tag_post_meta.meta.value }}
                             </a>
                             {{ ', ' if not loop.last }}
                         {% endfor %}

@@ -8,8 +8,8 @@
 {% block options_content %}
     {{ options.submit() }}
     {{ options.attachment(attachments) }}
-    {{ options.category(all_categories,category_ids) }}
-    {{ options.tag(all_tags) }}
+    {{ options.category(all_category_metas,category_meta_ids) }}
+    {{ options.tag(all_tag_metas) }}
 {% endblock %}
 
 {% block options_scripts %}

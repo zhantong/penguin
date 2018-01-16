@@ -6,7 +6,6 @@ from flask_login import current_user, UserMixin
 from flask import url_for, current_app
 import os.path
 from .utils import md5
-from sqlalchemy.ext.associationproxy import association_proxy
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -76,8 +75,15 @@ class Post(db.Model):
     author = db.relationship('User', back_populates='posts')
     comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
     attachments = db.relationship('Attachment', back_populates='post', lazy='dynamic')
-    categories = association_proxy('post_metas', 'category')
-    tags = association_proxy('post_metas', 'tag')
+    post_metas = db.relationship('PostMeta', back_populates='post', lazy='dynamic')
+    category_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
+                                                                  'PostMeta.meta_id==Meta.id, '
+                                                                  'Meta.type=="category")'
+                                          , backref='category_post', lazy='dynamic', cascade='all, delete-orphan')
+    tag_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
+                                                             'PostMeta.meta_id==Meta.id, '
+                                                             'Meta.type=="tag")'
+                                     , backref='tag_post', lazy='dynamic', cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -93,8 +99,16 @@ class Post(db.Model):
         return Post(post_type=PostType.article(), **kwargs)
 
     @staticmethod
+    def create_page(**kwargs):
+        return Post(post_type=PostType.page(), **kwargs)
+
+    @staticmethod
     def query_articles():
         return Post.query.filter_by(post_type=PostType.article())
+
+    @staticmethod
+    def query_pages():
+        return Post.query.filter_by(post_type=PostType.page())
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -254,7 +268,11 @@ class Meta(db.Model):
     value = db.Column(db.String(400), default='')
     type = db.Column(db.String(200))
     description = db.Column(db.Text, default='')
-    posts = association_proxy('post_metas', 'post')
+    post_metas = db.relationship('PostMeta', back_populates='meta', lazy='dynamic', cascade='all, delete-orphan')
+
+    @staticmethod
+    def query_categories():
+        return Meta.query.filter_by(type='category')
 
     @staticmethod
     def categories():
@@ -286,10 +304,5 @@ class PostMeta(db.Model):
     description = db.Column(db.Text)
     meta_id = db.Column(db.Integer, db.ForeignKey('metas.id'))
     order = db.Column(db.Integer, default=0)
-    meta_post = db.relationship('Post', backref=db.backref('post_metas', cascade='all, delete-orphan'))
-    meta = db.relationship('Meta', backref=db.backref('post_metas', cascade='all, delete-orphan'))
-
-    category = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="category")')
-    tag = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="tag")')
-
-    post = db.relationship('Post')
+    post = db.relationship('Post', back_populates='post_metas')
+    meta = db.relationship('Meta', back_populates='post_metas')

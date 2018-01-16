@@ -1,11 +1,12 @@
 from flask import render_template, request, current_app, flash, redirect, url_for, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required
 from flask_wtf import FlaskForm
 from . import admin
-from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta, PostType
+from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta
 import os.path
 import uuid
 from datetime import datetime
+from sqlalchemy.orm import load_only
 
 
 @admin.before_request
@@ -30,10 +31,11 @@ def edit_article():
         db.session.refresh(post)
     attachments = Attachment.query.filter_by(post_id=post.id).all()
     return render_template('admin/edit-article.html', post=post, form=FlaskForm(), attachments=attachments
-                           , all_categories=Meta.categories()
-                           , category_ids=[p.meta_id for p in post.categories.all()]
-                           , all_tags=Meta.tags(),
-                           tags=[p.meta.value for p in post.tags.all()])
+                           , all_category_metas=Meta.categories()
+                           , category_meta_ids=[category_post_meta.meta_id for category_post_meta
+                                                in post.category_post_metas.options(load_only('meta_id'))]
+                           , all_tag_metas=Meta.tags()
+                           , tags=[tag_post_meta.meta.value for tag_post_meta in post.tag_post_metas.all()])
 
 
 @admin.route('/edit-article', methods=['POST'])
@@ -47,7 +49,7 @@ def submit_article():
             slug = request.form['slug']
             body = request.form['body']
             timestamp = request.form['timestamp']
-            category_ids = request.form.getlist('category-id')
+            category_meta_ids = request.form.getlist('category-id')
             tag_names = request.form.getlist('tag')
             if timestamp == '':
                 timestamp = datetime.now()
@@ -58,17 +60,17 @@ def submit_article():
             post.slug = slug
             post.body = body
             post.timestamp = timestamp
-            post_metas = []
-            post_metas.extend(PostMeta(post=post, meta_id=category_id) for category_id in category_ids)
+            post.categories = [PostMeta(post=post, meta_id=category_meta_id) for category_meta_id in category_meta_ids]
+            tag_post_metas = []
             for tag_name in tag_names:
                 tag = Meta.query_tags().filter_by(value=tag_name).first()
                 if tag is None:
                     tag = Meta.create_tag(key=tag_name, value=tag_name)
                     db.session.add(tag)
                     db.session.flush()
-                post_meta_tag = PostMeta(tag_post=post, meta=tag)
-                post_metas.append(post_meta_tag)
-            post.post_metas = post_metas
+                tag_post_meta = PostMeta(post=post, meta=tag)
+                tag_post_metas.append(tag_post_meta)
+            post.tags = tag_post_metas
             if action == 'save-draft':
                 post.set_post_status_draft()
                 db.session.commit()
@@ -100,7 +102,7 @@ def list_articles():
     return render_template('admin/manage-articles.html', posts=posts, pagination=pagination, keyword=keyword
                            , category=category, tag=tag, form=form, post_statuses=PostStatus.query.all()
                            , selected_post_status_key=status
-                           , categories=Meta.query.filter_by(type='category').order_by(Meta.value).all())
+                           , category_metas=Meta.query_categories().order_by(Meta.value).all())
 
 
 @admin.route('/manage-articles', methods=['POST'])
@@ -112,7 +114,7 @@ def manage_articles():
             ids = request.form.getlist('id')
             ids = [int(id) for id in ids]
             if ids:
-                first_post_title = Post.query.filter(Post.id == ids[0]).first().title
+                first_post_title = Post.query.get(ids[0]).title
                 for post in Post.query.filter(Post.id.in_(ids)):
                     db.session.delete(post)
                 db.session.commit()
@@ -154,7 +156,6 @@ def upload():
                             , file_path=relative_file_path, file_extension=extension, mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
-    db.session.refresh(attachment)
     return jsonify({
         'code': 0,
         'message': '上传成功',
@@ -178,9 +179,7 @@ def delete_upload(id):
 @admin.route('/manage-categories')
 def list_categories():
     page = request.args.get('page', 1, type=int)
-    pagination = Meta.query \
-        .filter_by(type='category') \
-        .order_by(Meta.value) \
+    pagination = Meta.query_categories().order_by(Meta.value) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     categories = pagination.items
     form = FlaskForm()
@@ -219,8 +218,7 @@ def show_category():
 def manage_category():
     id = request.form.get('id', type=int)
     if id is None:
-        category = Meta()
-        category.type = 'category'
+        category = Meta().create_category()
     else:
         category = Meta.query.get(id)
     category.key = request.form['key']
@@ -235,9 +233,7 @@ def manage_category():
 @admin.route('/manage-tags')
 def list_tags():
     page = request.args.get('page', 1, type=int)
-    pagination = Meta.query \
-        .filter_by(type='tag') \
-        .order_by(Meta.value) \
+    pagination = Meta.query_tags().order_by(Meta.value) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     tags = pagination.items
     form = FlaskForm()
@@ -275,8 +271,7 @@ def show_tag():
 def manage_tag():
     id = request.form.get('id', type=int)
     if id is None:
-        tag = Meta()
-        tag.type = 'tag'
+        tag = Meta().create_tag()
     else:
         tag = Meta.query.get(id)
     tag.key = request.form['key']
@@ -293,11 +288,10 @@ def edit_page():
     if 'id' in request.args:
         post = Post.query.get(int(request.args['id']))
     else:
-        post = Post(author=current_user._get_current_object(), post_type=PostType.page())
+        post = Post().create_page()
         db.session.add(post)
         db.session.commit()
-        db.session.refresh(post)
-    attachments = Attachment.query.filter_by(post_id=post.id).all()
+    attachments = Attachment.query.filter_by(post=post).all()
     return render_template('admin/edit-page.html', post=post, form=FlaskForm(), attachments=attachments)
 
 
@@ -322,11 +316,11 @@ def submit_page():
             post.body = body
             post.timestamp = timestamp
             if action == 'save-draft':
-                post.post_status = PostStatus.get_draft()
+                post.set_post_status_draft()
                 db.session.commit()
                 return redirect(url_for('.edit_page', id=id))
             elif action == 'publish':
-                post.post_status = PostStatus.get_published()
+                post.set_post_status_published()
                 db.session.commit()
                 return redirect(url_for('.list_pages'))
 
@@ -336,7 +330,7 @@ def list_pages():
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('keyword', '', type=str)
     status = request.args.get('status', '', type=str)
-    query = Post.query.filter_by(post_type=PostType.page()).filter(Post.title.contains(keyword))
+    query = Post.query_pages().filter(Post.title.contains(keyword))
     if status != '':
         query = query.filter(Post.post_status.has(key=status))
     query = query.order_by(Post.timestamp.desc())
@@ -357,7 +351,7 @@ def manage_pages():
             ids = request.form.getlist('id')
             ids = [int(id) for id in ids]
             if ids:
-                first_post_title = Post.query.filter(Post.id == ids[0]).first().title
+                first_post_title = Post.query.get(ids[0]).title
                 for post in Post.query.filter(Post.id.in_(ids)):
                     db.session.delete(post)
                 db.session.commit()

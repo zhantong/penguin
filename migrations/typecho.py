@@ -77,7 +77,7 @@ class Content(Base):
                            , post_status=post_status
                            , body=self.text.replace('<!--markdown-->', '')
                            , timestamp=datetime.fromtimestamp(self.created)
-                           , author_id=self.authorId
+                           , author=models.User.query.get(self.authorId)
                            )
 
     def to_attachment(self, upload_parent_directory_path):

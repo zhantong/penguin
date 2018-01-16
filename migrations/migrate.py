@@ -29,7 +29,6 @@ def from_typecho(db_url, upload_parent_directory_path):
             user = comment.to_user(role=models.Role.guest())
             db.session.add(user)
             db.session.flush()
-            db.session.refresh(user)
         else:
             user = models.User.query.get(comment.authorId)
         db.session.add(comment.to_comment(author=user))
@@ -45,7 +44,6 @@ def from_typecho(db_url, upload_parent_directory_path):
         meta_category = meta.to_meta_category()
         db.session.add(meta_category)
         db.session.flush()
-        db.session.refresh(meta_category)
         for content in session.query(Content) \
                 .filter(Content.cid == Relationship.cid) \
                 .filter(Relationship.mid == meta.mid):
