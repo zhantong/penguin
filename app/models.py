@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from flask import url_for, current_app
 import os.path
 from .utils import md5
+from sqlalchemy.ext.associationproxy import association_proxy
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -15,7 +16,7 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
-    users = db.relationship('User', backref='role', lazy='dynamic')
+    users = db.relationship('User', back_populates='role', lazy='dynamic')
 
     @staticmethod
     def insert_roles():
@@ -47,8 +48,9 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(64))
     email = db.Column(db.String(64))
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
-    comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    role = db.relationship('Role', back_populates='users')
+    posts = db.relationship('Post', back_populates='author', lazy='dynamic')
+    comments = db.relationship('Comment', back_populates='author', lazy='dynamic')
 
 
 @login_manager.user_loader
@@ -61,7 +63,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default='')
     slug = db.Column(db.String(200), default='')
-    type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
+    post_type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text, default='')
     body_html = db.Column(db.Text)
@@ -69,18 +71,13 @@ class Post(db.Model):
     body_abstract = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    comments = db.relationship('Comment', backref='post', lazy='dynamic')
-    attachments = db.relationship('Attachment', backref='post', lazy='dynamic')
-    categories = db.relationship('PostMeta',
-                                 primaryjoin="and_(Post.id==PostMeta.post_id, "
-                                             "PostMeta.meta_id==Meta.id, "
-                                             "Meta.type=='category')",
-                                 backref='category_post', lazy='dynamic', cascade="all, delete-orphan")
-    tags = db.relationship('PostMeta',
-                           primaryjoin="and_(Post.id==PostMeta.post_id, "
-                                       "PostMeta.meta_id==Meta.id, "
-                                       "Meta.type=='tag')",
-                           backref='tag_post', lazy='dynamic', cascade="all, delete-orphan")
+    post_type = db.relationship('PostType', back_populates='posts')
+    post_status = db.relationship('PostStatus', back_populates='posts')
+    author = db.relationship('User', back_populates='posts')
+    comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
+    attachments = db.relationship('Attachment', back_populates='post', lazy='dynamic')
+    categories = association_proxy('post_meta', 'category')
+    tags = association_proxy('post_meta', 'tag')
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -136,6 +133,8 @@ class Comment(db.Model):
     ip = db.Column(db.String(64))
     agent = db.Column(db.String(200))
     parent = db.Column(db.Integer)
+    author = db.relationship('User', back_populates='comments')
+    post = db.relationship('Post', back_populates='comments')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -157,6 +156,7 @@ class Attachment(db.Model):
     mime = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     md5 = db.Column(db.String(32))
+    post = db.relationship('Post', back_populates='attachments')
 
     @staticmethod
     def on_change_file_path(target, value, oldvalue, initiator):
@@ -179,7 +179,7 @@ class PostType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
-    posts = db.relationship('Post', backref='post_type', lazy='dynamic')
+    posts = db.relationship('Post', back_populates='post_type', lazy='dynamic')
 
     @staticmethod
     def insert_post_types():
@@ -208,7 +208,7 @@ class PostStatus(db.Model):
     key = db.Column(db.String(64), unique=True)
     name = db.Column(db.String(64))
     default = db.Column(db.Boolean, default=False, index=True)
-    posts = db.relationship('Post', backref='post_status', lazy='dynamic')
+    posts = db.relationship('Post', back_populates='post_status', lazy='dynamic')
 
     @staticmethod
     def insert_post_statuses():
@@ -238,7 +238,7 @@ class Meta(db.Model):
     value = db.Column(db.String(400), default='')
     type = db.Column(db.String(200))
     description = db.Column(db.Text, default='')
-    post_metas = db.relationship('PostMeta', backref='meta', lazy='dynamic')
+    posts = association_proxy('post_meta', 'post')
 
 
 class PostMeta(db.Model):
@@ -250,3 +250,10 @@ class PostMeta(db.Model):
     description = db.Column(db.Text)
     meta_id = db.Column(db.Integer, db.ForeignKey('metas.id'))
     order = db.Column(db.Integer, default=0)
+    meta_post = db.relationship('Post', backref=db.backref('post_meta', cascade='all, delete-orphan'))
+    meta = db.relationship('Meta', backref=db.backref('post_meta', cascade='all, delete-orphan'))
+
+    category = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="category")')
+    tag = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="tag")')
+
+    post = db.relationship('Post')
