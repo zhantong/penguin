@@ -2,7 +2,7 @@ from . import db, login_manager
 from datetime import datetime
 import markdown2
 import re
-from flask_login import UserMixin
+from flask_login import current_user, UserMixin
 from flask import url_for, current_app
 import os.path
 from .utils import md5
@@ -31,11 +31,11 @@ class Role(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_admin():
+    def admin():
         return Role.query.filter_by(name='管理员').first()
 
     @staticmethod
-    def get_guest():
+    def guest():
         return Role.query.filter_by(name='访客').first()
 
 
@@ -76,8 +76,8 @@ class Post(db.Model):
     author = db.relationship('User', back_populates='posts')
     comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
     attachments = db.relationship('Attachment', back_populates='post', lazy='dynamic')
-    categories = association_proxy('post_meta', 'category')
-    tags = association_proxy('post_meta', 'tag')
+    categories = association_proxy('post_metas', 'category')
+    tags = association_proxy('post_metas', 'tag')
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -85,6 +85,16 @@ class Post(db.Model):
             self.post_type = PostType.query.filter_by(default=True).first()
         if self.post_status is None:
             self.post_status = PostStatus.query.filter_by(default=True).first()
+        if self.author is None:
+            self.author = current_user._get_current_object()
+
+    @staticmethod
+    def create_article(**kwargs):
+        return Post(post_type=PostType.article(), **kwargs)
+
+    @staticmethod
+    def query_articles():
+        return Post.query.filter_by(post_type=PostType.article())
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -92,6 +102,12 @@ class Post(db.Model):
         target.body_html = markdown_html
         target.body_toc_html = markdown_html.toc_html
         target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+
+    def set_post_status_draft(self):
+        self.post_status = PostStatus.draft()
+
+    def set_post_status_published(self):
+        self.post_status = PostStatus.published()
 
     def to_json(self, type='view'):
         json_post = {
@@ -113,9 +129,9 @@ class Post(db.Model):
         return json_post
 
     def url(self):
-        if self.post_type == PostType.get_article():
+        if self.post_type == PostType.article():
             return url_for('main.show_post', slug=self.slug)
-        if self.post_type == PostType.get_page():
+        if self.post_type == PostType.page():
             return url_for('main.show_post_page', slug=self.slug)
 
 
@@ -194,11 +210,11 @@ class PostType(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_article():
+    def article():
         return PostType.query.filter_by(name='文章').first()
 
     @staticmethod
-    def get_page():
+    def page():
         return PostType.query.filter_by(name='页面').first()
 
 
@@ -223,11 +239,11 @@ class PostStatus(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_published():
+    def published():
         return PostStatus.query.filter_by(key='published').first()
 
     @staticmethod
-    def get_draft():
+    def draft():
         return PostStatus.query.filter_by(key='draft').first()
 
 
@@ -238,7 +254,27 @@ class Meta(db.Model):
     value = db.Column(db.String(400), default='')
     type = db.Column(db.String(200))
     description = db.Column(db.Text, default='')
-    posts = association_proxy('post_meta', 'post')
+    posts = association_proxy('post_metas', 'post')
+
+    @staticmethod
+    def categories():
+        return Meta.query.filter_by(type='category').order_by(Meta.value).all()
+
+    @staticmethod
+    def query_tags():
+        return Meta.query.filter_by(type='tag')
+
+    @staticmethod
+    def tags():
+        return Meta.query.filter_by(type='tag').order_by(Meta.value).all()
+
+    @staticmethod
+    def create_category(**kwargs):
+        return Meta(type='category', **kwargs)
+
+    @staticmethod
+    def create_tag(**kwargs):
+        return Meta(type='tag', **kwargs)
 
 
 class PostMeta(db.Model):
@@ -250,8 +286,8 @@ class PostMeta(db.Model):
     description = db.Column(db.Text)
     meta_id = db.Column(db.Integer, db.ForeignKey('metas.id'))
     order = db.Column(db.Integer, default=0)
-    meta_post = db.relationship('Post', backref=db.backref('post_meta', cascade='all, delete-orphan'))
-    meta = db.relationship('Meta', backref=db.backref('post_meta', cascade='all, delete-orphan'))
+    meta_post = db.relationship('Post', backref=db.backref('post_metas', cascade='all, delete-orphan'))
+    meta = db.relationship('Meta', backref=db.backref('post_metas', cascade='all, delete-orphan'))
 
     category = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="category")')
     tag = db.relationship('Meta', primaryjoin='and_(PostMeta.meta_id==Meta.id, Meta.type=="tag")')

@@ -24,15 +24,15 @@ def edit_article():
     if 'id' in request.args:
         post = Post.query.get(int(request.args['id']))
     else:
-        post = Post(author=current_user._get_current_object(), post_type=PostType.get_article())
+        post = Post.create_article()
         db.session.add(post)
         db.session.commit()
         db.session.refresh(post)
     attachments = Attachment.query.filter_by(post_id=post.id).all()
     return render_template('admin/edit-article.html', post=post, form=FlaskForm(), attachments=attachments
-                           , all_categories=Meta.query.filter_by(type='category').order_by(Meta.value).all()
+                           , all_categories=Meta.categories()
                            , category_ids=[p.meta_id for p in post.categories.all()]
-                           , all_tags=Meta.query.filter_by(type='tag').order_by(Meta.value).all(),
+                           , all_tags=Meta.tags(),
                            tags=[p.meta.value for p in post.tags.all()])
 
 
@@ -58,24 +58,23 @@ def submit_article():
             post.slug = slug
             post.body = body
             post.timestamp = timestamp
-            post.categories = [PostMeta(category_post=post, meta_id=category_id) for category_id in category_ids]
-            post_meta_tags = []
+            post_metas = []
+            post_metas.extend(PostMeta(post=post, meta_id=category_id) for category_id in category_ids)
             for tag_name in tag_names:
-                tag = Meta.query.filter_by(type='tag', value=tag_name).first()
+                tag = Meta.query_tags().filter_by(value=tag_name).first()
                 if tag is None:
-                    tag = Meta(key=tag_name, value=tag_name, type='tag')
+                    tag = Meta.create_tag(key=tag_name, value=tag_name)
                     db.session.add(tag)
                     db.session.flush()
-                    db.session.refresh(tag)
                 post_meta_tag = PostMeta(tag_post=post, meta=tag)
-                post_meta_tags.append(post_meta_tag)
-            post.tags = post_meta_tags
+                post_metas.append(post_meta_tag)
+            post.post_metas = post_metas
             if action == 'save-draft':
-                post.post_status = PostStatus.get_draft()
+                post.set_post_status_draft()
                 db.session.commit()
                 return redirect(url_for('.edit_article', id=id))
             elif action == 'publish':
-                post.post_status = PostStatus.get_published()
+                post.set_post_status_published()
                 db.session.commit()
                 return redirect(url_for('.list_articles'))
 
@@ -87,7 +86,7 @@ def list_articles():
     category = request.args.get('category', '', type=str)
     tag = request.args.get('tag', '', type=str)
     status = request.args.get('status', '', type=str)
-    query = Post.query.filter_by(post_type=PostType.get_article()).filter(Post.title.contains(keyword))
+    query = Post.query_articles().filter(Post.title.contains(keyword))
     if category != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == category and Meta.type == 'category')
     if status != '':
@@ -294,7 +293,7 @@ def edit_page():
     if 'id' in request.args:
         post = Post.query.get(int(request.args['id']))
     else:
-        post = Post(author=current_user._get_current_object(), post_type=PostType.get_page())
+        post = Post(author=current_user._get_current_object(), post_type=PostType.page())
         db.session.add(post)
         db.session.commit()
         db.session.refresh(post)
@@ -337,7 +336,7 @@ def list_pages():
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('keyword', '', type=str)
     status = request.args.get('status', '', type=str)
-    query = Post.query.filter_by(post_type=PostType.get_page()).filter(Post.title.contains(keyword))
+    query = Post.query.filter_by(post_type=PostType.page()).filter(Post.title.contains(keyword))
     if status != '':
         query = query.filter(Post.post_status.has(key=status))
     query = query.order_by(Post.timestamp.desc())

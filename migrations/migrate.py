@@ -11,22 +11,22 @@ def from_typecho(db_url, upload_parent_directory_path):
     from .typecho import User, Content, Comment, Meta, Relationship
 
     for user in session.query(User).filter_by(group='administrator'):
-        db.session.add(user.to_user(role=models.Role.get_admin()))
+        db.session.add(user.to_user(role=models.Role.admin()))
     db.session.flush()
 
     for content in session.query(Content).filter_by(type='post'):
         db.session.add(
-            content.to_post(post_type=models.PostType.get_article(), post_status=models.PostStatus.get_published()))
+            content.to_post(post_type=models.PostType.article(), post_status=models.PostStatus.published()))
     db.session.flush()
 
     for content in session.query(Content).filter_by(type='page'):
         db.session.add(
-            content.to_post(post_type=models.PostType.get_page(), post_status=models.PostStatus.get_published()))
+            content.to_post(post_type=models.PostType.page(), post_status=models.PostStatus.published()))
     db.session.flush()
 
     for comment in session.query(Comment):
         if comment.authorId == 0:
-            user = comment.to_user(role=models.Role.get_guest())
+            user = comment.to_user(role=models.Role.guest())
             db.session.add(user)
             db.session.flush()
             db.session.refresh(user)
