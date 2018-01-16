@@ -2,7 +2,7 @@
 
 {% block title %}Penguin{% endblock %}
 
-{% block head %}
+{% block styles %}
     {{ super() }}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 {% endblock %}
@@ -16,18 +16,20 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-lg-2">
-            {% block sidebar_left %}
-            {% endblock %}
-        </div>
-        <div class="col-lg-8">
-            {% block main %}
-            {% endblock %}
-        </div>
-        <div class="col-lg-2">
-            {% block sidebar_right %}
-            {% endblock %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-2" data-spy="affix">
+                {% block sidebar_left %}
+                {% endblock %}
+            </div>
+            <div class="col-lg-8 col-lg-push-2">
+                {% block main %}
+                {% endblock %}
+            </div>
+            <div class="col-lg-2">
+                {% block sidebar_right %}
+                {% endblock %}
+            </div>
         </div>
     </div>
 {% endblock %}
