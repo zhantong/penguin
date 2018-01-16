@@ -5,7 +5,7 @@ import re
 from flask_login import current_user, UserMixin
 from flask import url_for, current_app
 import os.path
-from .utils import md5
+from .utils import md5, slugify
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -61,7 +61,7 @@ class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default='')
-    slug = db.Column(db.String(200), default='')
+    _slug = db.Column('slug', db.String(200), default='')
     post_type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text, default='')
@@ -84,6 +84,14 @@ class Post(db.Model):
                                                              'PostMeta.meta_id==Meta.id, '
                                                              'Meta.type=="tag")'
                                      , backref='tag_post', lazy='dynamic', cascade='all, delete-orphan')
+
+    @property
+    def slug(self):
+        return self._slug
+
+    @slug.setter
+    def slug(self, slug):
+        self._slug = slugify(slug)
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -264,11 +272,19 @@ class PostStatus(db.Model):
 class Meta(db.Model):
     __tablename__ = 'metas'
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(200), default='')
+    _key = db.Column('key', db.String(200), default='')
     value = db.Column(db.String(400), default='')
     type = db.Column(db.String(200))
     description = db.Column(db.Text, default='')
     post_metas = db.relationship('PostMeta', back_populates='meta', lazy='dynamic', cascade='all, delete-orphan')
+
+    @property
+    def key(self):
+        return self._key
+
+    @key.setter
+    def key(self, key):
+        self._key = slugify(key)
 
     @staticmethod
     def query_categories():
