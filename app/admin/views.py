@@ -58,7 +58,8 @@ def submit_article():
             post.slug = slug
             post.body = body
             post.timestamp = timestamp
-            post.categories = [PostMeta(post=post, meta_id=category_meta_id) for category_meta_id in category_meta_ids]
+            post.category_post_metas = [PostMeta(post=post, meta_id=category_meta_id)
+                                        for category_meta_id in category_meta_ids]
             tag_post_metas = []
             for tag_name in tag_names:
                 tag = Meta.query_tags().filter_by(value=tag_name).first()
@@ -68,7 +69,7 @@ def submit_article():
                     db.session.flush()
                 tag_post_meta = PostMeta(post=post, meta=tag)
                 tag_post_metas.append(tag_post_meta)
-            post.tags = tag_post_metas
+            post.tag_post_metas = tag_post_metas
             if action == 'save-draft':
                 post.set_post_status_draft()
                 db.session.commit()
