@@ -49,13 +49,10 @@ def submit_article():
             title = request.form['title']
             slug = request.form['slug']
             body = request.form['body']
-            timestamp = request.form['timestamp']
+            timestamp = request.form.get('timestamp', type=int)
             category_meta_ids = request.form.getlist('category-id')
             tag_names = request.form.getlist('tag')
-            if timestamp == '':
-                timestamp = datetime.now()
-            else:
-                timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.utcfromtimestamp(timestamp)
             post = Post.query.get(int(id))
             post.title = title
             post.slug = slug
@@ -306,11 +303,8 @@ def submit_page():
             title = request.form['title']
             slug = request.form['slug']
             body = request.form['body']
-            timestamp = request.form['timestamp']
-            if timestamp == '':
-                timestamp = datetime.now()
-            else:
-                timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            timestamp = request.form.get('timestamp', type=int)
+            timestamp = datetime.utcfromtimestamp(timestamp)
             post = Post.query.get(int(id))
             post.title = title
             post.slug = slug

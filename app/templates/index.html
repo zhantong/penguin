@@ -23,7 +23,7 @@
                     </div>
                     <div class="panel-footer">
                         <ul class="list-inline small">
-                            <li><i class="fa fa-calendar fa-fw"></i>{{ post.timestamp }}</li>
+                            <li><i class="fa fa-calendar fa-fw"></i>{{ moment(post.timestamp).format('lll') }}</li>
                         </ul>
                     </div>
                 </div>

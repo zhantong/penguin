@@ -32,14 +32,14 @@ class Comment(Base):
     def to_user(self, role):
         return models.User(name=self.author
                            , email=self.mail
-                           , member_since=datetime.fromtimestamp(self.created)
+                           , member_since=datetime.utcfromtimestamp(self.created)
                            , role=role
                            )
 
     def to_comment(self, author):
         return models.Comment(id=self.coid
                               , body=self.text
-                              , timestamp=datetime.fromtimestamp(self.created)
+                              , timestamp=datetime.utcfromtimestamp(self.created)
                               , author=author
                               , post_id=self.cid
                               , ip=self.ip
@@ -76,7 +76,7 @@ class Content(Base):
                            , post_type=post_type
                            , post_status=post_status
                            , body=self.text.replace('<!--markdown-->', '')
-                           , timestamp=datetime.fromtimestamp(self.created)
+                           , timestamp=datetime.utcfromtimestamp(self.created)
                            , author=models.User.query.get(self.authorId)
                            )
 
@@ -97,7 +97,7 @@ class Content(Base):
         original_abs_file_path = os.path.join(upload_parent_directory_path, original_relative_file_path[1:])
         extension = original_filename.rsplit('.', 1)[1].lower()
         filename = uuid.uuid4().hex + '.' + extension
-        timestamp = datetime.fromtimestamp(self.created)
+        timestamp = datetime.utcfromtimestamp(self.created)
         relative_file_path = os.path.join(str(timestamp.year), '%02d' % timestamp.month, filename)
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
@@ -166,5 +166,5 @@ class User(Base):
                            , role=role
                            , name=self.screenName
                            , email=self.mail
-                           , member_since=datetime.fromtimestamp(self.created)
+                           , member_since=datetime.utcfromtimestamp(self.created)
                            )

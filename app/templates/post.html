@@ -8,7 +8,6 @@
     <meta name="description" content="{{ post.body_abstract[:100]|replace('\n',' ') }}"/>
     <meta name="keywords" content="{{ post.categories_and_tags_string() }}"/>
     <meta name="author" content="{{ post.author.name }}"/>
-    <meta name="last-modified" content="{{ post.timestamp }}">
 {% endblock %}
 
 {% block styles %}
@@ -30,7 +29,9 @@
                 <div class="panel-heading" style="padding-top: 2px;padding-bottom: 2px">
                     <h4>
                         {{ comment['comment'].author.name }}
-                        <small style="padding-left: 10px"><em>{{ comment['comment'].timestamp }}</em></small>
+                        <small style="padding-left: 10px">
+                            <em>{{ moment(comment['comment'].timestamp).fromNow() }}</em>
+                        </small>
                     </h4>
                 </div>
                 <div class="panel-body" style="padding-bottom: 5px">

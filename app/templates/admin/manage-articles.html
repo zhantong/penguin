@@ -95,7 +95,7 @@
                             {{ ', ' if not loop.last }}
                         {% endfor %}
                     </td>
-                    <td>{{ post.timestamp }}</td>
+                    <td>{{ moment(post.timestamp).format('lll') }}</td>
                 </tr>
             {% endfor %}
             </tbody>

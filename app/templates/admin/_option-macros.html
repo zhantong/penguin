@@ -14,8 +14,9 @@
             <div class="panel-body">
                 <div class="form-group form-inline">
                     <label for="submit-datetime">发布时间</label>
-                    <input id="submit-datetime" name="timestamp" type="text" class="form-control"
+                    <input id="submit-datetime" type="text" class="form-control"
                            placeholder="yyyy-MM-dd HH:mm:ss">
+                    <input name="timestamp" type="hidden" value="">
                 </div>
             </div>
             <div class="panel-footer">
@@ -31,13 +32,22 @@
     <script src="{{ url_for('static', filename='laydate/laydate.js') }}"></script>
     <script type="text/javascript">
         $(function () {
+            var postDate = new Date('{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
+            updateHideTimestamp(postDate);
             laydate.render({
                 elem: '#submit-datetime',
                 type: 'datetime',
-                value: '{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}',
-                format: 'yyyy-MM-dd HH:mm:ss'
+                value: postDate,
+                format: 'yyyy-MM-dd HH:mm:ss',
+                done: function (value, date, endDate) {
+                    updateHideTimestamp(new Date(value));
+                }
             })
         });
+
+        function updateHideTimestamp(date) {
+            $('#submit-datetime').next().val(Math.floor(date.getTime() / 1000))
+        }
     </script>
 {% endmacro %}
 
@@ -59,7 +69,7 @@
                 {% for attachment in attachments %}
                     <section class="upload-item">
                         <h5>{{ attachment.original_filename }}
-                            <small>{{ attachment.timestamp }}</small>
+                            <small>{{ moment(attachment.timestamp).format('lll') }}</small>
                         </h5>
                         相对链接：
                         <mark>{{ attachment.filename }}</mark>
