@@ -1,4 +1,4 @@
-{% extends "bootstrap/base.html" %}
+{% extends "_base.html" %}
 
 {% block title %}Penguin{% endblock %}
 
@@ -24,10 +24,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-    {{ moment.include_moment() }}
-    {{ moment.lang('zh-CN') }}
 {% endblock %}
