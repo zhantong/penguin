@@ -29,7 +29,7 @@
     <div>
         <h3>评论</h3>
         {% for comment in comments recursive %}
-            <div class="panel panel-default" style="margin-bottom: 10px">
+            <div id="comment-{{ comment['comment'].id }}" class="panel panel-default" style="margin-bottom: 10px">
                 <div class="panel-heading" style="padding-top: 2px;padding-bottom: 2px">
                     <h4>
                         {{ comment['comment'].author.name }}

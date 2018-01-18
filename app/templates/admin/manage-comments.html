@@ -40,7 +40,10 @@
             {% for comment in comments %}
                 <tr>
                     <td><input type="checkbox" name="id" value="{{ comment.id }}"></td>
-                    <td><a href="{{ url_for('main.show_post',slug=comment.post.slug) }}">{{ comment.post.title }}</a>
+                    <td>
+                        <a href="{{ url_for('main.show_post',slug=comment.post.slug,_anchor='comment-'+comment.id|string) }}">
+                            {{ comment.post.title }}
+                        </a>
                     </td>
                     <td>{{ comment.author.name }}</td>
                     <td>{{ moment(comment.timestamp).fromNow() }}</td>
