@@ -271,6 +271,8 @@
                         <option value="{{ template_meta.id }}">{{ template_meta.key }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div class="panel-footer">
                 {% if post.is_template_enabled() %}
                     <button name="action" value="disable-template" type="submit" class="btn btn-default">停用模板</button>
                 {% else %}

@@ -26,7 +26,7 @@
                 </div>
                 {% if post.is_template_enabled() %}
                     <div id="fields">
-                        <button id="new-field" type="button">添加字段</button>
+                        <button id="new-field" type="button" class="btn btn-default">添加字段</button>
                         {% for field in post.field_metas.all() %}
                             <div class="form-inline">
                                 <div class="form-group">
@@ -35,7 +35,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>字段值</label>
-                                    <textarea name="field-value">{{ field.value }}</textarea>
+                                    <textarea name="field-value" class="form-control"
+                                              rows="3">{{ field.value }}</textarea>
                                 </div>
                                 <button type="button" class="remove-field btn btn-default">删除</button>
                             </div>
