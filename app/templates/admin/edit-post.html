@@ -37,6 +37,7 @@
                                     <label>字段值</label>
                                     <textarea name="field-value">{{ field.value }}</textarea>
                                 </div>
+                                <button type="button" class="remove-field btn btn-default">删除</button>
                             </div>
                         {% endfor %}
                     </div>
@@ -100,7 +101,10 @@
                     $input.val(msg['slug']);
                 }
             })
-        })
+        });
+        $(document).on('click', 'button.remove-field', function (event) {
+            $(event.target).parent().remove();
+        });
     </script>
     {% block options_scripts %}
     {% endblock %}
