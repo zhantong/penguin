@@ -2,12 +2,13 @@ from flask import render_template, request, current_app, flash, redirect, url_fo
 from flask_login import login_required
 from flask_wtf import FlaskForm
 from . import admin
-from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta
+from ..models import Post, Attachment, db, PostStatus, Meta, PostMeta, Comment
 import os.path
 import uuid
 from datetime import datetime
 from sqlalchemy.orm import load_only
 from ..utils import slugify
+from sqlalchemy import desc
 
 
 @admin.before_request
@@ -461,3 +462,31 @@ def manage_template():
         db.session.add(template)
     db.session.commit()
     return redirect(url_for('.list_templates'))
+
+
+@admin.route('/manage-comments')
+def list_comments():
+    page = request.args.get('page', 1, type=int)
+    pagination = Comment.query.order_by(desc(Comment.timestamp)) \
+        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    comments = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-comments.html', comments=comments, pagination=pagination, form=form)
+
+
+@admin.route('/manage-comments', methods=['POST'])
+def manage_comments():
+    action = request.form.get('action', '', type=str)
+    if action == 'delete':
+        ids = request.form.getlist('id')
+        ids = [int(id) for id in ids]
+        if ids:
+            first_comment_name = Comment.query.get(ids[0]).body
+            for comment in Comment.query.filter(Comment.id.in_(ids)):
+                db.session.delete(comment)
+            db.session.commit()
+            message = '已删除分类"' + first_comment_name + '"'
+            if len(ids) > 1:
+                message += '以及剩下的' + str(len(ids) - 1) + '条评论'
+            flash(message)
+    return redirect(url_for('.list_comments'))

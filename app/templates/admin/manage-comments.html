@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}管理评论 - Penguin{% endblock %}
+
+{% block page_title %}<h1>管理评论</h1>{% endblock %}
+
+{% block page_content %}
+    <div id="toolbar">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="input-group">
+                    <select id="select-actions" class="form-control" name="action" form="form-table">
+                        <option value="">批量操作</option>
+                        <option value="delete">删除</option>
+                    </select>
+                    <span class="input-group-btn">
+                        <button id="do-action" class="btn btn-default" type="submit" form="form-table">应用</button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-7">
+            </div>
+            <div class="col-md-3">
+            </div>
+        </div>
+    </div>
+    <form id="form-table" method="post">
+        <table id="table" class="table">
+            <thead>
+            <tr>
+                <th><input id="selectAll" type="checkbox"></th>
+                <th>标题</th>
+                <th>作者</th>
+                <th>时间</th>
+                <th>内容</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for comment in comments %}
+                <tr>
+                    <td><input type="checkbox" name="id" value="{{ comment.id }}"></td>
+                    <td><a href="{{ url_for('main.show_post',slug=comment.post.slug) }}">{{ comment.post.title }}</a>
+                    </td>
+                    <td>{{ comment.author.name }}</td>
+                    <td>{{ moment(comment.timestamp).fromNow() }}</td>
+                    <td>{{ comment.body_html | safe }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {{ form.csrf_token }}
+    </form>
+    {% if pagination %}
+        <div class="text-right">
+            {{ macros.pagination_widget(pagination, '.list_comments') }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(function () {
+            $('#selectAll').click(function (e) {
+                var table = $(e.target).closest('table');
+                $('td input:checkbox', table).prop('checked', this.checked);
+            });
+        });
+    </script>
+{% endblock %}
