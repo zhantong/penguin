@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}管理模板 - Penguin{% endblock %}
+
+{% block page_title %}<h1>管理模板</h1>{% endblock %}
+
+{% block page_content %}
+    <div id="toolbar">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="input-group">
+                    <select id="select-actions" class="form-control" name="action" form="form-table">
+                        <option value="">批量操作</option>
+                        <option value="delete">删除</option>
+                    </select>
+                    <span class="input-group-btn">
+                        <button id="do-action" class="btn btn-default" type="submit" form="form-table">应用</button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-7">
+            </div>
+            <div class="col-md-3">
+            </div>
+        </div>
+    </div>
+    <form id="form-table" method="post">
+        <table id="table" class="table">
+            <thead>
+            <tr>
+                <th><input id="selectAll" type="checkbox"></th>
+                <th>名称</th>
+                <th>文章数</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for template in templates %}
+                <tr>
+                    <td><input type="checkbox" name="id" value="{{ template.id }}"></td>
+                    <td>
+                        <a href="{{ url_for('.show_template',id=template.id) }}">
+                            {{ template.key }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('.list_articles',template=template.key) }}">
+                            {{ template.post_metas.count() }}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {{ form.csrf_token }}
+    </form>
+    {% if pagination %}
+        <div class="text-right">
+            {{ macros.pagination_widget(pagination, '.list_templates') }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(function () {
+            $('#selectAll').click(function (e) {
+                var table = $(e.target).closest('table');
+                $('td input:checkbox', table).prop('checked', this.checked);
+            });
+        });
+    </script>
+{% endblock %}

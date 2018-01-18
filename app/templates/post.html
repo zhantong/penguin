@@ -19,7 +19,11 @@
     <article>
         <h1>{{ post.title }}</h1>
         <div>
-            {{ post.body_html | safe }}
+            {% if post.is_template_enabled() %}
+                {% include template %}
+            {% else %}
+                {{ post.body_html | safe }}
+            {% endif %}
         </div>
     </article>
     <div>

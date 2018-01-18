@@ -2,6 +2,7 @@ from flask import render_template, request, current_app, send_from_directory
 from . import main
 from ..models import Post, Comment, Attachment
 from ..utils import format_comments
+from jinja2 import Template
 
 
 @main.route('/')
@@ -24,7 +25,12 @@ def show_post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
     comments = format_comments(comments)
-    return render_template('post.html', post=post, comments=comments)
+    if post.is_template_enabled():
+        template = Template(post.template_post_meta.meta.value)
+        context = {field.key: eval(field.value) for field in post.field_metas.all()}
+        return render_template('post.html', post=post, comments=comments, template=template, **context)
+    else:
+        return render_template('post.html', post=post, comments=comments)
 
 
 @main.route('/<string:filename>', endpoint='show_attachment_page')

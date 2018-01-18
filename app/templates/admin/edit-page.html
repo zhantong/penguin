@@ -8,6 +8,7 @@
 {% block options_content %}
     {{ options.submit() }}
     {{ options.attachment(attachments) }}
+    {{ options.template(post,all_template_metas) }}
 {% endblock %}
 
 {% block options_scripts %}

@@ -24,9 +24,27 @@
                         </span>
                     </div>
                 </div>
-                <div id="markdown-editor">
-                    <textarea name="body" style="display:none;">{{ post.body }}</textarea>
-                </div>
+                {% if post.is_template_enabled() %}
+                    <div id="fields">
+                        <button id="new-field" type="button">添加字段</button>
+                        {% for field in post.field_metas.all() %}
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <label>字段名</label>
+                                    <input name="field-key" type="text" class="form-control" value="{{ field.key }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>字段值</label>
+                                    <textarea name="field-value">{{ field.value }}</textarea>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div id="markdown-editor">
+                        <textarea name="body" style="display:none;">{{ post.body }}</textarea>
+                    </div>
+                {% endif %}
             </div>
             <div class="col-lg-4">
                 {% block options_content %}
@@ -39,29 +57,50 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='editormd/editormd.min.js') }}"></script>
-    <script type="text/javascript">
-        $(function () {
+    {% if post.is_template_enabled() %}
+        <script type="text/javascript">
+            $('#new-field').click(function () {
+                let field_html = `
+                    <div class="form-inline">
+                    <div class="form-group">
+                        <label>字段名</label>
+                        <input name="field-key" type="text" class="form-control" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>字段值</label>
+                        <textarea name="field-value"></textarea>
+                    </div>
+                </div>
+                `;
+                $('#fields').append(field_html);
+            })
+        </script>
+    {% else %}
+        <script src="{{ url_for('static', filename='editormd/editormd.min.js') }}"></script>
+        <script type="text/javascript">
             editormd({
                 id: "markdown-editor",
                 width: "100%",
                 height: 640,
                 path: "{{ url_for('static',filename='editormd/lib/') }}"
             });
-            $('#trans-slug').click(function () {
-                $input = $(this).parent().siblings('input');
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ url_for('.trans_slug') }}',
-                    data: {
-                        string: $input.val()
-                    },
-                    success: function (msg) {
-                        $input.val(msg['slug']);
-                    }
-                })
+        </script>
+    {% endif %}
+
+    <script type="text/javascript">
+        $('#trans-slug').click(function () {
+            $input = $(this).parent().siblings('input');
+            $.ajax({
+                type: 'GET',
+                url: '{{ url_for('.trans_slug') }}',
+                data: {
+                    string: $input.val()
+                },
+                success: function (msg) {
+                    $input.val(msg['slug']);
+                }
             })
-        });
+        })
     </script>
     {% block options_scripts %}
     {% endblock %}

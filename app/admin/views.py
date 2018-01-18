@@ -36,7 +36,8 @@ def edit_article():
                            , category_meta_ids=[category_post_meta.meta_id for category_post_meta
                                                 in post.category_post_metas.options(load_only('meta_id'))]
                            , all_tag_metas=Meta.tags()
-                           , tags=[tag_post_meta.meta.value for tag_post_meta in post.tag_post_metas.all()])
+                           , tags=[tag_post_meta.meta.value for tag_post_meta in post.tag_post_metas.all()]
+                           , all_template_metas=Meta.templates())
 
 
 @admin.route('/edit-article', methods=['POST'])
@@ -48,7 +49,6 @@ def submit_article():
             id = request.form['id']
             title = request.form['title']
             slug = request.form['slug']
-            body = request.form['body']
             timestamp = request.form.get('timestamp', type=int)
             category_meta_ids = request.form.getlist('category-id')
             tag_names = request.form.getlist('tag')
@@ -56,7 +56,6 @@ def submit_article():
             post = Post.query.get(int(id))
             post.title = title
             post.slug = slug
-            post.body = body
             post.timestamp = timestamp
             post.category_post_metas = [PostMeta(post=post, meta_id=category_meta_id)
                                         for category_meta_id in category_meta_ids]
@@ -70,6 +69,15 @@ def submit_article():
                 tag_post_meta = PostMeta(post=post, meta=tag)
                 tag_post_metas.append(tag_post_meta)
             post.tag_post_metas = tag_post_metas
+            if post.is_template_enabled():
+                field_keys = request.form.getlist('field-key')
+                field_values = request.form.getlist('field-value')
+                post.field_metas = []
+                for key, value in zip(field_keys, field_values):
+                    post.field_metas.append(Meta.create_field(key=key, value=value))
+            else:
+                body = request.form['body']
+                post.body = body
             if action == 'save-draft':
                 post.set_post_status_draft()
                 db.session.commit()
@@ -78,6 +86,19 @@ def submit_article():
                 post.set_post_status_published()
                 db.session.commit()
                 return redirect(url_for('.list_articles'))
+        elif action == 'enable-template':
+            id = request.form['id']
+            template_id = request.form['template']
+            post = Post.query.get(int(id))
+            post.template_post_meta = PostMeta(post=post, meta_id=int(template_id))
+            db.session.commit()
+            return redirect(url_for('.edit_article', id=id))
+        elif action == 'disable-template':
+            id = request.form['id']
+            post = Post.query.get(int(id))
+            post.template_post_meta = None
+            db.session.commit()
+            return redirect(url_for('.edit_article', id=id))
 
 
 @admin.route('/manage-articles')
@@ -86,6 +107,7 @@ def list_articles():
     keyword = request.args.get('keyword', '', type=str)
     category = request.args.get('category', '', type=str)
     tag = request.args.get('tag', '', type=str)
+    template = request.args.get('template', '', type=str)
     status = request.args.get('status', '', type=str)
     query = Post.query_articles().filter(Post.title.contains(keyword))
     if category != '':
@@ -94,6 +116,8 @@ def list_articles():
         query = query.filter(Post.post_status.has(key=status))
     if tag != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == tag and Meta.type == 'tag')
+    if template != '':
+        query = query.join(PostMeta, Meta).filter(Meta.key == template and Meta.type == 'template')
     query = query.order_by(Post.timestamp.desc())
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
@@ -291,7 +315,8 @@ def edit_page():
         db.session.add(post)
         db.session.commit()
     attachments = Attachment.query.filter_by(post=post).all()
-    return render_template('admin/edit-page.html', post=post, form=FlaskForm(), attachments=attachments)
+    return render_template('admin/edit-page.html', post=post, form=FlaskForm(), attachments=attachments
+                           , all_template_metas=Meta.templates())
 
 
 @admin.route('/edit-page', methods=['POST'])
@@ -303,14 +328,21 @@ def submit_page():
             id = request.form['id']
             title = request.form['title']
             slug = request.form['slug']
-            body = request.form['body']
             timestamp = request.form.get('timestamp', type=int)
             timestamp = datetime.utcfromtimestamp(timestamp)
             post = Post.query.get(int(id))
             post.title = title
             post.slug = slug
-            post.body = body
             post.timestamp = timestamp
+            if post.is_template_enabled():
+                field_keys = request.form.getlist('field-key')
+                field_values = request.form.getlist('field-value')
+                post.field_metas = []
+                for key, value in zip(field_keys, field_values):
+                    post.field_metas.append(Meta.create_field(key=key, value=value))
+            else:
+                body = request.form['body']
+                post.body = body
             if action == 'save-draft':
                 post.set_post_status_draft()
                 db.session.commit()
@@ -319,6 +351,19 @@ def submit_page():
                 post.set_post_status_published()
                 db.session.commit()
                 return redirect(url_for('.list_pages'))
+        elif action == 'enable-template':
+            id = request.form['id']
+            template_id = request.form['template']
+            post = Post.query.get(int(id))
+            post.template_post_meta = PostMeta(post=post, meta_id=int(template_id))
+            db.session.commit()
+            return redirect(url_for('.edit_page', id=id))
+        elif action == 'disable-template':
+            id = request.form['id']
+            post = Post.query.get(int(id))
+            post.template_post_meta = None
+            db.session.commit()
+            return redirect(url_for('.edit_page', id=id))
 
 
 @admin.route('/manage-pages')
@@ -363,3 +408,56 @@ def trans_slug():
     return jsonify({
         'slug': slugify(request.args['string'])
     })
+
+
+@admin.route('/manage-templates')
+def list_templates():
+    page = request.args.get('page', 1, type=int)
+    pagination = Meta.query_templates().order_by(Meta.key) \
+        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    templates = pagination.items
+    form = FlaskForm()
+    return render_template('admin/manage-templates.html', templates=templates, pagination=pagination, form=form)
+
+
+@admin.route('/manage-templates', methods=['POST'])
+def manage_templates():
+    action = request.form.get('action', '', type=str)
+    if action == 'delete':
+        ids = request.form.getlist('id')
+        ids = [int(id) for id in ids]
+        if ids:
+            first_template_name = Meta.query.get(ids[0]).key
+            for template in Meta.query.filter(Meta.id.in_(ids)):
+                db.session.delete(template)
+            db.session.commit()
+            message = '已删除模板"' + first_template_name + '"'
+            if len(ids) > 1:
+                message += '以及剩下的' + str(len(ids) - 1) + '个模板'
+            flash(message)
+    return redirect(url_for('.list_templates'))
+
+
+@admin.route('/edit-template')
+def show_template():
+    id = request.args.get('id', type=int)
+    template = None
+    if id is not None:
+        template = Meta.query.get(id)
+    return render_template('admin/edit-template.html', template=template)
+
+
+@admin.route('/edit-template', methods=['POST'])
+def manage_template():
+    id = request.form.get('id', type=int)
+    if id is None:
+        template = Meta().create_template()
+    else:
+        template = Meta.query.get(id)
+    template.key = request.form['key']
+    template.value = request.form['value']
+    template.description = request.form['description']
+    if template.id is None:
+        db.session.add(template)
+    db.session.commit()
+    return redirect(url_for('.list_templates'))

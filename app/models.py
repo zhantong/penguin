@@ -77,6 +77,9 @@ class Post(db.Model):
     comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
     attachments = db.relationship('Attachment', back_populates='post', lazy='dynamic')
     post_metas = db.relationship('PostMeta', back_populates='post', lazy='dynamic')
+    metas = db.relationship('Meta', back_populates='post', lazy='dynamic')
+    field_metas = db.relationship('Meta', primaryjoin='and_(Post.id==Meta.post_id, Meta.type=="field")'
+                                  , backref='field_post', lazy='dynamic', cascade='all, delete-orphan')
     category_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
                                                                   'PostMeta.meta_id==Meta.id, '
                                                                   'Meta.type=="category")'
@@ -85,6 +88,10 @@ class Post(db.Model):
                                                              'PostMeta.meta_id==Meta.id, '
                                                              'Meta.type=="tag")'
                                      , backref='tag_post', lazy='dynamic', cascade='all, delete-orphan')
+    template_post_meta = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
+                                                                 'PostMeta.meta_id==Meta.id, '
+                                                                 'Meta.type=="template")'
+                                         , backref='template_post', uselist=False, cascade='all, delete-orphan')
 
     @hybrid_property
     def slug(self):
@@ -165,6 +172,12 @@ class Post(db.Model):
         if result[-1] == ',':
             result = result[:-1]
         return result
+
+    def is_template_enabled(self):
+        return self.template_post_meta is not None
+
+    def set_enable_template(self):
+        self.template_post_meta = None
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
@@ -283,9 +296,11 @@ class Meta(db.Model):
     __tablename__ = 'metas'
     id = db.Column(db.Integer, primary_key=True)
     _key = db.Column('key', db.String(200), default='')
-    value = db.Column(db.String(400), default='')
+    value = db.Column(db.Text, default='')
     type = db.Column(db.String(200))
     description = db.Column(db.Text, default='')
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    post = db.relationship('Post', back_populates='metas')
     post_metas = db.relationship('PostMeta', back_populates='meta', lazy='dynamic', cascade='all, delete-orphan')
 
     @hybrid_property
@@ -313,12 +328,28 @@ class Meta(db.Model):
         return Meta.query.filter_by(type='tag').order_by(Meta.value).all()
 
     @staticmethod
+    def query_templates():
+        return Meta.query.filter_by(type='template')
+
+    @staticmethod
+    def templates():
+        return Meta.query.filter_by(type='template').order_by(Meta.key).all()
+
+    @staticmethod
     def create_category(**kwargs):
         return Meta(type='category', **kwargs)
 
     @staticmethod
     def create_tag(**kwargs):
         return Meta(type='tag', **kwargs)
+
+    @staticmethod
+    def create_template(**kwargs):
+        return Meta(type='template', **kwargs)
+
+    @staticmethod
+    def create_field(**kwargs):
+        return Meta(type='field', **kwargs)
 
 
 class PostMeta(db.Model):
