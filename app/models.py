@@ -52,6 +52,10 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', back_populates='author', lazy='dynamic')
     comments = db.relationship('Comment', back_populates='author', lazy='dynamic')
 
+    @staticmethod
+    def create_guest(**kwargs):
+        return User(role=Role.guest(), **kwargs)
+
 
 @login_manager.user_loader
 def load_user(user_id):

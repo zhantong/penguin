@@ -1,8 +1,9 @@
-from flask import render_template, request, current_app, send_from_directory
+from flask import render_template, request, current_app, send_from_directory, jsonify
 from . import main
-from ..models import Post, Comment, Attachment
+from ..models import db, Post, Comment, Attachment, User
 from ..utils import format_comments
 from jinja2 import Template
+from flask_login import current_user
 
 
 @main.route('/')
@@ -39,3 +40,24 @@ def show_attachment(filename):
     attachment = Attachment.query.filter_by(filename=filename).first()
     path = attachment.file_path
     return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
+
+
+@main.route('/comment/<int:id>', methods=['POST'])
+def submit_comment(id):
+    post = Post.query.get_or_404(id)
+    parent = request.form.get('parent', type=int)
+    name = request.form.get('name', type=str)
+    email = request.form.get('email', None, type=str)
+    body = request.form.get('body', type=str)
+    if current_user.is_authenticated:
+        author = current_user._get_current_object()
+    else:
+        author = User.create_guest(name=name, email=email)
+        db.session.add(author)
+        db.session.flush()
+    db.session.add(Comment(body=body, author=author, post=post, parent=parent))
+    db.session.commit()
+    return jsonify({
+        'code': 0,
+        'message': '发表成功'
+    })
