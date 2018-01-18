@@ -49,4 +49,8 @@
     {{ super() }}
     {{ moment.include_moment() }}
     {{ moment.lang('zh-CN') }}
+    <script src="{{ url_for('static', filename='bootstrap-autohidingnavbar-1.0.5/dist/jquery.bootstrap-autohidingnavbar.min.js') }}"></script>
+    <script>
+        $("nav.navbar-fixed-top").autoHidingNavbar();
+    </script>
 {% endblock %}
