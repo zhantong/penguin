@@ -93,7 +93,7 @@
 {% block scripts %}
     {{ super() }}
     {{ panels.toc_script() }}
-    <script type="text/javascript">
+    <script>
         $('a.reply-comment').click(function (event) {
             event.preventDefault();
             $('#new-comment').detach().insertAfter($(event.target).parent());
