@@ -6,6 +6,7 @@ from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Paginatio
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+article_search_select = signal('article_search_select')
 
 
 @show_list.connect_via('article')
@@ -44,10 +45,15 @@ def show_list(sender, args):
     args = args.to_dict()
     if 'page' in args:
         del args['page']
+    search_selects = []
+    result = article_search_select.send()
+    for item in result:
+        search_selects.append(item[1])
     return {
         **args,
         'title': '文章',
         'tabs': tabs,
+        'search_selects': search_selects,
         'table': table,
         'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
     }

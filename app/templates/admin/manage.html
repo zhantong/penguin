@@ -50,6 +50,16 @@
                     <form method="get">
                         <input type="hidden" name="type" value="{{ type }}"/>
                         <div class="input-group">
+                            {% for select in search_selects %}
+                                <select class="form-control" name="{{ select.name }}">
+                                    {% for option in select.options %}
+                                        <option value="{{ option.value }}"
+                                                {% if category is not none and option.value==category %}selected="selected"{% endif %}>
+                                            {{ option.text }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% endfor %}
                             <input name="search" type="text" class="form-control" placeholder="关键字"
                                    value="{{ search }}">
                             <span class="input-group-btn">

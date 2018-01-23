@@ -1,11 +1,12 @@
 from blinker import signal
 from ...models import db, Meta, PostMeta
 from flask import current_app, url_for, flash
-from ...element_models import Hyperlink, Plain, Table, Pagination
+from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+article_search_select = signal('article_search_select')
 
 
 @show_list.connect_via('category')
@@ -41,6 +42,14 @@ def custom_list(sender, args, query):
     if 'category' in args and args['category'] != '':
         query = query.join(PostMeta, Meta).filter(Meta.key == args['category'] and Meta.type == 'category')
     return query
+
+
+@article_search_select.connect
+def article_search_select(sender):
+    select = Select('Select', 'category', [Option('Option', '全部分类', '')])
+    select.options.extend(Option('Option', category_meta.value, category_meta.key) for category_meta in
+                          Meta.query_categories().order_by(Meta.value).all())
+    return select
 
 
 @manage.connect_via('category')
