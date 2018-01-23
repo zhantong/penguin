@@ -21,13 +21,15 @@
 {% block page_title %}<h1>管理{{ title }}</h1>{% endblock %}
 
 {% block page_content %}
-    <ul class="nav nav-tabs">
-        {% for tab in tabs.tabs %}
-            <li {% if tabs.selected_tab == tab.text %} class="active" {% endif %}>
-                <a href="{{ tab.link }}">{{ tab.text }}</a>
-            </li>
-        {% endfor %}
-    </ul>
+    {% if tabs %}
+        <ul class="nav nav-tabs">
+            {% for tab in tabs.tabs %}
+                <li {% if tabs.selected_tab == tab.text %} class="active" {% endif %}>
+                    <a href="{{ tab.link }}">{{ tab.text }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <div id="toolbar">
         <div class="row">
             <div class="col-md-2">
@@ -44,16 +46,18 @@
             <div class="col-md-7">
             </div>
             <div class="col-md-3">
-                <form method="get">
-                    <input type="hidden" name="type" value="{{ type }}"/>
-                    <div class="input-group">
-                        <input name="search" type="text" class="form-control" placeholder="关键字"
-                               value="{{ search }}">
-                        <span class="input-group-btn">
+                {% if disable_search is none or not disable_search %}
+                    <form method="get">
+                        <input type="hidden" name="type" value="{{ type }}"/>
+                        <div class="input-group">
+                            <input name="search" type="text" class="form-control" placeholder="关键字"
+                                   value="{{ search }}">
+                            <span class="input-group-btn">
                             <button type="submit" class="btn btn-default">搜索</button>
                         </span>
-                    </div>
-                </form>
+                        </div>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </div>
