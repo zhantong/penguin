@@ -1,10 +1,11 @@
 from blinker import signal
-from ...models import db, Meta
+from ...models import db, Meta, PostMeta
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination
 
 show_list = signal('show_list')
 manage = signal('manage')
+custom_list = signal('custom_list')
 
 
 @show_list.connect_via('category')
@@ -21,7 +22,7 @@ def show_list(sender, args):
                                  url_for('admin.show_category', id=category.id))
                      , Plain('Plain', category.key)
                      , Hyperlink('Hyperlink', category.post_metas.count(),
-                                 url_for('.list_articles', category=category.key))))
+                                 url_for('.show_list', type='article', category=category.key))))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:
@@ -33,6 +34,13 @@ def show_list(sender, args):
         'disable_search': True,
         'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
     }
+
+
+@custom_list.connect
+def custom_list(sender, args, query):
+    if 'category' in args and args['category'] != '':
+        query = query.join(PostMeta, Meta).filter(Meta.key == args['category'] and Meta.type == 'category')
+    return query
 
 
 @manage.connect_via('category')

@@ -5,6 +5,7 @@ from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Paginatio
 
 show_list = signal('show_list')
 manage = signal('manage')
+custom_list = signal('custom_list')
 
 
 @show_list.connect_via('article')
@@ -16,6 +17,9 @@ def show_list(sender, args):
     if selected_tab != '全部':
         query = query.filter(Post.post_status.has(key=selected_tab))
     query = query.order_by(Post.timestamp.desc())
+    result = custom_list.send(args=args, query=query)
+    if result:
+        query = result[0][1]
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
     head = ('', '标题', '作者', '分类', '标签', '时间')
