@@ -9,6 +9,7 @@ from datetime import datetime
 from sqlalchemy.orm import load_only
 from ..utils import slugify
 from sqlalchemy import desc
+from blinker import signal
 
 
 @admin.before_request
@@ -100,6 +101,21 @@ def submit_article():
             post.template_post_meta = None
             db.session.commit()
             return redirect(url_for('.edit_article', id=id))
+
+
+@admin.route('/manage')
+def show_list():
+    type = request.args['type']
+    result = signal('show_list').send(type, args=request.args)
+    context = result[0][1]
+    return render_template('admin/manage.html', **context)
+
+
+@admin.route('/manage', methods=['POST'])
+def manage():
+    type = request.form['type']
+    result = signal('manage').send(type, form=request.form)
+    return redirect(url_for('.show_list', type=type))
 
 
 @admin.route('/manage-articles')

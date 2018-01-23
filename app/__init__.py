@@ -44,6 +44,12 @@ def create_app(config_name):
     from .api import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
 
+    from .plugins import load_plugins
+    load_plugins()
+
+    from . import jinja2_customs
+    jinja2_customs.custom(app)
+
     nav.init_app(app)
 
     return app
