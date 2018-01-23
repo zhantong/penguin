@@ -1,0 +1,15 @@
+<script>
+    $('#trans-slug').click(function () {
+        $input = $(this).parent().siblings('input');
+        $.ajax({
+            type: 'GET',
+            url: '{{ url_for('.trans_slug') }}',
+            data: {
+                string: $input.val()
+            },
+            success: function (msg) {
+                $input.val(msg['slug']);
+            }
+        })
+    });
+</script>

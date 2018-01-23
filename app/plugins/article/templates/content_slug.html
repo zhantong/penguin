@@ -1,0 +1,10 @@
+<div class="form-group">
+    <div class="input-group">
+        <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
+        <input name="slug" type="text" class="form-control" value="{{ post.slug }}">
+        <span class="input-group-addon">.html</span>
+        <span class="input-group-btn">
+            <button id="trans-slug" class="btn btn-default" type="button">转换链接</button>
+        </span>
+    </div>
+</div>

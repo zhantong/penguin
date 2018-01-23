@@ -23,6 +23,23 @@ def index():
     return render_template('admin/index.html')
 
 
+@admin.route('/edit')
+def edit():
+    type = request.args['type']
+    context = {}
+    styles = []
+    hiddens = []
+    contents = []
+    widgets = []
+    scripts = []
+    result = signal('edit').send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
+                                 contents=contents, widgets=widgets,
+                                 scripts=scripts)
+    return render_template('admin/edit.html', **request.args, **context, styles=styles, hiddens=hiddens,
+                           contents=contents, widgets=widgets,
+                           scripts=scripts)
+
+
 @admin.route('/edit-article')
 def edit_article():
     if 'id' in request.args:

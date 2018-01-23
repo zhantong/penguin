@@ -2,11 +2,14 @@ from blinker import signal
 from ...models import db, Post, PostStatus
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Pagination
+import os.path
 
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
 article_search_select = signal('article_search_select')
+edit = signal('edit')
+edit_article = signal('edit_article')
 
 
 @show_list.connect_via('article')
@@ -74,3 +77,27 @@ def manage(sender, form):
             if len(ids) > 1:
                 message += '以及剩下的' + str(len(ids) - 1) + '篇文章'
             flash(message)
+
+
+@edit.connect_via('article')
+def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    if 'id' in args:
+        post = Post.query.get(int(args['id']))
+    else:
+        post = Post.create_article()
+        db.session.add(post)
+        db.session.commit()
+        db.session.refresh(post)
+    context['post'] = post
+    styles.append(os.path.join('article', 'templates', 'style_editor.html'))
+    hiddens.append(os.path.join('article', 'templates', 'hidden_id.html'))
+    contents.append(os.path.join('article', 'templates', 'content_title.html'))
+    contents.append(os.path.join('article', 'templates', 'content_slug.html'))
+    contents.append(os.path.join('article', 'templates', 'content_editor.html'))
+    scripts.append(os.path.join('article', 'templates', 'script_slug.html'))
+    scripts.append(os.path.join('article', 'templates', 'script_editor.html'))
+    widgets.append(os.path.join('article', 'templates', 'widget_content_submit.html'))
+    scripts.append(os.path.join('article', 'templates', 'widget_script_submit.html'))
+    edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens,
+                      contents=contents, widgets=widgets,
+                      scripts=scripts)
