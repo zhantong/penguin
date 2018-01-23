@@ -40,7 +40,8 @@ def show_list(sender, args):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'category' in args and args['category'] != '':
-        query = query.join(PostMeta, Meta).filter(Meta.key == args['category'] and Meta.type == 'category')
+        query['query'] = query['query'].join(PostMeta, Meta).filter(
+            Meta.key == args['category'] and Meta.type == 'category')
     return query
 
 

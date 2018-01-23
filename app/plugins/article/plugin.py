@@ -18,9 +18,9 @@ def show_list(sender, args):
     if selected_tab != '全部':
         query = query.filter(Post.post_status.has(key=selected_tab))
     query = query.order_by(Post.timestamp.desc())
-    result = custom_list.send(args=args, query=query)
+    result = custom_list.send(args=args, query={'query': query})
     if result:
-        query = result[0][1]
+        query = result[0][1]['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
     head = ('', '标题', '作者', '分类', '标签', '时间')
