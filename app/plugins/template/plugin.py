@@ -4,6 +4,7 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 import os.path
 
+sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
@@ -15,6 +16,11 @@ submit_page = signal('submit_page')
 submit_page_with_action = signal('submit_page_with_action')
 edit = signal('edit')
 submit = signal('submit')
+
+
+@sidebar.connect
+def sidebar(sender, sidebars):
+    sidebars.append(os.path.join('template', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('template')

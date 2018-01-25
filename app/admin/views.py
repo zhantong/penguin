@@ -13,7 +13,9 @@ def before_request():
 
 @admin.route('/')
 def index():
-    return render_template('admin/index.html')
+    sidebars = []
+    signal('sidebar').send(sidebars=sidebars)
+    return render_template('admin/index.html', sidebars=sidebars)
 
 
 @admin.route('/edit')
@@ -28,7 +30,10 @@ def edit():
     result = signal('edit').send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
                                  contents=contents, widgets=widgets,
                                  scripts=scripts)
-    return render_template('admin/edit.html', **request.args.to_dict(), **context, styles=styles, hiddens=hiddens,
+    sidebars = []
+    signal('sidebar').send(sidebars=sidebars)
+    return render_template('admin/edit.html', **request.args.to_dict(), **context, sidebars=sidebars, styles=styles,
+                           hiddens=hiddens,
                            contents=contents, widgets=widgets,
                            scripts=scripts)
 
@@ -45,7 +50,9 @@ def show_list():
     type = request.args['type']
     result = signal('show_list').send(type, args=request.args)
     context = result[0][1]
-    return render_template('admin/manage.html', **context)
+    sidebars = []
+    signal('sidebar').send(sidebars=sidebars)
+    return render_template('admin/manage.html', **context, sidebars=sidebars)
 
 
 @admin.route('/manage', methods=['POST'])

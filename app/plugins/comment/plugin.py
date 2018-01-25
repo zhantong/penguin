@@ -3,9 +3,16 @@ from ...models import db, Comment
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
 from sqlalchemy import desc
+import os.path
 
+sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
+
+
+@sidebar.connect
+def sidebar(sender, sidebars):
+    sidebars.append(os.path.join('comment', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('comment')

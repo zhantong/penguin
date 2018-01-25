@@ -5,6 +5,7 @@ from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Paginatio
 import os.path
 from datetime import datetime
 
+sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
@@ -14,6 +15,11 @@ edit_article = signal('edit_article')
 submit = signal('submit')
 submit_article = signal('submit_article')
 submit_article_with_action = signal('submit_article_with_action')
+
+
+@sidebar.connect
+def sidebar(sender, sidebars):
+    sidebars.append(os.path.join('article', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('article')

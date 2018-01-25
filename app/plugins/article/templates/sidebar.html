@@ -1,0 +1,15 @@
+<div class="panel-heading" role="tab" id="nav-post-heading">
+    <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" href="#nav-post-collapse"
+           aria-expanded="true" aria-controls="nav-post-collapse">
+            文章
+        </a>
+    </h4>
+</div>
+<div id="nav-post-collapse" class="panel-collapse collapse in" role="tabpanel"
+     aria-labelledby="nav-post-heading">
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('.edit',type='article') }}">撰写文章</a></li>
+        <li class="list-group-item"><a href="{{ url_for('.show_list',type='article') }}">管理文章</a></li>
+    </ul>
+</div>

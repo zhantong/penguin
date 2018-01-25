@@ -4,6 +4,7 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination
 import os.path
 
+sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
@@ -11,6 +12,11 @@ edit_article = signal('edit_article')
 submit_article = signal('submit_article')
 edit = signal('edit')
 submit = signal('submit')
+
+
+@sidebar.connect
+def sidebar(sender, sidebars):
+    sidebars.append(os.path.join('category', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('tag')
@@ -24,7 +30,7 @@ def show_list(sender, args):
     for tag in tags:
         rows.append((tag.id
                      , Hyperlink('Hyperlink', tag.value,
-                                 url_for('.edit',type='tag', id=tag.id))
+                                 url_for('.edit', type='tag', id=tag.id))
                      , Plain('Plain', tag.key)
                      , Hyperlink('Hyperlink', tag.post_metas.count(),
                                  url_for('.show_list', type='article', tag=tag.key))))

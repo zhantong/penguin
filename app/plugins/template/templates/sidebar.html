@@ -1,0 +1,15 @@
+<div class="panel-heading" role="tab" id="nav-template-heading">
+    <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" href="#nav-template-collapse"
+           aria-expanded="true" aria-controls="nav-template-collapse">
+            模板
+        </a>
+    </h4>
+</div>
+<div id="nav-template-collapse" class="panel-collapse collapse in" role="tabpanel"
+     aria-labelledby="nav-template-heading">
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('.edit',type='template') }}">新建模板</a></li>
+        <li class="list-group-item"><a href="{{ url_for('.show_list',type='template') }}">管理模板</a></li>
+    </ul>
+</div>

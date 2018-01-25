@@ -1,0 +1,14 @@
+<div class="panel-heading" role="tab" id="nav-comment-heading">
+    <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" href="#nav-comment-collapse"
+           aria-expanded="true" aria-controls="nav-comment-collapse">
+            评论
+        </a>
+    </h4>
+</div>
+<div id="nav-comment-collapse" class="panel-collapse collapse in" role="tabpanel"
+     aria-labelledby="nav-comment-heading">
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('.show_list',type='comment') }}">管理评论</a></li>
+    </ul>
+</div>

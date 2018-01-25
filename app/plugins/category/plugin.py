@@ -5,6 +5,7 @@ from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Optio
 import os.path
 from sqlalchemy.orm import load_only
 
+sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
@@ -13,6 +14,11 @@ edit_article = signal('edit_article')
 submit_article = signal('submit_article')
 edit = signal('edit')
 submit = signal('submit')
+
+
+@sidebar.connect
+def sidebar(sender, sidebars):
+    sidebars.append(os.path.join('category', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('category')

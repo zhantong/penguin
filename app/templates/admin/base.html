@@ -14,7 +14,11 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-2">
-                {% include "admin/_sidebar.html" %}
+                <div class="panel panel-default">
+                    {% for sidebar in sidebars %}
+                        {% include sidebar %}
+                    {% endfor %}
+                </div>
             </div>
             <div class="col-md-10">
                 {% block page_title %}

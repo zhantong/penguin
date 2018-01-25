@@ -1,0 +1,15 @@
+<div class="panel-heading" role="tab" id="nav-tag-heading">
+    <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" href="#nav-tag-collapse"
+           aria-expanded="true" aria-controls="nav-tag-collapse">
+            标签
+        </a>
+    </h4>
+</div>
+<div id="nav-tag-collapse" class="panel-collapse collapse in" role="tabpanel"
+     aria-labelledby="nav-tag-heading">
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('.edit',type='tag') }}">新建标签</a></li>
+        <li class="list-group-item"><a href="{{ url_for('.show_list',type='tag') }}">管理标签</a></li>
+    </ul>
+</div>
