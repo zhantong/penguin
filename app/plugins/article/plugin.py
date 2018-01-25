@@ -35,19 +35,20 @@ def show_list(sender, args):
     for post in posts:
         rows.append((post.id
                      , Hyperlink('Hyperlink', post.title if post.title else '（无标题）',
-                                 url_for('admin.edit_article', id=post.id))
+                                 url_for('.edit', type='article', id=post.id))
                      , Plain('Plain', post.author.name)
                      , [Hyperlink('Hyperlink', category_post_meta.meta.value,
-                                  url_for('.list_articles', category=category_post_meta.meta.key)) for
+                                  url_for('.show_list', type='article', category=category_post_meta.meta.key)) for
                         category_post_meta in post.category_post_metas.all()]
                      , [Hyperlink('Hyperlink', tag_post_meta.meta.value,
-                                  url_for('.list_articles', tag=tag_post_meta.meta.key)) for tag_post_meta in
-                        post.tag_post_metas.all()]
+                                  url_for('.show_list', type='article', tag=tag_post_meta.meta.key)) for tag_post_meta
+                        in post.tag_post_metas.all()]
                      , Datetime('Datetime', post.timestamp)))
-    tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.list_articles', tab='全部'))], selected_tab=selected_tab)
+    tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.show_list', type='article', tab='全部'))],
+                selected_tab=selected_tab)
     tabs.tabs.extend(list(
-        Hyperlink('Hyperlink', post_status.name, url_for('.list_articles', tab=post_status.name)) for post_status in
-        PostStatus.query.all()))
+        Hyperlink('Hyperlink', post_status.name, url_for('.show_list', type='article', tab=post_status.name)) for
+        post_status in PostStatus.query.all()))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:

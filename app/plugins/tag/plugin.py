@@ -24,7 +24,7 @@ def show_list(sender, args):
     for tag in tags:
         rows.append((tag.id
                      , Hyperlink('Hyperlink', tag.value,
-                                 url_for('admin.show_tag', id=tag.id))
+                                 url_for('.edit',type='tag', id=tag.id))
                      , Plain('Plain', tag.key)
                      , Hyperlink('Hyperlink', tag.post_metas.count(),
                                  url_for('.show_list', type='article', tag=tag.key))))
@@ -37,7 +37,7 @@ def show_list(sender, args):
         'title': '标签',
         'table': table,
         'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
+        'pagination': Pagination('Pagination', pagination, '.show_list', args)
     }
 
 

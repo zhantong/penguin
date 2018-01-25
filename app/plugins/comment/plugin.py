@@ -33,7 +33,7 @@ def show_list(sender, args):
         'title': '评论',
         'table': table,
         'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
+        'pagination': Pagination('Pagination', pagination, '.show_list', args)
     }
 
 

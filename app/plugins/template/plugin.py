@@ -28,9 +28,9 @@ def show_list(sender, args):
     for template in templates:
         rows.append((template.id
                      , Hyperlink('Hyperlink', template.key,
-                                 url_for('.show_template', id=template.id))
+                                 url_for('.edit', type='template', id=template.id))
                      , Hyperlink('Hyperlink', template.post_metas.count(),
-                                 url_for('.list_articles', template=template.key))))
+                                 url_for('.show_list', type='article', template=template.key))))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:
@@ -40,7 +40,7 @@ def show_list(sender, args):
         'title': '模板',
         'table': table,
         'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
+        'pagination': Pagination('Pagination', pagination, '.show_list', args)
     }
 
 

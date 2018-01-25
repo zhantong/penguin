@@ -30,12 +30,14 @@ def show_list(sender, args):
     for post in posts:
         rows.append((post.id
                      , Hyperlink('Hyperlink', post.title if post.title else '（无标题）',
-                                 url_for('admin.edit_article', id=post.id))
+                                 url_for('.edit', type='page', id=post.id))
                      , Plain('Plain', post.author.name)
                      , Datetime('Datetime', post.timestamp)))
-    tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.list_articles', tab='全部'))], selected_tab=selected_tab)
+    tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.show_list', type='article', tab='全部'))],
+                selected_tab=selected_tab)
     tabs.tabs.extend(list(
-        Hyperlink('Hyperlink', post_status.name, url_for('.list_articles', tab=post_status.name)) for post_status in
+        Hyperlink('Hyperlink', post_status.name, url_for('.show_list', type='article', tab=post_status.name)) for
+        post_status in
         PostStatus.query.all()))
     table = Table('Table', head, rows)
     args = args.to_dict()
@@ -46,7 +48,7 @@ def show_list(sender, args):
         'title': '页面',
         'tabs': tabs,
         'table': table,
-        'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
+        'pagination': Pagination('Pagination', pagination, '.show_list', args)
     }
 
 

@@ -10,8 +10,8 @@
     <div id="nav-post-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-post-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.edit_article') }}">撰写文章</a></li>
-            <li class="list-group-item"><a href="{{ url_for('.list_articles') }}">管理文章</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.edit',type='article') }}">撰写文章</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='article') }}">管理文章</a></li>
         </ul>
     </div>
 
@@ -26,8 +26,8 @@
     <div id="nav-category-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-category-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.show_category') }}">新建分类</a></li>
-            <li class="list-group-item"><a href="{{ url_for('.list_categories') }}">管理分类</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.edit',type='category') }}">新建分类</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='category') }}">管理分类</a></li>
         </ul>
     </div>
 
@@ -42,8 +42,8 @@
     <div id="nav-tag-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-tag-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.show_tag') }}">新建标签</a></li>
-            <li class="list-group-item"><a href="{{ url_for('.list_tags') }}">管理标签</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.edit',type='tag') }}">新建标签</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='tag') }}">管理标签</a></li>
         </ul>
     </div>
 
@@ -58,8 +58,8 @@
     <div id="nav-page-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-page-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.edit_page') }}">编撰页面</a></li>
-            <li class="list-group-item"><a href="{{ url_for('.list_pages') }}">管理页面</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.edit',type='page') }}">编撰页面</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='page') }}">管理页面</a></li>
         </ul>
     </div>
 
@@ -74,8 +74,8 @@
     <div id="nav-template-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-template-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.show_template') }}">新建模板</a></li>
-            <li class="list-group-item"><a href="{{ url_for('.list_templates') }}">管理模板</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.edit',type='template') }}">新建模板</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='template') }}">管理模板</a></li>
         </ul>
     </div>
 
@@ -90,7 +90,7 @@
     <div id="nav-comment-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="nav-comment-heading">
         <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('.list_comments') }}">管理评论</a></li>
+            <li class="list-group-item"><a href="{{ url_for('.show_list',type='comment') }}">管理评论</a></li>
         </ul>
     </div>
 </div>

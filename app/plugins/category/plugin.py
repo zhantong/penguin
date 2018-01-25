@@ -26,7 +26,7 @@ def show_list(sender, args):
     for category in categories:
         rows.append((category.id
                      , Hyperlink('Hyperlink', category.value,
-                                 url_for('admin.show_category', id=category.id))
+                                 url_for('.edit', type='category', id=category.id))
                      , Plain('Plain', category.key)
                      , Hyperlink('Hyperlink', category.post_metas.count(),
                                  url_for('.show_list', type='article', category=category.key))))
@@ -39,7 +39,7 @@ def show_list(sender, args):
         'title': '分类',
         'table': table,
         'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)
+        'pagination': Pagination('Pagination', pagination, '.show_list', args)
     }
 
 
