@@ -8,6 +8,8 @@ sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+article_list_column_head = signal('article_list_column_head')
+article_list_column = signal('article_list_column')
 edit_article = signal('edit_article')
 submit_article = signal('submit_article')
 edit = signal('edit')
@@ -52,6 +54,18 @@ def custom_list(sender, args, query):
     if 'tag' in args and args['tag'] != '':
         query['query'] = query['query'].join(PostMeta, Meta).filter(Meta.key == args['tag'] and Meta.type == 'tag')
     return query
+
+
+@article_list_column_head.connect
+def article_list_column_head(sender, head):
+    head.append('标签')
+
+
+@article_list_column.connect
+def article_list_column(sender, post, row):
+    row.append([Hyperlink('Hyperlink', tag_post_meta.meta.value,
+                          url_for('.show_list', type='article', tag=tag_post_meta.meta.key)) for tag_post_meta
+                in post.tag_post_metas.all()])
 
 
 @manage.connect_via('tag')

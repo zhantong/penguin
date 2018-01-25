@@ -9,6 +9,8 @@ sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+article_list_column_head = signal('article_list_column_head')
+article_list_column = signal('article_list_column')
 article_search_select = signal('article_search_select')
 edit = signal('edit')
 edit_article = signal('edit_article')
@@ -36,20 +38,17 @@ def show_list(sender, args):
         query = result[0][1]['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
-    head = ('', '标题', '作者', '分类', '标签', '时间')
+    head = ['', '标题', '作者', '时间']
+    article_list_column_head.send(head=head)
     rows = []
     for post in posts:
-        rows.append((post.id
-                     , Hyperlink('Hyperlink', post.title if post.title else '（无标题）',
-                                 url_for('.edit', type='article', id=post.id))
-                     , Plain('Plain', post.author.name)
-                     , [Hyperlink('Hyperlink', category_post_meta.meta.value,
-                                  url_for('.show_list', type='article', category=category_post_meta.meta.key)) for
-                        category_post_meta in post.category_post_metas.all()]
-                     , [Hyperlink('Hyperlink', tag_post_meta.meta.value,
-                                  url_for('.show_list', type='article', tag=tag_post_meta.meta.key)) for tag_post_meta
-                        in post.tag_post_metas.all()]
-                     , Datetime('Datetime', post.timestamp)))
+        row = [post.id
+            , Hyperlink('Hyperlink', post.title if post.title else '（无标题）',
+                        url_for('.edit', type='article', id=post.id))
+            , Plain('Plain', post.author.name)
+            , Datetime('Datetime', post.timestamp)]
+        article_list_column.send(post=post, row=row)
+        rows.append(row)
     tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.show_list', type='article', tab='全部'))],
                 selected_tab=selected_tab)
     tabs.tabs.extend(list(

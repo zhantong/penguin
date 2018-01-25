@@ -9,6 +9,8 @@ sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+article_list_column_head = signal('article_list_column_head')
+article_list_column = signal('article_list_column')
 article_search_select = signal('article_search_select')
 edit_article = signal('edit_article')
 submit_article = signal('submit_article')
@@ -55,6 +57,18 @@ def custom_list(sender, args, query):
         query['query'] = query['query'].join(PostMeta, Meta).filter(
             Meta.key == args['category'] and Meta.type == 'category')
     return query
+
+
+@article_list_column_head.connect
+def article_list_column_head(sender, head):
+    head.append('分类')
+
+
+@article_list_column.connect
+def article_list_column(sender, post, row):
+    row.append([Hyperlink('Hyperlink', category_post_meta.meta.value,
+                          url_for('.show_list', type='article', category=category_post_meta.meta.key)) for
+                category_post_meta in post.category_post_metas.all()])
 
 
 @article_search_select.connect
