@@ -3,6 +3,7 @@ from ...models import db, Post, PostStatus
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Pagination
 import os.path
+from datetime import datetime
 
 show_list = signal('show_list')
 manage = signal('manage')
@@ -10,6 +11,9 @@ custom_list = signal('custom_list')
 article_search_select = signal('article_search_select')
 edit = signal('edit')
 edit_article = signal('edit_article')
+submit = signal('submit')
+submit_article = signal('submit_article')
+submit_article_with_action = signal('submit_article_with_action')
 
 
 @show_list.connect_via('article')
@@ -101,3 +105,31 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
     edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens,
                       contents=contents, widgets=widgets,
                       scripts=scripts)
+
+
+@submit.connect_via('article')
+def submit(sender, form):
+    action = form.get('action')
+    if action in ['save-draft', 'publish']:
+        id = form['id']
+        title = form['title']
+        slug = form['slug']
+        body = form['body']
+        timestamp = form.get('timestamp', type=int)
+
+        timestamp = datetime.utcfromtimestamp(timestamp)
+        post = Post.query.get(int(id))
+        post.title = title
+        post.slug = slug
+        post.body = body
+        post.timestamp = timestamp
+
+        if action == 'save-draft':
+            post.set_post_status_draft()
+        elif action == 'publish':
+            post.set_post_status_published()
+        submit_article.send(form=form, post=post)
+
+        db.session.commit()
+    else:
+        submit_article_with_action.send(action, form=form)

@@ -35,9 +35,16 @@ def edit():
     result = signal('edit').send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
                                  contents=contents, widgets=widgets,
                                  scripts=scripts)
-    return render_template('admin/edit.html', **request.args, **context, styles=styles, hiddens=hiddens,
+    return render_template('admin/edit.html', **request.args.to_dict(), **context, styles=styles, hiddens=hiddens,
                            contents=contents, widgets=widgets,
                            scripts=scripts)
+
+
+@admin.route('/edit', methods=['POST'])
+def submit():
+    type = request.form['type']
+    result = signal('submit').send(type, form=request.form)
+    return redirect(url_for('.edit', type=type))
 
 
 @admin.route('/edit-article')

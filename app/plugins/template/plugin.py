@@ -1,5 +1,5 @@
 from blinker import signal
-from ...models import db, Meta, PostMeta
+from ...models import db, Meta, PostMeta, Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 import os.path
@@ -8,6 +8,8 @@ show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
 edit_article = signal('edit_article')
+submit_article = signal('submit_article')
+submit_article_with_action = signal('submit_article_with_action')
 
 
 @show_list.connect_via('template')
@@ -68,3 +70,29 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     contents.append(os.path.join('template', 'templates', 'content_template.html'))
     scripts.append(os.path.join('template', 'templates', 'script_template.html'))
     widgets.append(os.path.join('template', 'templates', 'widget_content_template.html'))
+
+
+@submit_article.connect
+def submit_article(sender, form, post):
+    field_keys = form.getlist('field-key')
+    field_values = form.getlist('field-value')
+    post.field_metas = []
+    for key, value in zip(field_keys, field_values):
+        post.field_metas.append(Meta.create_field(key=key, value=value))
+
+
+@submit_article_with_action.connect_via('enable-template')
+def submit_article_with_action_enable_template(sender, form):
+    id = form['id']
+    template_id = form['template']
+    post = Post.query.get(int(id))
+    post.template_post_meta = PostMeta(post=post, meta_id=int(template_id))
+    db.session.commit()
+
+
+@submit_article_with_action.connect_via('disable-template')
+def submit_article_with_action_enable_template(sender, form):
+    id = form['id']
+    post = Post.query.get(int(id))
+    post.template_post_meta = None
+    db.session.commit()

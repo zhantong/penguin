@@ -10,6 +10,7 @@
 {% block page_content %}
     <form method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="type" value="{{ type }}"/>
         {% for hidden in hiddens %}
             {% include hidden %}
         {% endfor %}

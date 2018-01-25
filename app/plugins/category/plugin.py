@@ -10,6 +10,7 @@ manage = signal('manage')
 custom_list = signal('custom_list')
 article_search_select = signal('article_search_select')
 edit_article = signal('edit_article')
+submit_article=signal('submit_article')
 
 
 @show_list.connect_via('category')
@@ -79,3 +80,9 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     context['category_meta_ids'] = [category_post_meta.meta_id for category_post_meta
                                     in context['post'].category_post_metas.options(load_only('meta_id'))]
     widgets.append(os.path.join('category', 'templates', 'widget_content_category.html'))
+
+@submit_article.connect
+def submit_article(sender,form,post):
+    category_meta_ids = form.getlist('category-id')
+    post.category_post_metas = [PostMeta(post=post, meta_id=category_meta_id)
+                                for category_meta_id in category_meta_ids]

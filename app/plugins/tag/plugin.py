@@ -8,6 +8,7 @@ show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
 edit_article = signal('edit_article')
+submit_article=signal('submit_article')
 
 
 @show_list.connect_via('tag')
@@ -68,3 +69,18 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     context['tags'] = [tag_post_meta.meta.value for tag_post_meta in context['post'].tag_post_metas.all()]
     widgets.append(os.path.join('tag', 'templates', 'widget_content_tag.html'))
     scripts.append(os.path.join('tag', 'templates', 'widget_script_tag.html'))
+
+
+@submit_article.connect
+def submit_article(sender, form,post):
+    tag_names = form.getlist('tag')
+    tag_post_metas = []
+    for tag_name in tag_names:
+        tag = Meta.query_tags().filter_by(value=tag_name).first()
+        if tag is None:
+            tag = Meta.create_tag(key=tag_name, value=tag_name)
+            db.session.add(tag)
+            db.session.flush()
+        tag_post_meta = PostMeta(post=post, meta=tag)
+        tag_post_metas.append(tag_post_meta)
+    post.tag_post_metas = tag_post_metas
