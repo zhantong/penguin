@@ -8,7 +8,9 @@ show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
 edit_article = signal('edit_article')
-submit_article=signal('submit_article')
+submit_article = signal('submit_article')
+edit = signal('edit')
+submit = signal('submit')
 
 
 @show_list.connect_via('tag')
@@ -72,7 +74,7 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
 
 
 @submit_article.connect
-def submit_article(sender, form,post):
+def submit_article(sender, form, post):
     tag_names = form.getlist('tag')
     tag_post_metas = []
     for tag_name in tag_names:
@@ -84,3 +86,28 @@ def submit_article(sender, form,post):
         tag_post_meta = PostMeta(post=post, meta=tag)
         tag_post_metas.append(tag_post_meta)
     post.tag_post_metas = tag_post_metas
+
+
+@edit.connect_via('tag')
+def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    id = args.get('id', type=int)
+    tag = None
+    if id is not None:
+        tag = Meta.query.get(id)
+    context['tag'] = tag
+    contents.append(os.path.join('tag', 'templates', 'content.html'))
+
+
+@submit.connect_via('tag')
+def submit(sender, form):
+    id = form.get('id', type=int)
+    if id is None:
+        tag = Meta().create_tag()
+    else:
+        tag = Meta.query.get(id)
+    tag.key = form['key']
+    tag.value = form['value']
+    tag.description = form['description']
+    if tag.id is None:
+        db.session.add(tag)
+    db.session.commit()

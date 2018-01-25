@@ -44,7 +44,7 @@ def edit():
 def submit():
     type = request.form['type']
     result = signal('submit').send(type, form=request.form)
-    return redirect(url_for('.edit', type=type))
+    return redirect(url_for('.show_list', type=type))
 
 
 @admin.route('/edit-article')

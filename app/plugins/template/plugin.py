@@ -10,6 +10,8 @@ custom_list = signal('custom_list')
 edit_article = signal('edit_article')
 submit_article = signal('submit_article')
 submit_article_with_action = signal('submit_article_with_action')
+edit = signal('edit')
+submit = signal('submit')
 
 
 @show_list.connect_via('template')
@@ -95,4 +97,29 @@ def submit_article_with_action_enable_template(sender, form):
     id = form['id']
     post = Post.query.get(int(id))
     post.template_post_meta = None
+    db.session.commit()
+
+
+@edit.connect_via('template')
+def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    id = args.get('id', type=int)
+    template = None
+    if id is not None:
+        template = Meta.query.get(id)
+    context['template'] = template
+    contents.append(os.path.join('template', 'templates', 'content.html'))
+
+
+@submit.connect_via('template')
+def submit(sender, form):
+    id = form.get('id', type=int)
+    if id is None:
+        template = Meta().create_template()
+    else:
+        template = Meta.query.get(id)
+    template.key = form['key']
+    template.value = form['value']
+    template.description = form['description']
+    if template.id is None:
+        db.session.add(template)
     db.session.commit()

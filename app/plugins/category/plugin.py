@@ -10,7 +10,9 @@ manage = signal('manage')
 custom_list = signal('custom_list')
 article_search_select = signal('article_search_select')
 edit_article = signal('edit_article')
-submit_article=signal('submit_article')
+submit_article = signal('submit_article')
+edit = signal('edit')
+submit = signal('submit')
 
 
 @show_list.connect_via('category')
@@ -81,8 +83,38 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
                                     in context['post'].category_post_metas.options(load_only('meta_id'))]
     widgets.append(os.path.join('category', 'templates', 'widget_content_category.html'))
 
+
 @submit_article.connect
-def submit_article(sender,form,post):
+def submit_article(sender, form, post):
     category_meta_ids = form.getlist('category-id')
     post.category_post_metas = [PostMeta(post=post, meta_id=category_meta_id)
                                 for category_meta_id in category_meta_ids]
+
+
+@edit.connect_via('category')
+def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    id = args.get('id', type=int)
+    if id is None:
+        category = Meta()
+        db.session.add(category)
+        db.session.commit()
+        db.session.refresh(category)
+    else:
+        category = Meta.query.get(id)
+    context['category'] = category
+    contents.append(os.path.join('category', 'templates', 'content.html'))
+
+
+@submit.connect_via('category')
+def submit(sender, form):
+    id = form.get('id', type=int)
+    if id is None:
+        category = Meta().create_category()
+    else:
+        category = Meta.query.get(id)
+    category.key = form['key']
+    category.value = form['value']
+    category.description = form['description']
+    if category.id is None:
+        db.session.add(category)
+    db.session.commit()
