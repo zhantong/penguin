@@ -7,6 +7,7 @@ from datetime import datetime
 import uuid
 
 edit_article = signal('edit_article')
+edit_page = signal('edit_page')
 
 
 @admin.route('/upload', methods=['POST'])
@@ -60,6 +61,7 @@ def delete_upload(id):
     })
 
 
+@edit_page.connect
 @edit_article.connect
 def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
     context['attachments'] = Attachment.query.filter_by(post_id=context['post'].id).all()

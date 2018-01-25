@@ -10,6 +10,9 @@ custom_list = signal('custom_list')
 edit_article = signal('edit_article')
 submit_article = signal('submit_article')
 submit_article_with_action = signal('submit_article_with_action')
+edit_page = signal('edit_page')
+submit_page = signal('submit_page')
+submit_page_with_action = signal('submit_page_with_action')
 edit = signal('edit')
 submit = signal('submit')
 
@@ -66,6 +69,7 @@ def manage(sender, form):
             flash(message)
 
 
+@edit_page.connect
 @edit_article.connect
 def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
     context['all_template_metas'] = Meta.templates()
@@ -74,6 +78,7 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     widgets.append(os.path.join('template', 'templates', 'widget_content_template.html'))
 
 
+@submit_page.connect
 @submit_article.connect
 def submit_article(sender, form, post):
     field_keys = form.getlist('field-key')
@@ -83,6 +88,7 @@ def submit_article(sender, form, post):
         post.field_metas.append(Meta.create_field(key=key, value=value))
 
 
+@submit_page_with_action.connect_via('enable-template')
 @submit_article_with_action.connect_via('enable-template')
 def submit_article_with_action_enable_template(sender, form):
     id = form['id']
@@ -92,6 +98,7 @@ def submit_article_with_action_enable_template(sender, form):
     db.session.commit()
 
 
+@submit_page_with_action.connect_via('disable-template')
 @submit_article_with_action.connect_via('disable-template')
 def submit_article_with_action_enable_template(sender, form):
     id = form['id']

@@ -2,9 +2,16 @@ from blinker import signal
 from ...models import db, Post, PostStatus
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Pagination
+import os.path
+from datetime import datetime
 
 show_list = signal('show_list')
 manage = signal('manage')
+edit = signal('edit')
+edit_page = signal('edit_page')
+submit = signal('submit')
+submit_page = signal('submit_page')
+submit_page_with_action = signal('submit_page_with_action')
 
 
 @show_list.connect_via('page')
@@ -58,3 +65,55 @@ def manage(sender, form):
             if len(ids) > 1:
                 message += '以及剩下的' + str(len(ids) - 1) + '个页面'
             flash(message)
+
+
+@edit.connect_via('page')
+def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    if 'id' in args:
+        post = Post.query.get(int(args['id']))
+    else:
+        post = Post.create_page()
+        db.session.add(post)
+        db.session.commit()
+        db.session.refresh(post)
+    context['post'] = post
+    styles.append(os.path.join('article', 'templates', 'style_editor.html'))
+    hiddens.append(os.path.join('article', 'templates', 'hidden_id.html'))
+    contents.append(os.path.join('article', 'templates', 'content_title.html'))
+    contents.append(os.path.join('article', 'templates', 'content_slug.html'))
+    contents.append(os.path.join('article', 'templates', 'content_editor.html'))
+    scripts.append(os.path.join('article', 'templates', 'script_slug.html'))
+    scripts.append(os.path.join('article', 'templates', 'script_editor.html'))
+    widgets.append(os.path.join('article', 'templates', 'widget_content_submit.html'))
+    scripts.append(os.path.join('article', 'templates', 'widget_script_submit.html'))
+    edit_page.send(args=args, context=context, styles=styles, hiddens=hiddens,
+                   contents=contents, widgets=widgets,
+                   scripts=scripts)
+
+
+@submit.connect_via('page')
+def submit(sender, form):
+    action = form.get('action')
+    if action in ['save-draft', 'publish']:
+        id = form['id']
+        title = form['title']
+        slug = form['slug']
+        body = form['body']
+        timestamp = form.get('timestamp', type=int)
+
+        timestamp = datetime.utcfromtimestamp(timestamp)
+        post = Post.query.get(int(id))
+        post.title = title
+        post.slug = slug
+        post.body = body
+        post.timestamp = timestamp
+
+        if action == 'save-draft':
+            post.set_post_status_draft()
+        elif action == 'publish':
+            post.set_post_status_published()
+        submit_page.send(form=form, post=post)
+
+        db.session.commit()
+    else:
+        submit_page_with_action.send(action, form=form)
