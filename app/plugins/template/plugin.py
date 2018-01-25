@@ -2,10 +2,12 @@ from blinker import signal
 from ...models import db, Meta, PostMeta
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
+import os.path
 
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
+edit_article = signal('edit_article')
 
 
 @show_list.connect_via('template')
@@ -58,3 +60,11 @@ def manage(sender, form):
             if len(ids) > 1:
                 message += '以及剩下的' + str(len(ids) - 1) + '个模板'
             flash(message)
+
+
+@edit_article.connect
+def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    context['all_template_metas'] = Meta.templates()
+    contents.append(os.path.join('template', 'templates', 'content_template.html'))
+    scripts.append(os.path.join('template', 'templates', 'script_template.html'))
+    widgets.append(os.path.join('template', 'templates', 'widget_content_template.html'))

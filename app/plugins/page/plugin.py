@@ -36,7 +36,7 @@ def show_list(sender, args):
         del args['page']
     return {
         **args,
-        'title': '文章',
+        'title': '页面',
         'tabs': tabs,
         'table': table,
         'pagination': Pagination('Pagination', pagination, 'admin.show_list', args)

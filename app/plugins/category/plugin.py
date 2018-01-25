@@ -2,11 +2,14 @@ from blinker import signal
 from ...models import db, Meta, PostMeta
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
+import os.path
+from sqlalchemy.orm import load_only
 
 show_list = signal('show_list')
 manage = signal('manage')
 custom_list = signal('custom_list')
 article_search_select = signal('article_search_select')
+edit_article = signal('edit_article')
 
 
 @show_list.connect_via('category')
@@ -68,3 +71,11 @@ def manage(sender, form):
             if len(ids) > 1:
                 message += '以及剩下的' + str(len(ids) - 1) + '种分类'
             flash(message)
+
+
+@edit_article.connect
+def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
+    context['all_category_metas'] = Meta.categories()
+    context['category_meta_ids'] = [category_post_meta.meta_id for category_post_meta
+                                    in context['post'].category_post_metas.options(load_only('meta_id'))]
+    widgets.append(os.path.join('category', 'templates', 'widget_content_category.html'))

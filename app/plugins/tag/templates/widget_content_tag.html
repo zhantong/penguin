@@ -1,0 +1,30 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="option-tag-heading">
+        <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion"
+               href="#option-tag-collapse"
+               aria-expanded="true" aria-controls="option-tag-collapse">
+                标签
+            </a>
+        </h4>
+    </div>
+    <div id="option-tag-collapse" class="panel-collapse collapse in" role="tabpanel"
+         aria-labelledby="option-tag-heading">
+        <div class="panel-body">
+            <div class="input-group">
+                <input list="tags" type="text" class="form-control" placeholder="标签">
+                <span class="input-group-btn">
+                                    <button id="add-tag" class="btn btn-default" type="button">添加</button>
+                                </span>
+            </div>
+
+            <datalist id="tags">
+                {% for tag_meta in all_tag_metas %}
+                    <option value="{{ tag_meta.value }}"></option>
+                {% endfor %}
+            </datalist>
+
+            <ul id="tag-list" class="list-group"></ul>
+        </div>
+    </div>
+</div>

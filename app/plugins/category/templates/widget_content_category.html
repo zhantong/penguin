@@ -1,0 +1,25 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="option-category-heading">
+        <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion"
+               href="#option-category-collapse"
+               aria-expanded="true" aria-controls="option-category-collapse">
+                分类
+            </a>
+        </h4>
+    </div>
+    <div id="option-category-collapse" class="panel-collapse collapse in" role="tabpanel"
+         aria-labelledby="option-category-heading">
+        <div class="panel-body">
+            {% for category_meta in all_category_metas %}
+                <div class="checkbox">
+                    <label>
+                        <input name="category-id" value="{{ category_meta.id }}" type="checkbox"
+                               {% if category_meta.id in category_meta_ids %}checked="checked"{% endif %}>
+                        {{ category_meta.value }}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
