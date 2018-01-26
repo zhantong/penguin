@@ -72,11 +72,11 @@ def article_list_column(sender, post, row):
 
 
 @article_search_select.connect
-def article_search_select(sender):
+def article_search_select(sender, selects):
     select = Select('Select', 'category', [Option('Option', '全部分类', '')])
     select.options.extend(Option('Option', category_meta.value, category_meta.key) for category_meta in
                           Meta.query_categories().order_by(Meta.value).all())
-    return select
+    selects.append(select)
 
 
 @manage.connect_via('category')
