@@ -17,6 +17,6 @@ class NavbarRenderer(BootstrapRenderer):
 
 def navbar():
     pages = Post.query.filter_by(post_type=PostType.page()).all()
-    items = [View('首页', 'main.index')]
-    items.extend(View(page.title, 'main.show_post_page', slug=page.slug) for page in pages)
+    items = [View('首页', 'main.show_articles')]
+    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
     return Navbar('Penguin', *items)

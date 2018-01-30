@@ -1,13 +1,22 @@
 from blinker import signal
 from ...models import db, Attachment
 from ...admin import admin
-from flask import request, jsonify, current_app, url_for
+from ...main import main
+from flask import request, jsonify, current_app, url_for, send_from_directory
 import os.path
 from datetime import datetime
 import uuid
 
 edit_article = signal('edit_article')
 edit_page = signal('edit_page')
+
+
+@main.route('/<string:filename>', endpoint='show_attachment_page')
+@main.route('/archives/<string:filename>')
+def show_attachment(filename):
+    attachment = Attachment.query.filter_by(filename=filename).first()
+    path = attachment.file_path
+    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
 
 
 @admin.route('/upload', methods=['POST'])

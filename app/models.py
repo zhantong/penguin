@@ -164,9 +164,9 @@ class Post(db.Model):
 
     def url(self):
         if self.post_type == PostType.article():
-            return url_for('main.show_post', slug=self.slug)
+            return url_for('main.show_article', slug=self.slug)
         if self.post_type == PostType.page():
-            return url_for('main.show_post_page', slug=self.slug)
+            return url_for('main.show_page', slug=self.slug)
 
     def categories_and_tags_string(self):
         result = ', '.join(category_post_meta.meta.value for category_post_meta in self.category_post_metas)

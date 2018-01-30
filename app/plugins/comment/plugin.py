@@ -1,13 +1,36 @@
 from blinker import signal
-from ...models import db, Comment
-from flask import current_app, url_for, flash
+from ...models import db, Comment, User, Post
+from flask import current_app, url_for, flash, request, jsonify
 from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
+from ...main import main
+from flask_login import current_user
 from sqlalchemy import desc
 import os.path
 
 sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
+
+
+@main.route('/comment/<int:id>', methods=['POST'])
+def submit_comment(id):
+    post = Post.query.get_or_404(id)
+    parent = request.form.get('parent', type=int)
+    name = request.form.get('name', type=str)
+    email = request.form.get('email', None, type=str)
+    body = request.form.get('body', type=str)
+    if current_user.is_authenticated:
+        author = current_user._get_current_object()
+    else:
+        author = User.create_guest(name=name, email=email)
+        db.session.add(author)
+        db.session.flush()
+    db.session.add(Comment(body=body, author=author, post=post, parent=parent))
+    db.session.commit()
+    return jsonify({
+        'code': 0,
+        'message': '发表成功'
+    })
 
 
 @sidebar.connect

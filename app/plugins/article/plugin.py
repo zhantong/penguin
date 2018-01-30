@@ -1,6 +1,10 @@
 from blinker import signal
-from ...models import Post, PostType
+from ...models import Post, PostType, Comment
+from ...main import main
+from flask import request, current_app, render_template
+from jinja2 import Template
 import os.path
+from ...utils import format_comments
 
 sidebar = signal('sidebar')
 custom_list = signal('custom_list')
@@ -19,6 +23,33 @@ edit_article = signal('edit_article')
 submit = signal('submit')
 submit_article = signal('submit_article')
 submit_article_with_action = signal('submit_article_with_action')
+
+
+@main.route('/')
+def show_articles():
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query_articles().order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    return render_template(os.path.join('article', 'templates', 'index.html'), posts=posts, pagination=pagination)
+
+
+@main.route('/archives/')
+def show_none_post():
+    pass
+
+
+@main.route('/archives/<string:slug>.html')
+def show_article(slug):
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
+    comments = format_comments(comments)
+    if post.is_template_enabled():
+        template = Template(post.template_post_meta.meta.value)
+        context = {field.key: eval(field.value) for field in post.field_metas.all()}
+        return render_template('post.html', post=post, comments=comments, template=template, **context)
+    else:
+        return render_template('post.html', post=post, comments=comments)
 
 
 @sidebar.connect
