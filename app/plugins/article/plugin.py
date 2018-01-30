@@ -5,7 +5,9 @@ from flask import request, current_app, render_template
 from jinja2 import Template
 import os.path
 from ...utils import format_comments
+from flask_nav.elements import View
 
+navbar = signal('navbar')
 sidebar = signal('sidebar')
 custom_list = signal('custom_list')
 post_list_column_head = signal('post_list_column_head')
@@ -50,6 +52,12 @@ def show_article(slug):
         return render_template('post.html', post=post, comments=comments, template=template, **context)
     else:
         return render_template('post.html', post=post, comments=comments)
+
+
+@navbar.connect
+def navbar(sender, items):
+    pages = Post.query.filter_by(post_type=PostType.page()).all()
+    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
 
 
 @sidebar.connect

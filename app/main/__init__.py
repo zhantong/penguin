@@ -1,11 +1,13 @@
 from flask import Blueprint
+from blinker import signal
+
+navbar = signal('navbar')
 
 main = Blueprint('main', __name__)
 
 from . import views
 from flask_bootstrap.nav import BootstrapRenderer
-from flask_nav.elements import Navbar, View
-from ..models import Post, PostType
+from flask_nav.elements import Navbar
 
 
 class NavbarRenderer(BootstrapRenderer):
@@ -15,8 +17,7 @@ class NavbarRenderer(BootstrapRenderer):
         return nav_tag
 
 
-def navbar():
-    pages = Post.query.filter_by(post_type=PostType.page()).all()
-    items = [View('首页', 'main.show_articles')]
-    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
+def custom_navbar():
+    items = []
+    navbar.send(items=items)
     return Navbar('Penguin', *items)

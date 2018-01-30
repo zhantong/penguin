@@ -34,7 +34,7 @@ def create_app(config_name):
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from .main import navbar as main_navbar, NavbarRenderer as main_NavbarRenderer
+    from .main import custom_navbar as main_navbar, NavbarRenderer as main_NavbarRenderer
     register_renderer(app, 'main', main_NavbarRenderer)
     nav.register_element('main', main_navbar)
 

@@ -5,7 +5,9 @@ from flask import render_template
 from jinja2 import Template
 import os.path
 from ...utils import format_comments
+from flask_nav.elements import View
 
+navbar = signal('navbar')
 sidebar = signal('sidebar')
 custom_list = signal('custom_list')
 create_post = signal('create_post')
@@ -30,6 +32,11 @@ def show_page(slug):
         return render_template('post.html', post=post, comments=comments, template=template, **context)
     else:
         return render_template('post.html', post=post, comments=comments)
+
+
+@navbar.connect
+def navbar(sender, items):
+    items.append(View('首页', 'main.show_articles'))
 
 
 @sidebar.connect
