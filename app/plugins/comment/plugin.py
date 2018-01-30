@@ -6,10 +6,13 @@ from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
 import os.path
+from ...utils import format_comments
 
 sidebar = signal('sidebar')
 show_list = signal('show_list')
 manage = signal('manage')
+article = signal('article')
+page = signal('page')
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -82,3 +85,17 @@ def manage(sender, form):
             if len(ids) > 1:
                 message += '以及剩下的' + str(len(ids) - 1) + '条评论'
             flash(message)
+
+
+@article.connect
+def article(sender, post, context, article_content, contents, scripts):
+    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
+    context['comments'] = format_comments(comments)
+    contents.append(os.path.join('comment', 'templates', 'comment.html'))
+
+
+@page.connect
+def page(sender, post, context, page_content, contents, scripts):
+    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
+    context['comments'] = format_comments(comments)
+    contents.append(os.path.join('comment', 'templates', 'comment.html'))

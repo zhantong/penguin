@@ -19,17 +19,12 @@
     <article>
         <h1>{{ post.title }}</h1>
         <div>
-            {% if post.is_template_enabled() %}
-                {% include template %}
-            {% else %}
-                {{ post.body_html | safe }}
-            {% endif %}
+            {% include page_content %}
         </div>
     </article>
     {% for content in contents %}
         {% include content %}
     {% endfor %}
-
 {% endblock %}
 
 {% block sidebar_left %}

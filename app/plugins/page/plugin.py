@@ -1,10 +1,8 @@
 from blinker import signal
-from ...models import Post, PostType, Comment
+from ...models import Post, PostType
 from ...main import main
 from flask import render_template
-from jinja2 import Template
 import os.path
-from ...utils import format_comments
 from flask_nav.elements import View
 
 navbar = signal('navbar')
@@ -19,19 +17,19 @@ edit_page = signal('edit_page')
 submit = signal('submit')
 submit_page = signal('submit_page')
 submit_page_with_action = signal('submit_page_with_action')
+page = signal('page')
 
 
 @main.route('/<string:slug>.html')
 def show_page(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
-    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
-    comments = format_comments(comments)
-    if post.is_template_enabled():
-        template = Template(post.template_post_meta.meta.value)
-        context = {field.key: eval(field.value) for field in post.field_metas.all()}
-        return render_template('post.html', post=post, comments=comments, template=template, **context)
-    else:
-        return render_template('post.html', post=post, comments=comments)
+    context = {}
+    contents = []
+    scripts = []
+    page_content = {'page_content': os.path.join('page', 'templates', 'page_content.html')}
+    page.send(post=post, context=context, page_content=page_content, contents=contents, scripts=scripts)
+    return render_template(os.path.join('page', 'templates', 'page.html'), **context, post=post,
+                           page_content=page_content['page_content'], contents=contents, scripts=scripts)
 
 
 @navbar.connect

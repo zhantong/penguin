@@ -2,6 +2,7 @@ from blinker import signal
 from ...models import db, Meta, PostMeta, Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
+from jinja2 import Template
 import os.path
 
 sidebar = signal('sidebar')
@@ -16,6 +17,8 @@ submit_page = signal('submit_page')
 submit_page_with_action = signal('submit_page_with_action')
 edit = signal('edit')
 submit = signal('submit')
+article = signal('article')
+page = signal('page')
 
 
 @sidebar.connect
@@ -136,3 +139,19 @@ def submit(sender, form):
     if template.id is None:
         db.session.add(template)
     db.session.commit()
+
+
+@article.connect
+def article(sender, post, context, article_content, contents, scripts):
+    if post.is_template_enabled():
+        template = Template(post.template_post_meta.meta.value)
+        article_content['article_content'] = template
+        context.update({field.key: eval(field.value) for field in post.field_metas.all()})
+
+
+@page.connect
+def page(sender, post, context, page_content, contents, scripts):
+    if post.is_template_enabled():
+        template = Template(post.template_post_meta.meta.value)
+        page_content['page_content'] = template
+        context.update({field.key: eval(field.value) for field in post.field_metas.all()})
