@@ -44,12 +44,17 @@ def show_none_post():
 def show_article(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
     context = {}
+    styles = []
     contents = []
+    left_widgets = []
+    right_widgets = []
     scripts = []
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
-    article.send(post=post, context=context, article_content=article_content, contents=contents, scripts=scripts)
+    article.send(post=post, context=context, article_content=article_content, styles=styles, contents=contents,
+                 left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
     return render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
-                           article_content=article_content['article_content'], contents=contents, scripts=scripts)
+                           article_content=article_content['article_content'], styles=styles, contents=contents,
+                           left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
 
 
 @navbar.connect

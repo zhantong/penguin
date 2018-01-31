@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "_panel-macros.html" as panels %}
 
 {% block title %}{{ post.title }} - Penguin{% endblock %}
 
@@ -12,7 +11,6 @@
 
 {% block styles %}
     {{ super() }}
-    {{ panels.toc_style() }}
 {% endblock %}
 
 {% block main %}
@@ -28,7 +26,6 @@
 {% endblock %}
 
 {% block sidebar_left %}
-    {{ panels.toc(post) }}
 {% endblock %}
 
 {% block scripts %}

@@ -88,7 +88,7 @@ def manage(sender, form):
 
 
 @article.connect
-def article(sender, post, context, article_content, contents, scripts):
+def article(sender, post, context, contents, **kwargs):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
     context['comments'] = format_comments(comments)
     contents.append(os.path.join('comment', 'templates', 'comment.html'))

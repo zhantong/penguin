@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "_panel-macros.html" as panels %}
 
 {% block title %}{{ post.title }} - Penguin{% endblock %}
 
@@ -12,7 +11,9 @@
 
 {% block styles %}
     {{ super() }}
-    {{ panels.toc_style() }}
+    {% for style in styles %}
+        {% include style %}
+    {% endfor %}
 {% endblock %}
 
 {% block main %}
@@ -28,12 +29,16 @@
 {% endblock %}
 
 {% block sidebar_left %}
-    {{ panels.toc(post) }}
+    {% for left_widget in left_widgets %}
+        {% include left_widget %}
+    {% endfor %}
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
-    {{ panels.toc_script() }}
+    {% for script in scripts %}
+        {% include script %}
+    {% endfor %}
     <script>
         $('a.reply-comment').click(function (event) {
             event.preventDefault();

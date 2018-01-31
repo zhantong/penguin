@@ -142,7 +142,7 @@ def submit(sender, form):
 
 
 @article.connect
-def article(sender, post, context, article_content, contents, scripts):
+def article(sender, post, context, article_content, **kwargs):
     if post.is_template_enabled():
         template = Template(post.template_post_meta.meta.value)
         article_content['article_content'] = template
