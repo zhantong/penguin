@@ -34,7 +34,8 @@ def show_page(slug):
 
 @navbar.connect
 def navbar(sender, items):
-    items.append(View('首页', 'main.show_articles'))
+    pages = Post.query.filter_by(post_type=PostType.page()).all()
+    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
 
 
 @sidebar.connect

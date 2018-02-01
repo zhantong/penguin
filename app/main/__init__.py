@@ -1,5 +1,7 @@
 from flask import Blueprint
 from blinker import signal
+from . import signals
+from flask_nav.elements import View
 
 navbar = signal('navbar')
 
@@ -18,6 +20,6 @@ class NavbarRenderer(BootstrapRenderer):
 
 
 def custom_navbar():
-    items = []
+    items = [View('首页', 'main.index')]
     navbar.send(items=items)
     return Navbar('Penguin', *items)

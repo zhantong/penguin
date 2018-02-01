@@ -1,9 +1,8 @@
 from blinker import signal
 from ...models import Post, PostType
 from ...main import main
-from flask import request, current_app, render_template
+from flask import render_template
 import os.path
-from flask_nav.elements import View
 
 navbar = signal('navbar')
 sidebar = signal('sidebar')
@@ -26,15 +25,6 @@ submit_article_with_action = signal('submit_article_with_action')
 article = signal('article')
 
 
-@main.route('/')
-def show_articles():
-    page = request.args.get('page', 1, type=int)
-    pagination = Post.query_articles().order_by(Post.timestamp.desc()).paginate(
-        page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    posts = pagination.items
-    return render_template(os.path.join('article', 'templates', 'index.html'), posts=posts, pagination=pagination)
-
-
 @main.route('/archives/')
 def show_none_post():
     pass
@@ -55,12 +45,6 @@ def show_article(slug):
     return render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
                            article_content=article_content['article_content'], styles=styles, contents=contents,
                            left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
-
-
-@navbar.connect
-def navbar(sender, items):
-    pages = Post.query.filter_by(post_type=PostType.page()).all()
-    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
 
 
 @sidebar.connect

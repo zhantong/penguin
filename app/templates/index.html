@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    {% for style in styles %}
+        {% include style %}
+    {% endfor %}
+{% endblock %}
+
+{% block main %}
+    {% for content in contents %}
+        {% include content %}
+    {% endfor %}
+{% endblock %}
+
+{% block sidebar_left %}
+    {% for left_widget in left_widgets %}
+        {% include left_widget %}
+    {% endfor %}
+{% endblock %}
+
+{% block sidebar_right %}
+    {% for right_widget in right_widgets %}
+        {% include right_widget %}
+    {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% for script in scripts %}
+        {% include script %}
+    {% endfor %}
+{% endblock %}
