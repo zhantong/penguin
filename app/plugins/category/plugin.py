@@ -4,6 +4,7 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 import os.path
 from sqlalchemy.orm import load_only
+from . import signals
 
 sidebar = signal('sidebar')
 show_list = signal('show_list')
@@ -51,6 +52,7 @@ def show_list(sender, args):
     }
 
 
+@signals.custom_article_list.connect
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'category' in args and args['category'] != '':
@@ -138,3 +140,10 @@ def submit(sender, form):
     if category.id is None:
         db.session.add(category)
     db.session.commit()
+
+
+@signals.index.connect
+def index(sender, context, left_widgets, **kwargs):
+    all_category_metas = Meta.query_categories().order_by(Meta.value).all()
+    context['all_category_metas'] = all_category_metas
+    left_widgets.append(os.path.join('category', 'templates', 'main', 'widget_content.html'))

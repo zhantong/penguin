@@ -1,0 +1,21 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="collapse-list-category-heading">
+        <h3 class="panel-title">
+            <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-list-category"
+               aria-expanded="false" aria-controls="collapse-list-category">
+                分类
+            </a>
+        </h3>
+    </div>
+    <div id="collapse-list-category" class="panel-collapse collapse" role="tabpanel"
+         aria-labelledby="collapse-list-category-heading">
+        <ul class="list-group">
+            {% for category_meta in all_category_metas %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('.index',category=category_meta.key) }}">{{ category_meta.value }}</a>
+                    <span class="badge">{{ category_meta.post_metas.count() }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
