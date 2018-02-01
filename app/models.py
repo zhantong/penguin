@@ -71,7 +71,6 @@ class Post(db.Model):
     status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text, default='')
     body_html = db.Column(db.Text)
-    body_toc_html = db.Column(db.Text)
     body_abstract = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -132,9 +131,8 @@ class Post(db.Model):
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
-        markdown_html = markdown2.markdown(value, extras=['toc'])
+        markdown_html = markdown2.markdown(value)
         target.body_html = markdown_html
-        target.body_toc_html = markdown_html.toc_html
         target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
 
     def set_post_status_draft(self):
