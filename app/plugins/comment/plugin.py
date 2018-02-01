@@ -7,6 +7,7 @@ from flask_login import current_user
 from sqlalchemy import desc
 import os.path
 from ...utils import format_comments
+from . import signals
 
 sidebar = signal('sidebar')
 show_list = signal('show_list')
@@ -99,3 +100,10 @@ def page(sender, post, context, page_content, contents, scripts):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
     context['comments'] = format_comments(comments)
     contents.append(os.path.join('comment', 'templates', 'comment.html'))
+
+
+@signals.index.connect
+def index(sender, context, right_widgets, **kwargs):
+    comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
+    context['comments'] = comments
+    right_widgets.append(os.path.join('comment', 'templates', 'main', 'widget_content.html'))

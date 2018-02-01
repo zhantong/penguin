@@ -14,4 +14,4 @@ def index():
     signals.index.send(args=request.args, context=context, styles=styles, contents=contents, left_widgets=left_widgets,
                        right_widgets=right_widgets, scripts=scripts)
     return render_template('index.html', **request.args.to_dict(), **context, styles=styles, contents=contents,
-                           left_widgets=left_widgets, ight_widgets=right_widgets, scripts=scripts)
+                           left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
