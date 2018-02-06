@@ -1,9 +1,10 @@
 from blinker import signal
 from ...models import db, Post, PostStatus
-from flask import current_app, url_for, flash
+from flask import current_app, url_for, flash, send_from_directory
 from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Pagination
 import os.path
 from datetime import datetime
+from .. import plugin
 
 show_list = signal('show_list')
 manage = signal('manage')
@@ -17,6 +18,11 @@ submit_post = signal('submit_post')
 submit_post_with_action = signal('submit_post_with_action')
 edit = signal('edit')
 submit = signal('submit')
+
+
+@plugin.route('/post/static/<path:filename>')
+def post_static(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
 @show_list.connect_via('post')

@@ -1,0 +1,4 @@
+- favicon.png
+- bootstrap-autohidingnavbar-1.0.5
+- font-awesome-4.7.0
+- moment-2.20.1

@@ -6,9 +6,15 @@ from flask import request, jsonify, current_app, url_for, send_from_directory
 import os.path
 from datetime import datetime
 import uuid
+from .. import plugin
 
 edit_article = signal('edit_article')
 edit_page = signal('edit_page')
+
+
+@plugin.route('/attachment/static/<path:filename>')
+def attachment_static(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
 @main.route('/<string:filename>', endpoint='show_attachment_page')
