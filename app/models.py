@@ -365,3 +365,15 @@ class PostMeta(db.Model):
     order = db.Column(db.Integer, default=0)
     post = db.relationship('Post', back_populates='post_metas')
     meta = db.relationship('Meta', back_populates='post_metas')
+
+
+class PostVersion(db.Model):
+    __tablename__ = 'post_versions'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    version = db.Column(db.String(20))
+    remark = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    post = db.relationship('Post', backref='post_versions')

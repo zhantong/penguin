@@ -19,6 +19,9 @@
 {% block main %}
     <article>
         <h1>{{ post.title }}</h1>
+        {% for before_content in before_contents %}
+            {% include before_content %}
+        {% endfor %}
         <div>
             {% include article_content %}
         </div>

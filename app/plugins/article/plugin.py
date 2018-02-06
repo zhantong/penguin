@@ -35,15 +35,18 @@ def show_article(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
     context = {}
     styles = []
+    before_contents = []
     contents = []
     left_widgets = []
     right_widgets = []
     scripts = []
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
-    article.send(post=post, context=context, article_content=article_content, styles=styles, contents=contents,
+    article.send(post=post, context=context, article_content=article_content, styles=styles,
+                 before_contents=before_contents, contents=contents,
                  left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
     return render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
-                           article_content=article_content['article_content'], styles=styles, contents=contents,
+                           article_content=article_content['article_content'], styles=styles,
+                           before_contents=before_contents, contents=contents,
                            left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
 
 
