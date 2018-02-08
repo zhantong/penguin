@@ -1,0 +1,14 @@
+<div class="panel-heading" role="tab" id="nav-post-version-heading">
+    <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" href="#nav-post-version-collapse"
+           aria-expanded="true" aria-controls="nav-post-version-collapse">
+            历史版本
+        </a>
+    </h4>
+</div>
+<div id="nav-post-version-collapse" class="panel-collapse collapse in" role="tabpanel"
+     aria-labelledby="nav-post-version-heading">
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('.show_list',type='post-version') }}">管理历史版本</a></li>
+    </ul>
+</div>
