@@ -1,18 +1,29 @@
-<table class="table">
-    <tr>
-        <th>历史版本</th>
-        <th>修改日期</th>
-        <th>版本号</th>
-        <th>备注</th>
-    </tr>
-    {% for post_version in post_versions %}
-        <tr>
-            <td>
-                <a href="{{ url_for('main.show_article',slug=post_version.post.slug,post_version=post_version.id) }}">{{ post_version.post.title }}</a>
-            </td>
-            <td>{{ moment(post_version.timestamp).format('lll') }}</td>
-            <td>{{ post_version.version }}</td>
-            <td>{{ post_version.remark }}</td>
-        </tr>
-    {% endfor %}
-</table>
+{% if post_versions|length>0 %}
+    <div class="alert alert-warning">
+        本文存在历史版本，<a class="alert-link" data-toggle="collapse" href="#collapse-post-version" aria-expanded="false"
+                    aria-controls="collapse-post-version">点击查看</a>。
+    </div>
+    <div class="collapse" id="collapse-post-version">
+
+        <div class="panel panel-default">
+            <table class="table">
+                <tr>
+                    <th>历史版本</th>
+                    <th>修改日期</th>
+                    <th>版本号</th>
+                    <th>备注</th>
+                </tr>
+                {% for post_version in post_versions %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('main.show_article',slug=post_version.post.slug,post_version=post_version.id) }}">{{ post_version.post.title }}</a>
+                        </td>
+                        <td>{{ moment(post_version.timestamp).format('lll') }}</td>
+                        <td>{{ post_version.version }}</td>
+                        <td>{{ post_version.remark }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endif %}
