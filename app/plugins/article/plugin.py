@@ -1,7 +1,7 @@
 from blinker import signal
 from ...models import Post, PostType
 from ...main import main
-from flask import render_template
+from flask import render_template, request
 import os.path
 
 navbar = signal('navbar')
@@ -32,6 +32,7 @@ def show_none_post():
 
 @main.route('/archives/<string:slug>.html')
 def show_article(slug):
+    args = request.args
     post = Post.query.filter_by(slug=slug).first_or_404()
     context = {}
     styles = []
@@ -41,7 +42,7 @@ def show_article(slug):
     right_widgets = []
     scripts = []
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
-    article.send(post=post, context=context, article_content=article_content, styles=styles,
+    article.send(args=args, post=post, context=context, article_content=article_content, styles=styles,
                  before_contents=before_contents, contents=contents,
                  left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
     return render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,

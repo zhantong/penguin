@@ -19,6 +19,9 @@ def submit_article(sender, form, post, **kwargs):
 
 
 @signals.article.connect
-def article(sender, post, context, before_contents, **kwargs):
+def article(sender, args, post, context, article_content, before_contents, **kwargs):
     context['post_versions'] = post.post_versions
     before_contents.append(os.path.join('post_version', 'templates', 'main', 'content.html'))
+    if 'post_version' in args:
+        context['versioned_post'] = PostVersion.query.get(args.get('post_version', int))
+        article_content['article_content'] = os.path.join('post_version', 'templates', 'main', 'article_content.html')
