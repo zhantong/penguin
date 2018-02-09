@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from config import config
 from flask_wtf.csrf import CSRFProtect
 from flask_moment import Moment
+import flask_whooshalchemyplus
+from flask_whooshalchemyplus import index_all
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
@@ -46,5 +48,9 @@ def create_app(config_name):
 
     from . import jinja2_customs
     jinja2_customs.custom(app)
+
+    flask_whooshalchemyplus.init_app(app)
+    with app.app_context():
+        index_all(app)
 
     return app

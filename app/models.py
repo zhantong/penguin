@@ -7,6 +7,7 @@ from flask import url_for, current_app
 import os.path
 from .utils import md5, slugify
 from sqlalchemy.ext.hybrid import hybrid_property
+from jieba.analyse.analyzer import ChineseAnalyzer
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -64,6 +65,8 @@ def load_user(user_id):
 
 class Post(db.Model):
     __tablename__ = 'posts'
+    __searchable__ = ['title', 'body']
+    __analyzer__ = ChineseAnalyzer()
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default='')
     _slug = db.Column('slug', db.String(200), default='')
