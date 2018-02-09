@@ -1,9 +1,8 @@
 from blinker import signal
 from ...models import Post, PostType
 from ...main import main
-from flask import render_template
+from flask import render_template, url_for
 import os.path
-from flask_nav.elements import View
 
 navbar = signal('navbar')
 sidebar = signal('sidebar')
@@ -33,9 +32,9 @@ def show_page(slug):
 
 
 @navbar.connect
-def navbar(sender, items):
+def navbar(sender, content):
     pages = Post.query.filter_by(post_type=PostType.page()).all()
-    items.extend(View(page.title, 'main.show_page', slug=page.slug) for page in pages)
+    content['items'].extend((page.title, url_for('main.show_page', slug=page.slug)) for page in pages)
 
 
 @sidebar.connect

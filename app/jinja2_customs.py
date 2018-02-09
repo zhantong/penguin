@@ -1,4 +1,5 @@
 import jinja2
+from . import signals
 
 
 def custom(app):
@@ -14,3 +15,16 @@ def custom(app):
         app.jinja_loader,
         jinja2.FileSystemLoader(['app/plugins'])
     ])
+
+    @app.context_processor
+    def context_processor():
+        def custom_navbar():
+            content = {
+                'brand': 'brand',
+                'items': [],
+                'others': []
+            }
+            signals.navbar.send(content=content)
+            return content
+
+        return dict(custom_navbar=custom_navbar)

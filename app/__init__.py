@@ -4,13 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import config
 from flask_wtf.csrf import CSRFProtect
-from flask_nav import Nav, register_renderer
 from flask_moment import Moment
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 csrf = CSRFProtect()
-nav = Nav()
 moment = Moment()
 
 login_manager = LoginManager()
@@ -34,10 +32,6 @@ def create_app(config_name):
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from .main import custom_navbar as main_navbar, NavbarRenderer as main_NavbarRenderer
-    register_renderer(app, 'main', main_NavbarRenderer)
-    nav.register_element('main', main_navbar)
-
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
@@ -52,7 +46,5 @@ def create_app(config_name):
 
     from . import jinja2_customs
     jinja2_customs.custom(app)
-
-    nav.init_app(app)
 
     return app

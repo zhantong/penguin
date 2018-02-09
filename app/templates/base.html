@@ -3,7 +3,34 @@
 {% block title %}Penguin{% endblock %}
 
 {% block navbar %}
-    {{ nav.main.render(renderer='main') }}
+    {% set custom_navbar=custom_navbar() %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#navbar-collapse" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">{{ custom_navbar['brand'] }}</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    {% for item in custom_navbar['items'] %}
+                        <li><a href="{{ item[1] }}">{{ item[0] }}</a></li>
+                    {% endfor %}
+                </ul>
+                {% for other in custom_navbar['others'] %}
+                    {% include other %}
+                {% endfor %}
+            </div>
+        </div>
+    </nav>
 {% endblock %}
 
 {% block body_attribs %}
