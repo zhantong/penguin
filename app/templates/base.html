@@ -45,6 +45,14 @@
                 {% endblock %}
             </div>
             <div class="col-lg-8 col-lg-push-2">
+                <div class="container">
+                    {% for message in get_flashed_messages() %}
+                        <div class="alert alert-warning alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
                 {% block main %}
                 {% endblock %}
             </div>
