@@ -1,6 +1,9 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Text
-from app import models
+from app.models import User as PenguinUser
+from app.plugins.comment.models import Comment as PenguinComment
+from app.plugins.post.models import Post as PenguinPost, PostMeta as PenguinPostMeta, Meta as PenguinMeta
+from app.plugins.attachment.models import Attachment as PenguinAttachment
 from datetime import datetime
 import phpserialize
 import os.path
@@ -30,14 +33,14 @@ class Comment(Base):
     parent = Column(Integer)
 
     def to_user(self, role):
-        return models.User(name=self.author
+        return PenguinUser(name=self.author
                            , email=self.mail
                            , member_since=datetime.utcfromtimestamp(self.created)
                            , role=role
                            )
 
     def to_comment(self, author):
-        return models.Comment(id=self.coid
+        return PenguinComment(id=self.coid
                               , body=self.text
                               , timestamp=datetime.utcfromtimestamp(self.created)
                               , author=author
@@ -70,14 +73,14 @@ class Content(Base):
     viewsNum = Column(Integer)
 
     def to_post(self, post_type, post_status):
-        return models.Post(id=self.cid
+        return PenguinPost(id=self.cid
                            , title=self.title
                            , slug=self.slug
                            , post_type=post_type
                            , post_status=post_status
                            , body=self.text.replace('<!--markdown-->', '')
                            , timestamp=datetime.utcfromtimestamp(self.created)
-                           , author=models.User.query.get(self.authorId)
+                           , author=PenguinUser.query.get(self.authorId)
                            )
 
     def to_attachment(self, upload_parent_directory_path):
@@ -102,17 +105,17 @@ class Content(Base):
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
         shutil.copyfile(original_abs_file_path, abs_file_path)
-        post = models.Post.query.get(self.parent)
+        post = PenguinPost.query.get(self.parent)
         if post is not None:
             post.body = post.body.replace(original_relative_file_path, filename)
         else:
             print('a attachment (id = ' + str(self.cid) + ') has no corresponding post (id = ' + str(self.parent) + ')')
-        return models.Attachment(post_id=self.parent, original_filename=original_filename, filename=filename,
+        return PenguinAttachment(post_id=self.parent, original_filename=original_filename, filename=filename,
                                  file_path=relative_file_path, file_extension=extension, mime=meta['mime'],
                                  timestamp=timestamp)
 
     def to_post_meta(self, meta):
-        return models.PostMeta(post_id=self.cid, meta=meta)
+        return PenguinPostMeta(post_id=self.cid, meta=meta)
 
 
 class Meta(Base):
@@ -127,10 +130,10 @@ class Meta(Base):
     parent = Column(Integer)
 
     def to_meta_category(self):
-        return models.Meta(key=self.slug, value=self.name, type='category', description=self.description)
+        return PenguinMeta(key=self.slug, value=self.name, type='category', description=self.description)
 
     def to_meta_tag(self):
-        return models.Meta(key=self.slug, value=self.name, type='tag', description=self.description)
+        return PenguinMeta(key=self.slug, value=self.name, type='tag', description=self.description)
 
 
 class Option(Base):
@@ -161,7 +164,7 @@ class User(Base):
     authCode = Column(String(64))
 
     def to_user(self, role):
-        return models.User(id=self.uid
+        return PenguinUser(id=self.uid
                            , username=self.name
                            , role=role
                            , name=self.screenName
