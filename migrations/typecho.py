@@ -5,6 +5,7 @@ from app.plugins.comment.models import Comment as PenguinComment
 from app.plugins.post.models import Post as PenguinPost, PostMeta as PenguinPostMeta, Meta as PenguinMeta
 from app.plugins.attachment.models import Attachment as PenguinAttachment
 from app.plugins.category.models import Category as PenguinCategory
+from app.plugins.tag.models import Tag as PenguinTag
 from datetime import datetime
 import phpserialize
 import os.path
@@ -133,8 +134,8 @@ class Meta(Base):
     def to_category(self):
         return PenguinCategory(name=self.name, slug=self.slug, description=self.description)
 
-    def to_meta_tag(self):
-        return PenguinMeta(key=self.slug, value=self.name, type='tag', description=self.description)
+    def to_tag(self):
+        return PenguinTag(name=self.name, slug=self.slug, description=self.description)
 
 
 class Option(Base):

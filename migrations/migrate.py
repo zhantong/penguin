@@ -54,15 +54,16 @@ def from_typecho(db_url, upload_parent_directory_path):
     db.session.flush()
 
     for meta in session.query(Meta).filter_by(type='tag'):
-        meta_tag = meta.to_meta_tag()
-        db.session.add(meta_tag)
+        tag = meta.to_tag()
+        db.session.add(tag)
         db.session.flush()
-        db.session.refresh(meta_tag)
         for content in session.query(Content) \
                 .filter(Content.cid == Relationship.cid) \
                 .filter(Relationship.mid == meta.mid):
-            post_meta = content.to_post_meta(meta_tag)
-            db.session.add(post_meta)
+            post = PenguinPost.query.get(content.cid)
+            if post is None:
+                print(post, content, content.cid)
+            post.tags.append(tag)
     db.session.flush()
 
     session.close()
