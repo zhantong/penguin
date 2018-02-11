@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app import db
 from app.models import Role as PenguinRole, User as PenguinUser
-from app.plugins.post.models import PostType as PenguinPostType, PostStatus as PenguinPostStatus
+from app.plugins.post.models import Post as PenguinPost, PostType as PenguinPostType, PostStatus as PenguinPostStatus
 
 
 def from_typecho(db_url, upload_parent_directory_path):
@@ -43,14 +43,14 @@ def from_typecho(db_url, upload_parent_directory_path):
     db.session.flush()
 
     for meta in session.query(Meta).filter_by(type='category'):
-        meta_category = meta.to_meta_category()
-        db.session.add(meta_category)
+        category = meta.to_category()
+        db.session.add(category)
         db.session.flush()
         for content in session.query(Content) \
                 .filter(Content.cid == Relationship.cid) \
                 .filter(Relationship.mid == meta.mid):
-            post_meta = content.to_post_meta(meta_category)
-            db.session.add(post_meta)
+            post = PenguinPost.query.get(content.cid)
+            post.categories.append(category)
     db.session.flush()
 
     for meta in session.query(Meta).filter_by(type='tag'):

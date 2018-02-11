@@ -1,6 +1,7 @@
 from blinker import signal
 from ...models import db
-from ..post.models import Meta, PostMeta
+from .models import Category
+from ..post.models import Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 import os.path
@@ -28,18 +29,17 @@ def sidebar(sender, sidebars):
 @show_list.connect_via('category')
 def show_list(sender, args):
     page = args.get('page', 1, type=int)
-    pagination = Meta.query_categories().order_by(Meta.value) \
+    pagination = Category.query.order_by(Category.name) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     categories = pagination.items
     head = ('', '名称', '别名', '文章数')
     rows = []
     for category in categories:
         rows.append((category.id
-                     , Hyperlink('Hyperlink', category.value,
-                                 url_for('.edit', type='category', id=category.id))
-                     , Plain('Plain', category.key)
-                     , Hyperlink('Hyperlink', category.post_metas.count(),
-                                 url_for('.show_list', type='article', category=category.key))))
+                     , Hyperlink('Hyperlink', category.name, url_for('.edit', type='category', id=category.id))
+                     , Plain('Plain', category.slug)
+                     , Hyperlink('Hyperlink', len(category.posts),
+                                 url_for('.show_list', type='post', sub_type='article', category=category.slug))))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:
@@ -57,8 +57,7 @@ def show_list(sender, args):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'category' in args and args['category'] != '':
-        query['query'] = query['query'].join(PostMeta, Meta).filter(
-            Meta.key == args['category'] and Meta.type == 'category')
+        query['query'] = query['query'].join(Post.categories).filter(Category.slug == args['category'])
     return query
 
 
@@ -69,16 +68,16 @@ def article_list_column_head(sender, head):
 
 @article_list_column.connect
 def article_list_column(sender, post, row):
-    row.append([Hyperlink('Hyperlink', category_post_meta.meta.value,
-                          url_for('.show_list', type='article', category=category_post_meta.meta.key)) for
-                category_post_meta in post.category_post_metas.all()])
+    row.append([Hyperlink('Hyperlink', category.name,
+                          url_for('.show_list', type='post', sub_type='article', category=category.slug)) for
+                category in post.categories])
 
 
 @article_search_select.connect
 def article_search_select(sender, selects):
     select = Select('Select', 'category', [Option('Option', '全部分类', '')])
-    select.options.extend(Option('Option', category_meta.value, category_meta.key) for category_meta in
-                          Meta.query_categories().order_by(Meta.value).all())
+    select.options.extend(Option('Option', category.name, category.slug) for category in
+                          Category.query.order_by(Category.name).all())
     selects.append(select)
 
 
@@ -89,8 +88,8 @@ def manage(sender, form):
         ids = form.getlist('id')
         ids = [int(id) for id in ids]
         if ids:
-            first_category_name = Meta.query.get(ids[0]).value
-            for category in Meta.query.filter(Meta.id.in_(ids)):
+            first_category_name = Category.query.get(ids[0]).value
+            for category in Category.query.filter(Category.id.in_(ids)):
                 db.session.delete(category)
             db.session.commit()
             message = '已删除分类"' + first_category_name + '"'
@@ -100,30 +99,25 @@ def manage(sender, form):
 
 
 @edit_article.connect
-def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
-    context['all_category_metas'] = Meta.categories()
-    context['category_meta_ids'] = [category_post_meta.meta_id for category_post_meta
-                                    in context['post'].category_post_metas.options(load_only('meta_id'))]
+def edit_article(sender, context, widgets, **kwargs):
+    context['all_category'] = Category.query.all()
+    context['category_ids'] = [category.id for category in context['post'].categories]
     widgets.append(os.path.join('category', 'templates', 'widget_content_category.html'))
 
 
 @submit_article.connect
 def submit_article(sender, form, post):
-    category_meta_ids = form.getlist('category-id')
-    post.category_post_metas = [PostMeta(post=post, meta_id=category_meta_id)
-                                for category_meta_id in category_meta_ids]
+    category_ids = form.getlist('category-id')
+    post.categories = [Category.query.get(category_id) for category_id in category_ids]
 
 
 @edit.connect_via('category')
-def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+def edit(sender, args, context, contents, **kwargs):
     id = args.get('id', type=int)
     if id is None:
-        category = Meta()
-        db.session.add(category)
-        db.session.commit()
-        db.session.refresh(category)
+        category = None
     else:
-        category = Meta.query.get(id)
+        category = Category.query.get(id)
     context['category'] = category
     contents.append(os.path.join('category', 'templates', 'content.html'))
 
@@ -132,9 +126,9 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
 def submit(sender, form):
     id = form.get('id', type=int)
     if id is None:
-        category = Meta().create_category()
+        category = Category()
     else:
-        category = Meta.query.get(id)
+        category = Category.query.get(id)
     category.key = form['key']
     category.value = form['value']
     category.description = form['description']
@@ -145,6 +139,11 @@ def submit(sender, form):
 
 @signals.index.connect
 def index(sender, context, left_widgets, **kwargs):
-    all_category_metas = Meta.query_categories().order_by(Meta.value).all()
-    context['all_category_metas'] = all_category_metas
+    all_category = Category.query.order_by(Category.name).all()
+    context['all_category'] = all_category
     left_widgets.append(os.path.join('category', 'templates', 'main', 'widget_content.html'))
+
+
+@signals.post_keywords.connect
+def post_keywords(sender, post, keywords, **kwargs):
+    keywords.extend(category.name for category in post.categories)

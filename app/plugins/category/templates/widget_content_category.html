@@ -11,12 +11,12 @@
     <div id="option-category-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="option-category-heading">
         <div class="panel-body">
-            {% for category_meta in all_category_metas %}
+            {% for category in all_category %}
                 <div class="checkbox">
                     <label>
-                        <input name="category-id" value="{{ category_meta.id }}" type="checkbox"
-                               {% if category_meta.id in category_meta_ids %}checked="checked"{% endif %}>
-                        {{ category_meta.value }}
+                        <input name="category-id" value="{{ category.id }}" type="checkbox"
+                               {% if category.id in category_ids %}checked="checked"{% endif %}>
+                        {{ category.name }}
                     </label>
                 </div>
             {% endfor %}

@@ -7,6 +7,7 @@ from flask_login import current_user
 import markdown2
 from flask import url_for
 import re
+from . import signals
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -33,10 +34,6 @@ class Post(db.Model):
     metas = db.relationship('Meta', back_populates='post', lazy='dynamic')
     field_metas = db.relationship('Meta', primaryjoin='and_(Post.id==Meta.post_id, Meta.type=="field")'
                                   , backref='field_post', lazy='dynamic', cascade='all, delete-orphan')
-    category_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
-                                                                  'PostMeta.meta_id==Meta.id, '
-                                                                  'Meta.type=="category")'
-                                          , backref='category_post', lazy='dynamic', cascade='all, delete-orphan')
     tag_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
                                                              'PostMeta.meta_id==Meta.id, '
                                                              'Meta.type=="tag")'
@@ -116,14 +113,10 @@ class Post(db.Model):
         if self.post_type == PostType.page():
             return url_for('main.show_page', slug=self.slug)
 
-    def categories_and_tags_string(self):
-        result = ', '.join(category_post_meta.meta.value for category_post_meta in self.category_post_metas)
-        result += ', '
-        result += ', '.join(tag_post_meta.meta.value for tag_post_meta in self.tag_post_metas)
-        result = result.strip()
-        if result[-1] == ',':
-            result = result[:-1]
-        return result
+    def keywords(self):
+        keywords = []
+        signals.post_keywords.send(post=self, keywords=keywords)
+        return keywords
 
     def is_template_enabled(self):
         return self.template_post_meta is not None
@@ -212,14 +205,6 @@ class Meta(db.Model):
         self._key = slugify(key)
 
     @staticmethod
-    def query_categories():
-        return Meta.query.filter_by(type='category')
-
-    @staticmethod
-    def categories():
-        return Meta.query.filter_by(type='category').order_by(Meta.value).all()
-
-    @staticmethod
     def query_tags():
         return Meta.query.filter_by(type='tag')
 
@@ -234,10 +219,6 @@ class Meta(db.Model):
     @staticmethod
     def templates():
         return Meta.query.filter_by(type='template').order_by(Meta.key).all()
-
-    @staticmethod
-    def create_category(**kwargs):
-        return Meta(type='category', **kwargs)
 
     @staticmethod
     def create_tag(**kwargs):

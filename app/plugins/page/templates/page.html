@@ -5,7 +5,6 @@
 {% block metas %}
     {{ super() }}
     <meta name="description" content="{{ post.body_abstract[:100]|replace('\n',' ') }}"/>
-    <meta name="keywords" content="{{ post.categories_and_tags_string() }}"/>
     <meta name="author" content="{{ post.author.name }}"/>
 {% endblock %}
 
