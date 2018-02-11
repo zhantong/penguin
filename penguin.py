@@ -1,6 +1,7 @@
 import os
 from app import create_app, db
-from app.models import PostType, Role, PostStatus
+from app.plugins.post.models import PostType, PostStatus
+from app.models import Role
 import click
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')

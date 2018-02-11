@@ -1,5 +1,7 @@
 from . import signals
-from ...models import db, PostStatus, PostVersion
+from ...models import db
+from ..post.models import PostStatus
+from .models import PostVersion
 import os.path
 from flask import current_app, url_for, flash
 from sqlalchemy import desc

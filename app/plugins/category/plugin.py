@@ -1,5 +1,6 @@
 from blinker import signal
-from ...models import db, Meta, PostMeta
+from ...models import db
+from ..post.models import Meta, PostMeta
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 import os.path

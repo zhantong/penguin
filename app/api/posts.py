@@ -1,7 +1,7 @@
 from flask import jsonify, request, current_app, url_for, abort
 from flask_login import current_user
 from . import api
-from ..models import Post
+from ..plugins.post.models import Post
 
 
 @api.route('/posts')

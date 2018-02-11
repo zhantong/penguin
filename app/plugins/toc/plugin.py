@@ -1,5 +1,5 @@
 from ... import db
-from ...models import Post
+from ..post.models import Post
 import markdown2
 from blinker import signal
 import os.path

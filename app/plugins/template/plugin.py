@@ -1,5 +1,6 @@
 from blinker import signal
-from ...models import db, Meta, PostMeta, Post
+from ...models import db
+from ..post.models import Post, PostMeta, Meta
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 from jinja2 import Template

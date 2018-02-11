@@ -1,5 +1,5 @@
 from blinker import signal
-from ...models import Post, PostType
+from ..post.models import Post, PostType
 from ...main import main
 from flask import render_template, url_for
 import os.path

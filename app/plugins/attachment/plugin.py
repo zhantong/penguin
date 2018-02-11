@@ -1,5 +1,6 @@
 from blinker import signal
-from ...models import db, Attachment
+from ...models import db
+from .models import Attachment
 from ...admin import admin
 from ...main import main
 from flask import request, jsonify, current_app, url_for, send_from_directory

@@ -1,7 +1,7 @@
 from blinker import signal
-from ...models import Post, PostType
+from ..post.models import Post, PostType
 from ...main import main
-from flask import render_template, request
+from flask import render_template, request, flash
 import os.path
 
 navbar = signal('navbar')
@@ -41,6 +41,7 @@ def show_article(slug):
     left_widgets = []
     right_widgets = []
     scripts = []
+    flash('test')
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
     article.send(args=args, post=post, context=context, article_content=article_content, styles=styles,
                  before_contents=before_contents, contents=contents,

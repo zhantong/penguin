@@ -1,5 +1,5 @@
 from . import signals
-from ...models import Post
+from ..post.models import Post
 from flask import current_app
 import os.path
 

@@ -1,5 +1,7 @@
 from blinker import signal
-from ...models import db, Comment, User, Post
+from ...models import db, User
+from ..comment.models import Comment
+from ..post.models import Post
 from flask import current_app, url_for, flash, request, jsonify
 from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
 from ...main import main
