@@ -34,10 +34,6 @@ class Post(db.Model):
     metas = db.relationship('Meta', back_populates='post', lazy='dynamic')
     field_metas = db.relationship('Meta', primaryjoin='and_(Post.id==Meta.post_id, Meta.type=="field")'
                                   , backref='field_post', lazy='dynamic', cascade='all, delete-orphan')
-    tag_post_metas = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
-                                                             'PostMeta.meta_id==Meta.id, '
-                                                             'Meta.type=="tag")'
-                                     , backref='tag_post', lazy='dynamic', cascade='all, delete-orphan')
     template_post_meta = db.relationship('PostMeta', primaryjoin='and_(Post.id==PostMeta.post_id, '
                                                                  'PostMeta.meta_id==Meta.id, '
                                                                  'Meta.type=="template")'
@@ -205,24 +201,12 @@ class Meta(db.Model):
         self._key = slugify(key)
 
     @staticmethod
-    def query_tags():
-        return Meta.query.filter_by(type='tag')
-
-    @staticmethod
-    def tags():
-        return Meta.query.filter_by(type='tag').order_by(Meta.value).all()
-
-    @staticmethod
     def query_templates():
         return Meta.query.filter_by(type='template')
 
     @staticmethod
     def templates():
         return Meta.query.filter_by(type='template').order_by(Meta.key).all()
-
-    @staticmethod
-    def create_tag(**kwargs):
-        return Meta(type='tag', **kwargs)
 
     @staticmethod
     def create_template(**kwargs):

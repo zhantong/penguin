@@ -1,9 +1,12 @@
 from blinker import signal
 from ...models import db
-from ..post.models import Meta, PostMeta
+from .models import Tag
+from ..post.models import Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination
 import os.path
+from ...utils import slugify
+from . import signals
 
 sidebar = signal('sidebar')
 show_list = signal('show_list')
@@ -19,24 +22,24 @@ submit = signal('submit')
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('category', 'templates', 'sidebar.html'))
+    sidebars.append(os.path.join('tag', 'templates', 'sidebar.html'))
 
 
 @show_list.connect_via('tag')
 def show_list(sender, args):
     page = args.get('page', 1, type=int)
-    pagination = Meta.query_tags().order_by(Meta.value) \
+    pagination = Tag.query.order_by(Tag.name) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     tags = pagination.items
     head = ('', '名称', '别名', '文章数')
     rows = []
     for tag in tags:
         rows.append((tag.id
-                     , Hyperlink('Hyperlink', tag.value,
+                     , Hyperlink('Hyperlink', tag.name,
                                  url_for('.edit', type='tag', id=tag.id))
-                     , Plain('Plain', tag.key)
-                     , Hyperlink('Hyperlink', tag.post_metas.count(),
-                                 url_for('.show_list', type='article', tag=tag.key))))
+                     , Plain('Plain', tag.slug)
+                     , Hyperlink('Hyperlink', len(tag.posts),
+                                 url_for('.show_list', type='post', sub_type='article', tag=tag.slug))))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:
@@ -53,7 +56,7 @@ def show_list(sender, args):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'tag' in args and args['tag'] != '':
-        query['query'] = query['query'].join(PostMeta, Meta).filter(Meta.key == args['tag'] and Meta.type == 'tag')
+        query['query'] = query['query'].join(Post.tags).filter(Tag.slug == args['tag'])
     return query
 
 
@@ -64,9 +67,8 @@ def article_list_column_head(sender, head):
 
 @article_list_column.connect
 def article_list_column(sender, post, row):
-    row.append([Hyperlink('Hyperlink', tag_post_meta.meta.value,
-                          url_for('.show_list', type='article', tag=tag_post_meta.meta.key)) for tag_post_meta
-                in post.tag_post_metas.all()])
+    row.append([Hyperlink('Hyperlink', tag.name,
+                          url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in post.tags])
 
 
 @manage.connect_via('tag')
@@ -76,8 +78,8 @@ def manage(sender, form):
         ids = form.getlist('id')
         ids = [int(id) for id in ids]
         if ids:
-            first_tag_name = Meta.query.get(ids[0]).value
-            for tag in Meta.query.filter(Meta.id.in_(ids)):
+            first_tag_name = Tag.query.get(ids[0]).name
+            for tag in Tag.query.filter(Tag.id.in_(ids)):
                 db.session.delete(tag)
             db.session.commit()
             message = '已删除标签"' + first_tag_name + '"'
@@ -87,34 +89,34 @@ def manage(sender, form):
 
 
 @edit_article.connect
-def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
-    context['all_tag_metas'] = Meta.tags()
-    context['tags'] = [tag_post_meta.meta.value for tag_post_meta in context['post'].tag_post_metas.all()]
+def edit_article(sender, context, widgets, scripts, **kwargs):
+    context['all_tag_name'] = [tag.name for tag in Tag.query.all()]
+    context['tag_names'] = [tag.name for tag in context['post'].tags]
     widgets.append(os.path.join('tag', 'templates', 'widget_content_tag.html'))
     scripts.append(os.path.join('tag', 'templates', 'widget_script_tag.html'))
 
 
 @submit_article.connect
 def submit_article(sender, form, post):
-    tag_names = form.getlist('tag')
-    tag_post_metas = []
+    tag_names = form.getlist('tag-name')
+    tag_names = set(tag_names)
+    tags = []
     for tag_name in tag_names:
-        tag = Meta.query_tags().filter_by(value=tag_name).first()
+        tag = Tag.query.filter_by(name=tag_name).first()
         if tag is None:
-            tag = Meta.create_tag(key=tag_name, value=tag_name)
+            tag = Tag(name=tag_name, slug=slugify(tag_name))
             db.session.add(tag)
             db.session.flush()
-        tag_post_meta = PostMeta(post=post, meta=tag)
-        tag_post_metas.append(tag_post_meta)
-    post.tag_post_metas = tag_post_metas
+        tags.append(tag)
+    post.tags = tags
 
 
 @edit.connect_via('tag')
-def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+def edit(sender, args, context, contents, **kwargs):
     id = args.get('id', type=int)
     tag = None
     if id is not None:
-        tag = Meta.query.get(id)
+        tag = Tag.query.get(id)
     context['tag'] = tag
     contents.append(os.path.join('tag', 'templates', 'content.html'))
 
@@ -123,12 +125,17 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
 def submit(sender, form):
     id = form.get('id', type=int)
     if id is None:
-        tag = Meta().create_tag()
+        tag = Tag()
     else:
-        tag = Meta.query.get(id)
-    tag.key = form['key']
-    tag.value = form['value']
+        tag = Tag.query.get(id)
+    tag.name = form['name']
+    tag.slug = form['slug']
     tag.description = form['description']
     if tag.id is None:
         db.session.add(tag)
     db.session.commit()
+
+
+@signals.post_keywords.connect
+def post_keywords(sender, post, keywords, **kwargs):
+    keywords.extend(category.name for category in post.categories)

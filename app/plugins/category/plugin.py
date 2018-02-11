@@ -129,8 +129,8 @@ def submit(sender, form):
         category = Category()
     else:
         category = Category.query.get(id)
-    category.key = form['key']
-    category.value = form['value']
+    category.name = form['name']
+    category.slug = form['slug']
     category.description = form['description']
     if category.id is None:
         db.session.add(category)
