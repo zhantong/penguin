@@ -72,4 +72,4 @@ def submit_post(sender, form, post):
 @submit_post_with_action.connect
 def submit_post_with_action(sender, form, post):
     if post.post_type == PostType.page():
-        submit_post_with_action.send(form=form, post=post)
+        submit_page_with_action.send(form['action'], form=form, post=post)

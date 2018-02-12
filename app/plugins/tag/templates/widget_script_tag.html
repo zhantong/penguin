@@ -10,7 +10,7 @@
         $(this).parent().remove();
     });
 
-    var tagNames ={{ tags | tojson }};
+    var tagNames ={{ tag_names | tojson }};
     tagNames.forEach(function (tagName) {
         addTag(tagName);
     });
