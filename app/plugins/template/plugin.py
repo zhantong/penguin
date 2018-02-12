@@ -1,9 +1,10 @@
 from blinker import signal
 from ...models import db
-from ..post.models import Post, PostMeta, Meta
+from ..post.models import Post
+from .models import Template, TemplateField
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
-from jinja2 import Template
+from jinja2 import Template as Jinja2Tempalte
 import os.path
 
 sidebar = signal('sidebar')
@@ -30,17 +31,17 @@ def sidebar(sender, sidebars):
 @show_list.connect_via('template')
 def show_list(sender, args):
     page = args.get('page', 1, type=int)
-    pagination = Meta.query_templates().order_by(Meta.key) \
+    pagination = Template.query.order_by(Template.name) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     templates = pagination.items
     head = ('', '名称', '文章数')
     rows = []
     for template in templates:
         rows.append((template.id
-                     , Hyperlink('Hyperlink', template.key,
+                     , Hyperlink('Hyperlink', template.name,
                                  url_for('.edit', type='template', id=template.id))
-                     , Hyperlink('Hyperlink', template.post_metas.count(),
-                                 url_for('.show_list', type='article', template=template.key))))
+                     , Hyperlink('Hyperlink', len(template.posts),
+                                 url_for('.show_list', type='post', sub_type='article', template=template.slug))))
     table = Table('Table', head, rows)
     args = args.to_dict()
     if 'page' in args:
@@ -57,8 +58,7 @@ def show_list(sender, args):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'template' in args and args['template'] != '':
-        query['query'] = query['query'].join(PostMeta, Meta).filter(
-            Meta.key == args['template'] and Meta.type == 'template')
+        query['query'] = query['query'].join(Post.template).filter(Template.slug == args['template'])
     return query
 
 
@@ -69,8 +69,8 @@ def manage(sender, form):
         ids = form.getlist('id')
         ids = [int(id) for id in ids]
         if ids:
-            first_template_name = Meta.query.get(ids[0]).key
-            for template in Meta.query.filter(Meta.id.in_(ids)):
+            first_template_name = Template.query.get(ids[0]).name
+            for template in Template.query.filter(Template.id.in_(ids)):
                 db.session.delete(template)
             db.session.commit()
             message = '已删除模板"' + first_template_name + '"'
@@ -81,8 +81,8 @@ def manage(sender, form):
 
 @edit_page.connect
 @edit_article.connect
-def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
-    context['all_template_metas'] = Meta.templates()
+def edit_article(sender, context, contents, widgets, scripts, **kwargs):
+    context['all_template'] = Template.query.all()
     contents.append(os.path.join('template', 'templates', 'content_template.html'))
     scripts.append(os.path.join('template', 'templates', 'script_template.html'))
     widgets.append(os.path.join('template', 'templates', 'widget_content_template.html'))
@@ -91,38 +91,37 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
 @submit_page.connect
 @submit_article.connect
 def submit_article(sender, form, post):
-    field_keys = form.getlist('field-key')
-    field_values = form.getlist('field-value')
-    post.field_metas = []
+    field_keys = form.getlist('template-field-key')
+    field_values = form.getlist('template-field-value')
+    post.template_fields = []
     for key, value in zip(field_keys, field_values):
-        post.field_metas.append(Meta.create_field(key=key, value=value))
+        template_field = TemplateField(post=post, key=key, value=value)
+        db.session.add(template_field)
+        db.session.flush()
+        post.template_fields.append(template_field)
 
 
 @submit_page_with_action.connect_via('enable-template')
 @submit_article_with_action.connect_via('enable-template')
-def submit_article_with_action_enable_template(sender, form):
-    id = form['id']
-    template_id = form['template']
-    post = Post.query.get(int(id))
-    post.template_post_meta = PostMeta(post=post, meta_id=int(template_id))
+def submit_article_with_action_enable_template(sender, form, post):
+    template_id = form['template-id']
+    post.template = Template.query.get(int(template_id))
     db.session.commit()
 
 
 @submit_page_with_action.connect_via('disable-template')
 @submit_article_with_action.connect_via('disable-template')
-def submit_article_with_action_enable_template(sender, form):
-    id = form['id']
-    post = Post.query.get(int(id))
-    post.template_post_meta = None
+def submit_article_with_action_enable_template(sender, form, post):
+    post.template = None
     db.session.commit()
 
 
 @edit.connect_via('template')
-def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
+def edit(sender, args, context, contents, **kwargs):
     id = args.get('id', type=int)
     template = None
     if id is not None:
-        template = Meta.query.get(id)
+        template = Template.query.get(id)
     context['template'] = template
     contents.append(os.path.join('template', 'templates', 'content.html'))
 
@@ -131,12 +130,13 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
 def submit(sender, form):
     id = form.get('id', type=int)
     if id is None:
-        template = Meta().create_template()
+        template = Template()
     else:
-        template = Meta.query.get(id)
-    template.key = form['key']
-    template.value = form['value']
+        template = Template.query.get(id)
+    template.name = form['name']
+    template.slug = form['slug']
     template.description = form['description']
+    template.body = form['body']
     if template.id is None:
         db.session.add(template)
     db.session.commit()
@@ -144,15 +144,15 @@ def submit(sender, form):
 
 @article.connect
 def article(sender, post, context, article_content, **kwargs):
-    if post.is_template_enabled():
-        template = Template(post.template_post_meta.meta.value)
+    if post.template is not None:
+        template = Jinja2Tempalte(post.template.body)
         article_content['article_content'] = template
-        context.update({field.key: eval(field.value) for field in post.field_metas.all()})
+        context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})
 
 
 @page.connect
 def page(sender, post, context, page_content, contents, scripts):
-    if post.is_template_enabled():
-        template = Template(post.template_post_meta.meta.value)
+    if post.template is not None:
+        template = Jinja2Tempalte(post.template.body)
         page_content['page_content'] = template
-        context.update({field.key: eval(field.value) for field in post.field_metas.all()})
+        context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})

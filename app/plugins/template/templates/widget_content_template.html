@@ -11,14 +11,14 @@
     <div id="option-template-collapse" class="panel-collapse collapse in" role="tabpanel"
          aria-labelledby="option-template-heading">
         <div class="panel-body">
-            <select name="template" class="form-control">
-                {% for template_meta in all_template_metas %}
-                    <option value="{{ template_meta.id }}">{{ template_meta.key }}</option>
+            <select name="template-id" class="form-control">
+                {% for template in all_template %}
+                    <option value="{{ template.id }}">{{ template.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="panel-footer">
-            {% if post.is_template_enabled() %}
+            {% if post.template is not none %}
                 <button name="action" value="disable-template" type="submit" class="btn btn-default">停用模板</button>
             {% else %}
                 <button name="action" value="enable-template" type="submit" class="btn btn-default">使用模板</button>
