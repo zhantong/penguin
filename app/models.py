@@ -41,8 +41,6 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64))
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     role = db.relationship('Role', back_populates='users')
-    posts = db.relationship('Post', back_populates='author', lazy='dynamic')
-    comments = db.relationship('Comment', back_populates='author', lazy='dynamic')
 
     @staticmethod
     def create_guest(**kwargs):

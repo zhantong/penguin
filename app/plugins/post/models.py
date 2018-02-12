@@ -28,8 +28,7 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_type = db.relationship('PostType', back_populates='posts')
     post_status = db.relationship('PostStatus', back_populates='posts')
-    author = db.relationship('User', back_populates='posts')
-    comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
+    author = db.relationship('User', backref='posts')
     post_metas = db.relationship('PostMeta', back_populates='post', lazy='dynamic')
     metas = db.relationship('Meta', back_populates='post', lazy='dynamic')
 
@@ -77,25 +76,6 @@ class Post(db.Model):
 
     def set_post_status_published(self):
         self.post_status = PostStatus.published()
-
-    def to_json(self, type='view'):
-        json_post = {
-            'title': self.title,
-            'author': self.author.name,
-            'timestamp': self.timestamp,
-            'comment_count': self.comments.count()
-        }
-        if type == 'view':
-            json_post.update({
-                'url': url_for('main.show_post', slug=self.slug)
-            })
-        elif type == 'admin':
-            json_post.update({
-                'url': url_for('admin.edit_article', id=self.id)
-            })
-        elif type == 'api':
-            pass
-        return json_post
 
     def url(self):
         if self.post_type == PostType.article():

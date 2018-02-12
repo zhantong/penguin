@@ -14,8 +14,8 @@ class Comment(db.Model):
     ip = db.Column(db.String(64))
     agent = db.Column(db.String(200))
     parent = db.Column(db.Integer)
-    author = db.relationship('User', back_populates='comments')
-    post = db.relationship('Post', back_populates='comments')
+    author = db.relationship('User', backref='comments')
+    post = db.relationship('Post', backref='comments')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
