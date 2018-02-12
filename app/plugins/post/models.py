@@ -29,8 +29,6 @@ class Post(db.Model):
     post_type = db.relationship('PostType', back_populates='posts')
     post_status = db.relationship('PostStatus', back_populates='posts')
     author = db.relationship('User', backref='posts')
-    post_metas = db.relationship('PostMeta', back_populates='post', lazy='dynamic')
-    metas = db.relationship('Meta', back_populates='post', lazy='dynamic')
 
     @hybrid_property
     def slug(self):
@@ -147,36 +145,3 @@ class PostStatus(db.Model):
     @staticmethod
     def draft():
         return PostStatus.query.filter_by(key='draft').first()
-
-
-class Meta(db.Model):
-    __tablename__ = 'metas'
-    id = db.Column(db.Integer, primary_key=True)
-    _key = db.Column('key', db.String(200), default='')
-    value = db.Column(db.Text, default='')
-    type = db.Column(db.String(200))
-    description = db.Column(db.Text, default='')
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    post = db.relationship('Post', back_populates='metas')
-    post_metas = db.relationship('PostMeta', back_populates='meta', lazy='dynamic', cascade='all, delete-orphan')
-
-    @hybrid_property
-    def key(self):
-        return self._key
-
-    @key.setter
-    def key(self, key):
-        self._key = slugify(key)
-
-
-class PostMeta(db.Model):
-    __tablename__ = 'post_metas'
-    id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    key = db.Column(db.String(200))
-    value = db.Column(db.String(400))
-    description = db.Column(db.Text)
-    meta_id = db.Column(db.Integer, db.ForeignKey('metas.id'))
-    order = db.Column(db.Integer, default=0)
-    post = db.relationship('Post', back_populates='post_metas')
-    meta = db.relationship('Meta', back_populates='post_metas')

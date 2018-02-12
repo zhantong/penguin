@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Text
 from app.models import User as PenguinUser
 from app.plugins.comment.models import Comment as PenguinComment
-from app.plugins.post.models import Post as PenguinPost, PostMeta as PenguinPostMeta, Meta as PenguinMeta
+from app.plugins.post.models import Post as PenguinPost
 from app.plugins.attachment.models import Attachment as PenguinAttachment
 from app.plugins.category.models import Category as PenguinCategory
 from app.plugins.tag.models import Tag as PenguinTag
@@ -115,9 +115,6 @@ class Content(Base):
         return PenguinAttachment(post_id=self.parent, original_filename=original_filename, filename=filename,
                                  file_path=relative_file_path, file_extension=extension, mime=meta['mime'],
                                  timestamp=timestamp)
-
-    def to_post_meta(self, meta):
-        return PenguinPostMeta(post_id=self.cid, meta=meta)
 
 
 class Meta(Base):
