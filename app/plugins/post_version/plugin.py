@@ -91,7 +91,7 @@ def edit(sender, args, context, contents, **kwargs):
 
 
 @signals.submit.connect_via('post-version')
-def submit(sender, form):
+def submit(sender, args, form, **kwargs):
     id = form.get('id', type=int)
     post_version = PostVersion.query.get(id)
     post_version.body = form['body']

@@ -90,19 +90,19 @@ def create_post(sender, args):
 
 @edit_post.connect
 def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, scripts):
-    if post.post_type == PostType.article():
+    if args['sub_type'] == 'article':
         edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens,
                           contents=contents, widgets=widgets,
                           scripts=scripts)
 
 
 @submit_post.connect
-def submit_post(sender, form, post):
+def submit_post(sender, post, form, **kwargs):
     if post.post_type == PostType.article():
         submit_article.send(form=form, post=post)
 
 
 @submit_post_with_action.connect
-def submit_post_with_action(sender, form, post):
+def submit_post_with_action(sender, post, form, **kwargs):
     if post.post_type == PostType.article():
         submit_article_with_action.send(form['action'], form=form, post=post)

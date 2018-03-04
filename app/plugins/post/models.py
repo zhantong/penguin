@@ -47,6 +47,25 @@ class Post(db.Model):
         if self.author is None:
             self.author = current_user._get_current_object()
 
+    def update(self, action, **kwargs):
+        if action in ['save-draft', 'publish']:
+            if kwargs['title'] is not None:
+                self.title = kwargs['title']
+            if kwargs['slug'] is not None:
+                self.slug = kwargs['slug']
+            if kwargs['body'] is not None:
+                self.body = kwargs['body']
+            if kwargs['timestamp'] is not None:
+                self.timestamp = kwargs['timestamp']
+            if action == 'save-draft':
+                self.set_post_status_draft()
+            elif action == 'publish':
+                self.set_post_status_published()
+            signals.submit_post.send(post=self, **kwargs['extra_params'])
+            db.session.commit()
+        else:
+            signals.submit_post_with_action.send(action, post=self, **kwargs['extra_params'])
+
     @staticmethod
     def create_article(**kwargs):
         return Post(post_type=PostType.article(), **kwargs)

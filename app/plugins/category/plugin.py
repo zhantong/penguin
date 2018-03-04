@@ -123,7 +123,7 @@ def edit(sender, args, context, contents, **kwargs):
 
 
 @submit.connect_via('category')
-def submit(sender, form):
+def submit(sender, args, form, **kwargs):
     id = form.get('id', type=int)
     if id is None:
         category = Category()

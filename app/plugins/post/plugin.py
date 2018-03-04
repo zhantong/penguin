@@ -15,8 +15,6 @@ post_list_column = signal('post_list_column')
 post_search_select = signal('post_search_select')
 create_post = signal('create_post')
 edit_post = signal('edit_post')
-submit_post = signal('submit_post')
-submit_post_with_action = signal('submit_post_with_action')
 edit = signal('edit')
 submit = signal('submit')
 
@@ -100,7 +98,6 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
                 post = item[1]
         db.session.add(post)
         db.session.commit()
-        db.session.refresh(post)
     context['post'] = post
     styles.append(os.path.join('post', 'templates', 'style_editor.html'))
     hiddens.append(os.path.join('post', 'templates', 'hidden_id.html'))
@@ -117,28 +114,12 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
 
 
 @submit.connect_via('post')
-def submit(sender, form):
-    action = form.get('action')
-    id = form['id']
-    post = Post.query.get(int(id))
-    if action in ['save-draft', 'publish']:
-        title = form['title']
-        slug = form['slug']
-        body = form['body']
-        timestamp = form.get('timestamp', type=int)
-
-        timestamp = datetime.utcfromtimestamp(timestamp)
-        post.title = title
-        post.slug = slug
-        post.body = body
-        post.timestamp = timestamp
-
-        if action == 'save-draft':
-            post.set_post_status_draft()
-        elif action == 'publish':
-            post.set_post_status_published()
-        submit_post.send(form=form, post=post)
-
-        db.session.commit()
-    else:
-        submit_post_with_action.send(action, form=form, post=post)
+def submit(sender, args, form, **kwargs):
+    id = form.get('id', type=int)
+    post = Post.query.get(id)
+    extra_params = {
+        'args': args,
+        'form': form
+    }
+    post.update(form.get('action'), title=form['title'], slug=form['slug'], body=form['body'],
+                timestamp=datetime.utcfromtimestamp(form.get('timestamp', type=int)), extra_params=extra_params)

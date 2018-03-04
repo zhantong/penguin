@@ -40,8 +40,9 @@ def edit():
 
 @admin.route('/edit', methods=['POST'])
 def submit():
+    args = request.args
     type = request.form['type']
-    result = signal('submit').send(type, form=request.form)
+    result = signal('submit').send(type, args=args, form=request.form)
     return redirect(url_for('.show_list', type=type))
 
 
