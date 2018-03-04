@@ -19,14 +19,13 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default='')
     _slug = db.Column('slug', db.String(200), default='')
-    post_type_id = db.Column(db.Integer, db.ForeignKey('post_types.id'))
+    post_type = db.Column(db.String(40), default='')
     status_id = db.Column(db.Integer, db.ForeignKey('post_statuses.id'))
     body = db.Column(db.Text, default='')
     body_html = db.Column(db.Text)
     body_abstract = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    post_type = db.relationship('PostType', back_populates='posts')
     post_status = db.relationship('PostStatus', back_populates='posts')
     author = db.relationship('User', backref='posts')
 
@@ -41,7 +40,7 @@ class Post(db.Model):
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
         if self.post_type is None:
-            self.post_type = PostType.query.filter_by(default=True).first()
+            self.post_type = 'article'
         if self.post_status is None:
             self.post_status = PostStatus.query.filter_by(default=True).first()
         if self.author is None:
@@ -68,19 +67,19 @@ class Post(db.Model):
 
     @staticmethod
     def create_article(**kwargs):
-        return Post(post_type=PostType.article(), **kwargs)
+        return Post(post_type='article', **kwargs)
 
     @staticmethod
     def create_page(**kwargs):
-        return Post(post_type=PostType.page(), **kwargs)
+        return Post(post_type='page', **kwargs)
 
     @staticmethod
     def query_articles():
-        return Post.query.filter_by(post_type=PostType.article())
+        return Post.query.filter_by(post_type='article')
 
     @staticmethod
     def query_pages():
-        return Post.query.filter_by(post_type=PostType.page())
+        return Post.query.filter_by(post_type='page')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -95,9 +94,9 @@ class Post(db.Model):
         self.post_status = PostStatus.published()
 
     def url(self):
-        if self.post_type == PostType.article():
+        if self.post_type == 'article':
             return url_for('main.show_article', slug=self.slug)
-        if self.post_type == PostType.page():
+        if self.post_type == 'page':
             return url_for('main.show_page', slug=self.slug)
 
     def keywords(self):
@@ -107,34 +106,6 @@ class Post(db.Model):
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
-
-
-class PostType(db.Model):
-    __tablename__ = 'post_types'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
-    default = db.Column(db.Boolean, default=False, index=True)
-    posts = db.relationship('Post', back_populates='post_type', lazy='dynamic')
-
-    @staticmethod
-    def insert_post_types():
-        post_types = ('文章', '页面')
-        default_post_type = '文章'
-        for t in post_types:
-            post_type = PostType.query.filter_by(name=t).first()
-            if post_type is None:
-                post_type = PostType(name=t)
-            post_type.default = (post_type.name == default_post_type)
-            db.session.add(post_type)
-        db.session.commit()
-
-    @staticmethod
-    def article():
-        return PostType.query.filter_by(name='文章').first()
-
-    @staticmethod
-    def page():
-        return PostType.query.filter_by(name='页面').first()
 
 
 class PostStatus(db.Model):

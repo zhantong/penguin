@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app import db
 from app.models import Role as PenguinRole, User as PenguinUser
-from app.plugins.post.models import Post as PenguinPost, PostType as PenguinPostType, PostStatus as PenguinPostStatus
+from app.plugins.post.models import Post as PenguinPost, PostStatus as PenguinPostStatus
 
 
 def from_typecho(db_url, upload_parent_directory_path):
@@ -18,12 +18,12 @@ def from_typecho(db_url, upload_parent_directory_path):
 
     for content in session.query(Content).filter_by(type='post'):
         db.session.add(
-            content.to_post(post_type=PenguinPostType.article(), post_status=PenguinPostStatus.published()))
+            content.to_post(post_type='article', post_status=PenguinPostStatus.published()))
     db.session.flush()
 
     for content in session.query(Content).filter_by(type='page'):
         db.session.add(
-            content.to_post(post_type=PenguinPostType.page(), post_status=PenguinPostStatus.published()))
+            content.to_post(post_type='page', post_status=PenguinPostStatus.published()))
     db.session.flush()
 
     for comment in session.query(Comment):

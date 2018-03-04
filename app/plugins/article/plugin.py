@@ -1,5 +1,5 @@
 from blinker import signal
-from ..post.models import Post, PostType
+from ..post.models import Post
 from ...main import main
 from flask import render_template, request, flash
 import os.path
@@ -60,7 +60,7 @@ def sidebar(sender, sidebars):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'sub_type' not in args or args['sub_type'] == 'article':
-        query['query'] = query['query'].filter(Post.post_type == PostType.article())
+        query['query'] = query['query'].filter(Post.post_type == 'article')
     return query
 
 
@@ -98,11 +98,11 @@ def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, s
 
 @submit_post.connect
 def submit_post(sender, post, form, **kwargs):
-    if post.post_type == PostType.article():
+    if post.post_type == 'article':
         submit_article.send(form=form, post=post)
 
 
 @submit_post_with_action.connect
 def submit_post_with_action(sender, post, form, **kwargs):
-    if post.post_type == PostType.article():
+    if post.post_type == 'article':
         submit_article_with_action.send(form['action'], form=form, post=post)

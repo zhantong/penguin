@@ -1,5 +1,5 @@
 from blinker import signal
-from ..post.models import Post, PostType
+from ..post.models import Post
 from ...main import main
 from flask import render_template, url_for
 import os.path
@@ -33,7 +33,7 @@ def show_page(slug):
 
 @navbar.connect
 def navbar(sender, content):
-    pages = Post.query.filter_by(post_type=PostType.page()).all()
+    pages = Post.query.filter_by(post_type='page').all()
     content['items'].extend((page.title, url_for('main.show_page', slug=page.slug)) for page in pages)
 
 
@@ -45,7 +45,7 @@ def sidebar(sender, sidebars):
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'sub_type' in args and args['sub_type'] == 'page':
-        query['query'] = query['query'].filter(Post.post_type == PostType.page())
+        query['query'] = query['query'].filter(Post.post_type == 'page')
     return query
 
 
@@ -65,11 +65,11 @@ def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, s
 
 @submit_post.connect
 def submit_post(sender, post, form, **kwargs):
-    if post.post_type == PostType.page():
+    if post.post_type == 'page':
         submit_page.send(form=form, post=post)
 
 
 @submit_post_with_action.connect
 def submit_post_with_action(sender, post, form, **kwargs):
-    if post.post_type == PostType.page():
+    if post.post_type == 'page':
         submit_page_with_action.send(form['action'], form=form, post=post)

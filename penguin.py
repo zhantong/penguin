@@ -1,6 +1,6 @@
 import os
 from app import create_app, db
-from app.plugins.post.models import PostType, PostStatus
+from app.plugins.post.models import PostStatus
 from app.models import Role
 import click
 
@@ -12,7 +12,6 @@ def deploy():
     db.create_all()
 
     Role.insert_roles()
-    PostType.insert_post_types()
     PostStatus.insert_post_statuses()
 
 
