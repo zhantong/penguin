@@ -1,4 +1,4 @@
 - favicon.png
-- bootstrap-autohidingnavbar-1.0.5
-- font-awesome-4.7.0
-- moment-2.20.1
+- [bootstrap-autohidingnavbar-1.0.5](https://github.com/istvan-ujjmeszaros/bootstrap-autohidingnavbar/releases/tag/1.0.5)
+- [font-awesome-4.7.0](https://fontawesome.com/v4.7.0/)
+- [moment-2.20.1](https://github.com/moment/moment/releases/tag/2.20.1)

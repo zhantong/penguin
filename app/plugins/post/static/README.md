@@ -1,2 +1,2 @@
-- editor.md-1.5.0
-- laydate
+- [editor.md-1.5.0](https://github.com/pandao/editor.md/releases/tag/v1.5.0)
+- [laydate-5.0.9](https://github.com/sentsin/laydate/releases/tag/v5.0.9)

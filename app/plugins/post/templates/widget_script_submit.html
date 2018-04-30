@@ -1,4 +1,4 @@
-<script src="{{ url_for('plugin.post_static', filename='laydate/laydate.js') }}"></script>
+<script src="{{ url_for('plugin.post_static', filename='laydate-5.0.9/dist/laydate.js') }}"></script>
 <script>
     var postDate = new Date('{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
     updateHideTimestamp(postDate);
