@@ -30,9 +30,12 @@ class Attachment(db.Model):
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
         shutil.move(file_path, abs_file_path)
-        return Attachment(id=id, original_filename=original_filename, filename=random_filename,
-                          file_path=relative_file_path, file_extension=file_extension, mime=mime, timestamp=timestamp,
-                          post=post)
+        filter_kwargs = {}
+        for param in ['id', 'mime', 'timestamp', 'post']:
+            if eval(param) is not None:
+                filter_kwargs[param] = eval(param)
+        return Attachment(original_filename=original_filename, filename=random_filename, file_path=relative_file_path,
+                          file_extension=file_extension, **filter_kwargs)
 
     @staticmethod
     def on_change_file_path(target, value, oldvalue, initiator):

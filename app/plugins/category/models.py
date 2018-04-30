@@ -19,4 +19,8 @@ class Category(db.Model):
 
     @staticmethod
     def create(id=None, name=None, slug=None, description=None):
-        return Category(id=id, name=name, slug=slug, description=description)
+        filter_kwargs = {}
+        for param in ['id', 'name', 'slug', 'description']:
+            if eval(param) is not None:
+                filter_kwargs[param] = eval(param)
+        return Category(**filter_kwargs)

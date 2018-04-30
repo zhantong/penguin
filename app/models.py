@@ -44,7 +44,12 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def create(role, id=None, username=None, name=None, email=None, member_since=None, **kwargs):
-        return User(id=id, username=username, name=name, email=email, member_since=member_since, role=role)
+        filter_kwargs = {}
+        for param in ['id', 'username', 'name', 'email', 'member_since']:
+            if eval(param) is not None:
+                filter_kwargs[param] = eval(param)
+        filter_kwargs['role'] = role
+        return User(**filter_kwargs)
 
 
 @login_manager.user_loader
