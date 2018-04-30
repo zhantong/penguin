@@ -81,7 +81,7 @@ def from_typecho(db_url, upload_parent_directory_path):
                                               post=post)
         db.session.add(attachment)
         db.session.flush()
-        post.update(body=post.body.replace(meta['path'], attachment.filename))
+        post.update(body=post.body.replace(meta['path'], attachment.original_filename))
     db.session.flush()
 
     for meta in session.query(Meta).filter_by(type='category'):

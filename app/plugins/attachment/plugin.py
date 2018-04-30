@@ -8,6 +8,8 @@ import os.path
 import uuid
 from .. import plugin
 from ..post.models import Post
+from ..post.signals import update_post
+import re
 
 edit_article = signal('edit_article')
 edit_page = signal('edit_page')
@@ -18,10 +20,9 @@ def attachment_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/<string:filename>', endpoint='show_attachment_page')
-@main.route('/archives/<string:filename>')
-def show_attachment(filename):
-    attachment = Attachment.query.filter_by(filename=filename).first()
+@main.route('/attachments/<int:post_id>/<string:filename>')
+def show_attachment(post_id, filename):
+    attachment = Attachment.query.filter_by(post_id=post_id, original_filename=filename).first()
     path = attachment.file_path
     return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
 
@@ -82,3 +83,17 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     context['attachments'] = Attachment.query.filter_by(post_id=context['post'].id).all()
     widgets.append(os.path.join('attachment', 'templates', 'widget_content_attachment.html'))
     scripts.append(os.path.join('attachment', 'templates', 'widget_script_attachment.html'))
+
+
+@update_post.connect
+def update_post(sender, post, **kwargs):
+    def repl(match):
+        src = match.group(1)
+        print(src)
+        if not src.startswith('http') and not src.startswith('/attachments'):
+            src = 'src="/attachments/' + str(post.id) + '/' + src + '"'
+            print(src)
+        return src
+
+    post.body_html = re.sub(r'src="(.*?)"', repl, post.body_html)
+    db.session.commit()
