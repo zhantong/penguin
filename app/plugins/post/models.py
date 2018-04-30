@@ -46,24 +46,33 @@ class Post(db.Model):
         if self.author is None:
             self.author = current_user._get_current_object()
 
-    def update(self, action, **kwargs):
-        if action in ['save-draft', 'publish']:
-            if kwargs['title'] is not None:
-                self.title = kwargs['title']
-            if kwargs['slug'] is not None:
-                self.slug = kwargs['slug']
-            if kwargs['body'] is not None:
-                self.body = kwargs['body']
-            if kwargs['timestamp'] is not None:
-                self.timestamp = kwargs['timestamp']
-            if action == 'save-draft':
-                self.set_post_status_draft()
-            elif action == 'publish':
-                self.set_post_status_published()
-            signals.submit_post.send(post=self, **kwargs['extra_params'])
-            db.session.commit()
-        else:
-            signals.submit_post_with_action.send(action, post=self, **kwargs['extra_params'])
+    @staticmethod
+    def create(args=None):
+        post = Post()
+        signals.create_post.send(post=post, args=args)
+        return post
+
+    def update(self, title=None, slug=None, post_type=None, body=None, body_html=None, body_abstract=None,
+               timestamp=None, post_status=None, author=None, **kwargs):
+        if title is not None:
+            self.title = title
+        if slug is not None:
+            self.slug = slug
+        if post_type is not None:
+            self.post_type = post_type
+        if body is not None:
+            self.body = body
+        if body_html is not None:
+            self.body_html = body_html
+        if body_abstract is not None:
+            self.body_abstract = body_abstract
+        if timestamp is not None:
+            self.timestamp = timestamp
+        if post_status is not None:
+            self.post_status = post_status
+        if author is not None:
+            self.author = author
+        signals.update_post.send(post=self, **kwargs)
 
     @staticmethod
     def create_article(**kwargs):

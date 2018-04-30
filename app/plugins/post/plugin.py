@@ -13,7 +13,6 @@ custom_list = signal('custom_list')
 post_list_column_head = signal('post_list_column_head')
 post_list_column = signal('post_list_column')
 post_search_select = signal('post_search_select')
-create_post = signal('create_post')
 edit_post = signal('edit_post')
 edit = signal('edit')
 submit = signal('submit')
@@ -92,10 +91,7 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
     if 'id' in args:
         post = Post.query.get(int(args['id']))
     else:
-        result = create_post.send(args=args)
-        for item in result:
-            if item[1] is not None:
-                post = item[1]
+        post = Post.create(args)
         db.session.add(post)
         db.session.commit()
     context['post'] = post
@@ -117,9 +113,7 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
 def submit(sender, args, form, **kwargs):
     id = form.get('id', type=int)
     post = Post.query.get(id)
-    extra_params = {
-        'args': args,
-        'form': form
-    }
-    post.update(form.get('action'), title=form['title'], slug=form['slug'], body=form['body'],
-                timestamp=datetime.utcfromtimestamp(form.get('timestamp', type=int)), extra_params=extra_params)
+    post.update(title=form['title'], slug=form['slug'], body=form['body'],
+                timestamp=datetime.utcfromtimestamp(form.get('timestamp', type=int)), action=form.get('action'),
+                args=args, form=form)
+    db.session.commit()

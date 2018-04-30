@@ -5,6 +5,8 @@ import os.path
 from ...utils import md5
 from ..post.models import Post
 from sqlalchemy.orm import backref
+import uuid
+import shutil
 
 
 class Attachment(db.Model):
@@ -20,6 +22,17 @@ class Attachment(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     md5 = db.Column(db.String(32))
     post = db.relationship(Post, backref=backref('attachments', lazy='dynamic'))
+
+    @staticmethod
+    def create(file_path, original_filename, file_extension, id=None, mime=None, timestamp=None, post=None):
+        random_filename = uuid.uuid4().hex + '.' + file_extension
+        relative_file_path = os.path.join(str(datetime.today().year), '%02d' % datetime.today().month, random_filename)
+        abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
+        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+        shutil.move(file_path, abs_file_path)
+        return Attachment(id=id, original_filename=original_filename, filename=random_filename,
+                          file_path=relative_file_path, file_extension=file_extension, mime=mime, timestamp=timestamp,
+                          post=post)
 
     @staticmethod
     def on_change_file_path(target, value, oldvalue, initiator):

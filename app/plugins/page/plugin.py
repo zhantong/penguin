@@ -3,14 +3,13 @@ from ..post.models import Post
 from ...main import main
 from flask import render_template, url_for
 import os.path
+from ..post.signals import update_post
 
 navbar = signal('navbar')
 sidebar = signal('sidebar')
 custom_list = signal('custom_list')
 create_post = signal('create_post')
 edit_post = signal('edit_post')
-submit_post = signal('submit_post')
-submit_post_with_action = signal('submit_post_with_action')
 edit = signal('edit')
 edit_page = signal('edit_page')
 submit = signal('submit')
@@ -50,26 +49,24 @@ def custom_list(sender, args, query):
 
 
 @create_post.connect
-def create_post(sender, args):
-    if 'sub_type' in args and args['sub_type'] == 'page':
-        return Post.create_page()
+def create_post(sender, post, args):
+    if args is not None and 'sub_type' in args and args['sub_type'] == 'page':
+        post.post_type = 'page'
 
 
 @edit_post.connect
 def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, scripts):
-    if args['sub_type'] == 'page':
-        edit_page.send(args=args, context=context, styles=styles, hiddens=hiddens,
-                       contents=contents, widgets=widgets,
+    if post.post_type == 'page':
+        edit_page.send(args=args, context=context, styles=styles, hiddens=hiddens, contents=contents, widgets=widgets,
                        scripts=scripts)
 
 
-@submit_post.connect
-def submit_post(sender, post, form, **kwargs):
+@update_post.connect
+def update_post(sender, post, **kwargs):
     if post.post_type == 'page':
-        submit_page.send(form=form, post=post)
-
-
-@submit_post_with_action.connect
-def submit_post_with_action(sender, post, form, **kwargs):
-    if post.post_type == 'page':
-        submit_page_with_action.send(form['action'], form=form, post=post)
+        if 'action' in kwargs:
+            action = kwargs['action']
+            if action in ['save-draft', 'publish']:
+                submit_page.send(form=kwargs['form'], post=post)
+            else:
+                submit_page_with_action.send(kwargs['form']['action'], form=kwargs['form'], post=post)

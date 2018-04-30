@@ -1,5 +1,5 @@
 from blinker import signal
-from ...models import db, User
+from ...models import db, User, Role
 from ..comment.models import Comment
 from ..post.models import Post
 from flask import current_app, url_for, flash, request, jsonify
@@ -28,10 +28,11 @@ def submit_comment(id):
     if current_user.is_authenticated:
         author = current_user._get_current_object()
     else:
-        author = User.create_guest(name=name, email=email)
+        author = User.create(role=Role.guest(), name=name, email=email)
         db.session.add(author)
         db.session.flush()
-    db.session.add(Comment(body=body, author=author, post=post, parent=parent))
+    comment = Comment.create(body=body, parent=parent, author=author, post=post)
+    db.session.add(comment)
     db.session.commit()
     return jsonify({
         'code': 0,

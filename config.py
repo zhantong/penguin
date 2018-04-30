@@ -6,6 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     UPLOAD_FOLDER = 'uploads'
+    TEMP_FOLDER = 'temp'
     ALLOWED_UPLOAD_FILE_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
     BOOTSTRAP_SERVE_LOCAL = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False

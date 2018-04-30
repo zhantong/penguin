@@ -16,3 +16,7 @@ class Category(db.Model):
     description = db.Column(db.Text)
     posts = relationship("Post", secondary=lambda: association_table,
                          backref='categories')
+
+    @staticmethod
+    def create(id=None, name=None, slug=None, description=None):
+        return Category(id=id, name=name, slug=slug, description=description)

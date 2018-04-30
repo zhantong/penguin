@@ -43,8 +43,8 @@ class User(UserMixin, db.Model):
     role = db.relationship('Role', back_populates='users')
 
     @staticmethod
-    def create_guest(**kwargs):
-        return User(role=Role.guest(), **kwargs)
+    def create(role, id=None, username=None, name=None, email=None, member_since=None, **kwargs):
+        return User(id=id, username=username, name=name, email=email, member_since=member_since, role=role)
 
 
 @login_manager.user_loader

@@ -34,24 +34,6 @@ class Comment(Base):
     status = Column(String(16))
     parent = Column(Integer)
 
-    def to_user(self, role):
-        return PenguinUser(name=self.author
-                           , email=self.mail
-                           , member_since=datetime.utcfromtimestamp(self.created)
-                           , role=role
-                           )
-
-    def to_comment(self, author):
-        return PenguinComment(id=self.coid
-                              , body=self.text
-                              , timestamp=datetime.utcfromtimestamp(self.created)
-                              , author=author
-                              , post_id=self.cid
-                              , ip=self.ip
-                              , agent=self.agent
-                              , parent=self.parent
-                              )
-
 
 class Content(Base):
     __tablename__ = 'typecho_contents'
@@ -74,48 +56,6 @@ class Content(Base):
     parent = Column(Integer)
     viewsNum = Column(Integer)
 
-    def to_post(self, post_type, post_status):
-        return PenguinPost(id=self.cid
-                           , title=self.title
-                           , slug=self.slug
-                           , post_type=post_type
-                           , post_status=post_status
-                           , body=self.text.replace('<!--markdown-->', '')
-                           , timestamp=datetime.utcfromtimestamp(self.created)
-                           , author=PenguinUser.query.get(self.authorId)
-                           )
-
-    def to_attachment(self, upload_parent_directory_path):
-        def parse_meta(raw):
-            result = {}
-            for key, value in phpserialize.loads(bytes(raw, 'utf-8')).items():
-                if type(key) is bytes:
-                    key = key.decode('utf-8')
-                if type(value) is bytes:
-                    value = value.decode('utf-8')
-                result[key] = value
-            return result
-
-        meta = parse_meta(self.text)
-        original_filename = self.title
-        original_relative_file_path = meta['path']
-        original_abs_file_path = os.path.join(upload_parent_directory_path, original_relative_file_path[1:])
-        extension = original_filename.rsplit('.', 1)[1].lower()
-        filename = uuid.uuid4().hex + '.' + extension
-        timestamp = datetime.utcfromtimestamp(self.created)
-        relative_file_path = os.path.join(str(timestamp.year), '%02d' % timestamp.month, filename)
-        abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
-        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
-        shutil.copyfile(original_abs_file_path, abs_file_path)
-        post = PenguinPost.query.get(self.parent)
-        if post is not None:
-            post.body = post.body.replace(original_relative_file_path, filename)
-        else:
-            print('a attachment (id = ' + str(self.cid) + ') has no corresponding post (id = ' + str(self.parent) + ')')
-        return PenguinAttachment(post_id=self.parent, original_filename=original_filename, filename=filename,
-                                 file_path=relative_file_path, file_extension=extension, mime=meta['mime'],
-                                 timestamp=timestamp)
-
 
 class Meta(Base):
     __tablename__ = 'typecho_metas'
@@ -127,12 +67,6 @@ class Meta(Base):
     count = Column(Integer)
     order = Column(Integer)
     parent = Column(Integer)
-
-    def to_category(self):
-        return PenguinCategory(name=self.name, slug=self.slug, description=self.description)
-
-    def to_tag(self):
-        return PenguinTag(name=self.name, slug=self.slug, description=self.description)
 
 
 class Option(Base):
@@ -161,12 +95,3 @@ class User(Base):
     logged = Column(Integer)
     group = Column(String(16))
     authCode = Column(String(64))
-
-    def to_user(self, role):
-        return PenguinUser(id=self.uid
-                           , username=self.name
-                           , role=role
-                           , name=self.screenName
-                           , email=self.mail
-                           , member_since=datetime.utcfromtimestamp(self.created)
-                           )

@@ -5,9 +5,9 @@ from ...admin import admin
 from ...main import main
 from flask import request, jsonify, current_app, url_for, send_from_directory
 import os.path
-from datetime import datetime
 import uuid
 from .. import plugin
+from ..post.models import Post
 
 edit_article = signal('edit_article')
 edit_page = signal('edit_page')
@@ -46,15 +46,14 @@ def upload():
             'code': 3,
             'message': '禁止上传的文件类型'
         })
-    post_id = request.form['post_id']
+    post = Post.query.get_or_404(request.form['post_id'])
     extension = filename.rsplit('.', 1)[1].lower()
     random_filename = uuid.uuid4().hex + '.' + extension
-    relative_file_path = os.path.join(str(datetime.today().year), '%02d' % datetime.today().month, random_filename)
-    abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
+    abs_file_path = os.path.join(current_app.config['TEMP_FOLDER'], random_filename)
     os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
     file.save(abs_file_path)
-    attachment = Attachment(post_id=post_id, original_filename=filename, filename=random_filename
-                            , file_path=relative_file_path, file_extension=extension, mime=file.mimetype)
+    attachment = Attachment.create(abs_file_path, original_filename=filename, file_extension=extension,
+                                   mime=file.mimetype, post=post)
     db.session.add(attachment)
     db.session.commit()
     return jsonify({

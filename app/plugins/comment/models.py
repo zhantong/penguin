@@ -18,6 +18,12 @@ class Comment(db.Model):
     post = db.relationship('Post', backref='comments')
 
     @staticmethod
+    def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None,
+               post=None):
+        return Comment(id=id, body=body, body_html=body_html, timestamp=timestamp, ip=ip, agent=agent, parent=parent,
+                       author=author, post=post)
+
+    @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = markdown2.markdown(value)
 

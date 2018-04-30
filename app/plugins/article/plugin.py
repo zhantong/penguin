@@ -3,6 +3,7 @@ from ..post.models import Post
 from ...main import main
 from flask import render_template, request, flash
 import os.path
+from ..post.signals import update_post
 
 navbar = signal('navbar')
 sidebar = signal('sidebar')
@@ -12,8 +13,6 @@ post_list_column = signal('post_list_column')
 post_search_select = signal('post_search_select')
 create_post = signal('create_post')
 edit_post = signal('edit_post')
-submit_post = signal('submit_post')
-submit_post_with_action = signal('submit_post_with_action')
 article_list_column_head = signal('article_list_column_head')
 article_list_column = signal('article_list_column')
 article_search_select = signal('article_search_select')
@@ -83,26 +82,24 @@ def post_search_select(sender, args, selects):
 
 
 @create_post.connect
-def create_post(sender, args):
-    if 'sub_type' not in args or args['sub_type'] == 'article':
-        return Post.create_article()
+def create_post(sender, post, args):
+    if args is not None and 'sub_type' in args and args['sub_type'] == 'article':
+        post.post_type = 'article'
 
 
 @edit_post.connect
 def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, scripts):
-    if args['sub_type'] == 'article':
-        edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens,
-                          contents=contents, widgets=widgets,
-                          scripts=scripts)
-
-
-@submit_post.connect
-def submit_post(sender, post, form, **kwargs):
     if post.post_type == 'article':
-        submit_article.send(form=form, post=post)
+        edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens, contents=contents,
+                          widgets=widgets, scripts=scripts)
 
 
-@submit_post_with_action.connect
-def submit_post_with_action(sender, post, form, **kwargs):
+@update_post.connect
+def update_post(sender, post, **kwargs):
     if post.post_type == 'article':
-        submit_article_with_action.send(form['action'], form=form, post=post)
+        if 'action' in kwargs:
+            action = kwargs['action']
+            if action in ['save-draft', 'publish']:
+                submit_article.send(form=kwargs['form'], post=post)
+            else:
+                submit_article_with_action.send(kwargs['form']['action'], form=kwargs['form'], post=post)
