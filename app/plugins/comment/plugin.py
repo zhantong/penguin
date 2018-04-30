@@ -47,6 +47,12 @@ def sidebar(sender, sidebars):
 
 @show_list.connect_via('comment')
 def show_list(sender, args):
+    def get_comment_url(comment):
+        if comment.post.post_type == 'article':
+            return url_for('main.show_article', slug=comment.post.slug, _anchor='comment-' + str(comment.id))
+        elif comment.post.post_type == 'page':
+            return url_for('main.show_page', slug=comment.post.slug, _anchor='comment-' + str(comment.id))
+
     page = args.get('page', 1, type=int)
     pagination = Comment.query.order_by(desc(Comment.timestamp)) \
         .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
@@ -55,9 +61,7 @@ def show_list(sender, args):
     rows = []
     for comment in comments:
         rows.append((comment.id
-                     , Hyperlink('Hyperlink', comment.post.title,
-                                 url_for('main.show_post', slug=comment.post.slug,
-                                         _anchor='comment-' + str(comment.id)))
+                     , Hyperlink('Hyperlink', comment.post.title, get_comment_url(comment))
                      , Plain('Plain', comment.author.name)
                      , Datetime('Datetime', comment.timestamp)
                      , Plain('Plain', comment.body_html)))
