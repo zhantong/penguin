@@ -50,7 +50,7 @@ def from_typecho(db_url, upload_parent_directory_path):
         db.session.add(penguin_page)
     db.session.flush()
 
-    for comment in session.query(Comment):
+    for comment in session.query(Comment).order_by(Comment.coid):
         if comment.authorId == 0:
             penguin_user = PenguinUser.create(role=PenguinRole.guest(), name=comment.author,
                                               email=comment.mail,
@@ -60,10 +60,13 @@ def from_typecho(db_url, upload_parent_directory_path):
         else:
             penguin_user = id_to_author[comment.authorId]
         penguin_comment = PenguinComment.create(body=comment.text, timestamp=datetime.utcfromtimestamp(comment.created),
-                                                ip=comment.ip, agent=comment.agent, parent=comment.parent,
+                                                ip=comment.ip, agent=comment.agent,
+                                                parent=comment.parent if comment.parent == 0 else id_to_comment[
+                                                    comment.parent].id,
                                                 author=penguin_user, post=id_to_post[comment.cid])
         id_to_comment[comment.coid] = penguin_comment
         db.session.add(penguin_comment)
+        db.session.flush()
     db.session.flush()
 
     for content in session.query(Content).filter_by(type='attachment'):

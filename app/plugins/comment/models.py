@@ -20,8 +20,11 @@ class Comment(db.Model):
     @staticmethod
     def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None,
                post=None):
-        return Comment(id=id, body=body, body_html=body_html, timestamp=timestamp, ip=ip, agent=agent, parent=parent,
-                       author=author, post=post)
+        filter_kwargs = {}
+        for param in ['id', 'body', 'body_html', 'timestamp', 'ip', 'agent', 'parent', 'author', 'post']:
+            if eval(param) is not None:
+                filter_kwargs[param] = eval(param)
+        return Comment(**filter_kwargs)
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
