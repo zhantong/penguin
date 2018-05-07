@@ -1,10 +1,16 @@
 import os
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+
 from app import create_app, db
 from app.plugins.post.models import PostStatus
 from app.models import Role
 import click
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
 
 
 @app.cli.command()

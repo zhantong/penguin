@@ -1,0 +1,2 @@
+FLASK_APP=penguin.py
+FLASK_ENV=development

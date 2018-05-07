@@ -11,6 +11,10 @@ class Config:
     BOOTSTRAP_SERVE_LOCAL = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     PENGUIN_POSTS_PER_PAGE = 20
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.exmail.qq.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', '465'))
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
     @staticmethod
     def init_app(app):
@@ -18,7 +22,6 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') \
                               or 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
