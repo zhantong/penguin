@@ -3,9 +3,6 @@
 ## 调试运行
 
 ```bash
-export FLASK_APP=penguin
-export FLASK_DEBUG=1
-
 flask run
 ```
 
