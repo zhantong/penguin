@@ -34,6 +34,7 @@ def submit_comment(id):
     comment = Comment.create(body=body, parent=parent, author=author, post=post)
     db.session.add(comment)
     db.session.commit()
+    signals.comment_submitted.send(comment=comment)
     return jsonify({
         'code': 0,
         'message': '发表成功'
