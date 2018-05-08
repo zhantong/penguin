@@ -50,6 +50,8 @@ def submit():
 def show_list():
     type = request.args['type']
     result = signal('show_list').send(type, args=request.args)
+    if len(result) == 0:
+        return redirect(url_for('.edit', type=type))
     context = result[0][1]
     sidebars = []
     signal('sidebar').send(sidebars=sidebars)
