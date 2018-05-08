@@ -10,6 +10,7 @@ from flask import current_app
 from ..comment.signals import comment_submitted
 from .models import CommentToMail
 from ...models import db
+from threading import Thread
 
 sidebar = signal('sidebar')
 edit = signal('edit')
@@ -21,8 +22,7 @@ def _format_address(s):
     return formataddr((Header(name, 'utf-8').encode(), address))
 
 
-def send_email(to_address, subject, content):
-    app = current_app._get_current_object()
+def send_email(app, to_address, subject, content):
     from_address = app.config['MAIL_USERNAME']
     password = app.config['MAIL_PASSWORD']
 
@@ -73,14 +73,22 @@ def edit(sender, contents, **kwargs):
 
 @submit.connect_via('comment_to_mail')
 def submit(sender, args, form, **kwargs):
-    is_sent, log = send_email(form['address'], form['subject'], form['content'])
+    app = current_app._get_current_object()
+    is_sent, log = send_email(app, form['address'], form['subject'], form['content'])
     print(log)
 
 
 @comment_submitted.connect
 def comment_submitted(sender, comment, **kwargs):
     if comment.author.email:
-        is_sent, log = send_email(comment.author.email, '新的评论', comment.body)
-        comment_to_mail = CommentToMail(is_sent=is_sent, log=log, comment=comment)
-        db.session.add(comment_to_mail)
-        db.session.commit()
+        app = current_app._get_current_object()
+
+        def async(app):
+            with app.app_context():
+                is_sent, log = send_email(app, comment.author.email, '新的评论', comment.body)
+                comment_to_mail = CommentToMail(is_sent=is_sent, log=log, comment=comment)
+                db.session.add(comment_to_mail)
+                db.session.commit()
+
+        thread = Thread(target=async, args=[app])
+        thread.start()
