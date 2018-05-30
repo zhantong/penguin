@@ -89,10 +89,8 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
 def update_post(sender, post, **kwargs):
     def repl(match):
         src = match.group(1)
-        print(src)
         if not src.startswith('http') and not src.startswith('/attachments'):
             src = 'src="/attachments/' + str(post.id) + '/' + src + '"'
-            print(src)
         return src
 
     post.body_html = re.sub(r'src="(.*?)"', repl, post.body_html)

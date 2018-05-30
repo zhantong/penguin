@@ -40,7 +40,6 @@ def show_article(slug):
     left_widgets = []
     right_widgets = []
     scripts = []
-    flash('test')
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
     article.send(args=args, post=post, context=context, article_content=article_content, styles=styles,
                  before_contents=before_contents, contents=contents,
