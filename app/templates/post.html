@@ -11,6 +11,12 @@
 
 {% block styles %}
     {{ super() }}
+    <style type="text/css">
+        article img {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
 {% endblock %}
 
 {% block main %}
