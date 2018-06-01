@@ -1,1 +1,0 @@
-- [jQuery-File-Upload-9.20.0](https://github.com/blueimp/jQuery-File-Upload/releases/tag/v9.20.0)
