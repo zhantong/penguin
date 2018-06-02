@@ -1,4 +1,3 @@
-from blinker import signal
 from ...models import db
 from .models import Attachment
 from ...admin import admin
@@ -10,9 +9,8 @@ from .. import plugin
 from ..post.models import Post
 from ..post.signals import update_post
 import re
-
-edit_article = signal('edit_article')
-edit_page = signal('edit_page')
+from ..page.signals import edit_page
+from ..article.signals import edit_article
 
 
 @plugin.route('/attachment/static/<path:filename>')

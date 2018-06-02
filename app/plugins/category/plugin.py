@@ -1,4 +1,3 @@
-from blinker import signal
 from ...models import db
 from .models import Category
 from ..post.models import Post
@@ -6,19 +5,12 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 import os.path
 from sqlalchemy.orm import load_only
-from . import signals
-
-sidebar = signal('sidebar')
-show_list = signal('show_list')
-manage = signal('manage')
-custom_list = signal('custom_list')
-article_list_column_head = signal('article_list_column_head')
-article_list_column = signal('article_list_column')
-article_search_select = signal('article_search_select')
-edit_article = signal('edit_article')
-submit_article = signal('submit_article')
-edit = signal('edit')
-submit = signal('submit')
+from ...main.signals import index
+from ..post.signals import post_keywords, custom_list
+from ...admin.signals import sidebar, show_list, manage, edit, submit
+from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
+    article_search_select
+from ..article_list.signals import custom_article_list
 
 
 @sidebar.connect
@@ -53,7 +45,7 @@ def show_list(sender, args):
     }
 
 
-@signals.custom_article_list.connect
+@custom_article_list.connect
 @custom_list.connect
 def custom_list(sender, args, query):
     if 'category' in args and args['category'] != '':
@@ -137,13 +129,13 @@ def submit(sender, args, form, **kwargs):
     db.session.commit()
 
 
-@signals.index.connect
+@index.connect
 def index(sender, context, left_widgets, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
     context['all_category'] = all_category
     left_widgets.append(os.path.join('category', 'templates', 'main', 'widget_content.html'))
 
 
-@signals.post_keywords.connect
+@post_keywords.connect
 def post_keywords(sender, post, keywords, **kwargs):
     keywords.extend(category.name for category in post.categories)

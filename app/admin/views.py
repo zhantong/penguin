@@ -1,8 +1,8 @@
+from . import signals
 from flask import render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
-from blinker import signal
 
 
 @admin.before_request
@@ -14,7 +14,7 @@ def before_request():
 @admin.route('/')
 def index():
     sidebars = []
-    signal('sidebar').send(sidebars=sidebars)
+    signals.sidebar.send(sidebars=sidebars)
     return render_template('admin/index.html', sidebars=sidebars)
 
 
@@ -27,11 +27,11 @@ def edit():
     contents = []
     widgets = []
     scripts = []
-    result = signal('edit').send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
-                                 contents=contents, widgets=widgets,
-                                 scripts=scripts)
+    result = signals.edit.send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
+                               contents=contents, widgets=widgets,
+                               scripts=scripts)
     sidebars = []
-    signal('sidebar').send(sidebars=sidebars)
+    signals.sidebar.send(sidebars=sidebars)
     return render_template('admin/edit.html', **request.args.to_dict(), **context, sidebars=sidebars, styles=styles,
                            hiddens=hiddens,
                            contents=contents, widgets=widgets,
@@ -42,26 +42,26 @@ def edit():
 def submit():
     args = request.args
     type = request.form['type']
-    result = signal('submit').send(type, args=args, form=request.form)
+    result = signals.submit.send(type, args=args, form=request.form)
     return redirect(url_for('.show_list', type=type))
 
 
 @admin.route('/manage')
 def show_list():
     type = request.args['type']
-    result = signal('show_list').send(type, args=request.args)
+    result = signals.show_list.send(type, args=request.args)
     if len(result) == 0:
         return redirect(url_for('.edit', type=type))
     context = result[0][1]
     sidebars = []
-    signal('sidebar').send(sidebars=sidebars)
+    signals.sidebar.send(sidebars=sidebars)
     return render_template('admin/manage.html', **context, sidebars=sidebars)
 
 
 @admin.route('/manage', methods=['POST'])
 def manage():
     type = request.form['type']
-    result = signal('manage').send(type, form=request.form)
+    result = signals.manage.send(type, form=request.form)
     return redirect(url_for('.show_list', type=type))
 
 

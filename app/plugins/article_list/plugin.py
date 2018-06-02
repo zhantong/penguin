@@ -2,9 +2,10 @@ from . import signals
 from ..post.models import Post
 from flask import current_app
 import os.path
+from ...main.signals import index
 
 
-@signals.index.connect
+@index.connect
 def index(sender, args, context, contents, **kwargs):
     page = args.get('page', 1, type=int)
     query = {

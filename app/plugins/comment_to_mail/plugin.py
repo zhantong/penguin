@@ -1,4 +1,3 @@
-from blinker import signal
 import os
 import smtplib
 import tempfile
@@ -11,10 +10,7 @@ from ..comment.signals import comment_submitted
 from .models import CommentToMail
 from ...models import db
 from threading import Thread
-
-sidebar = signal('sidebar')
-edit = signal('edit')
-submit = signal('submit')
+from ...admin.signals import sidebar, edit, submit
 
 
 def _format_address(s):

@@ -1,4 +1,3 @@
-from blinker import signal
 from ...models import db
 from .models import Tag
 from ..post.models import Post
@@ -6,18 +5,9 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination
 import os.path
 from ...utils import slugify
-from . import signals
-
-sidebar = signal('sidebar')
-show_list = signal('show_list')
-manage = signal('manage')
-custom_list = signal('custom_list')
-article_list_column_head = signal('article_list_column_head')
-article_list_column = signal('article_list_column')
-edit_article = signal('edit_article')
-submit_article = signal('submit_article')
-edit = signal('edit')
-submit = signal('submit')
+from ..post.signals import post_keywords, custom_list
+from ...admin.signals import sidebar, show_list, manage, edit, submit
+from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article
 
 
 @sidebar.connect
@@ -136,6 +126,6 @@ def submit(sender, args, form, **kwargs):
     db.session.commit()
 
 
-@signals.post_keywords.connect
+@post_keywords.connect
 def post_keywords(sender, post, keywords, **kwargs):
     keywords.extend(category.name for category in post.categories)

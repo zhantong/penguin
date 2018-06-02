@@ -1,4 +1,3 @@
-from . import signals
 from ...models import db
 from ..post.models import PostStatus
 from .models import PostVersion
@@ -6,14 +5,16 @@ import os.path
 from flask import current_app, url_for, flash
 from sqlalchemy import desc
 from ...element_models import Hyperlink, Plain, Table, Pagination, Datetime
+from ...admin.signals import sidebar, show_list, manage, edit, submit
+from ..article.signals import submit_article, article, edit_article
 
 
-@signals.edit_article.connect
+@edit_article.connect
 def edit_article(sender, widgets, **kwargs):
     widgets.append(os.path.join('post_version', 'templates', 'admin', 'widget_content.html'))
 
 
-@signals.submit_article.connect
+@submit_article.connect
 def submit_article(sender, form, post, **kwargs):
     if post.post_status == PostStatus.published():
         version = form['post-version-version']
@@ -23,7 +24,7 @@ def submit_article(sender, form, post, **kwargs):
         db.session.commit()
 
 
-@signals.article.connect
+@article.connect
 def article(sender, args, post, context, article_content, before_contents, **kwargs):
     context['post_versions'] = post.post_versions
     before_contents.append(os.path.join('post_version', 'templates', 'main', 'content.html'))
@@ -32,12 +33,12 @@ def article(sender, args, post, context, article_content, before_contents, **kwa
         article_content['article_content'] = os.path.join('post_version', 'templates', 'main', 'article_content.html')
 
 
-@signals.sidebar.connect
+@sidebar.connect
 def sidebar(sender, sidebars):
     sidebars.append(os.path.join('post_version', 'templates', 'admin', 'sidebar.html'))
 
 
-@signals.show_list.connect_via('post-version')
+@show_list.connect_via('post-version')
 def show_list(sender, args):
     page = args.get('page', 1, type=int)
     pagination = PostVersion.query.order_by(desc(PostVersion.timestamp)).paginate(page, per_page=current_app.config[
@@ -65,7 +66,7 @@ def show_list(sender, args):
     }
 
 
-@signals.manage.connect_via('post-version')
+@manage.connect_via('post-version')
 def manage(sender, form):
     action = form.get('action', '', type=str)
     if action == 'delete':
@@ -82,7 +83,7 @@ def manage(sender, form):
             flash(message)
 
 
-@signals.edit.connect_via('post-version')
+@edit.connect_via('post-version')
 def edit(sender, args, context, contents, **kwargs):
     id = args.get('id', type=int)
     post_version = PostVersion.query.get(id)
@@ -90,7 +91,7 @@ def edit(sender, args, context, contents, **kwargs):
     contents.append(os.path.join('post_version', 'templates', 'admin', 'content.html'))
 
 
-@signals.submit.connect_via('post-version')
+@submit.connect_via('post-version')
 def submit(sender, args, form, **kwargs):
     id = form.get('id', type=int)
     post_version = PostVersion.query.get(id)

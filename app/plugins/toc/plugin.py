@@ -1,7 +1,5 @@
-from blinker import signal
 import os.path
-
-article = signal('article')
+from ..article.signals import article
 
 
 @article.connect

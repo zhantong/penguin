@@ -1,4 +1,3 @@
-from blinker import signal
 from ...models import db, User, Role
 from ..comment.models import Comment
 from ..post.models import Post
@@ -10,12 +9,10 @@ from sqlalchemy import desc
 import os.path
 from ...utils import format_comments
 from . import signals
-
-sidebar = signal('sidebar')
-show_list = signal('show_list')
-manage = signal('manage')
-article = signal('article')
-page = signal('page')
+from ...main.signals import index
+from ...admin.signals import sidebar, show_list, manage
+from ..article.signals import article
+from ..page.signals import page
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -110,7 +107,7 @@ def page(sender, post, context, page_content, contents, scripts):
     contents.append(os.path.join('comment', 'templates', 'comment.html'))
 
 
-@signals.index.connect
+@index.connect
 def index(sender, context, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     context['comments'] = comments

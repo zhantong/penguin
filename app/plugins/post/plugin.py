@@ -1,4 +1,4 @@
-from blinker import signal
+from . import signals
 from ...models import db
 from .models import Post, PostStatus
 from flask import current_app, url_for, flash, send_from_directory
@@ -6,16 +6,7 @@ from ...element_models import Hyperlink, Plain, Datetime, Table, Tabs, Paginatio
 import os.path
 from datetime import datetime
 from .. import plugin
-
-show_list = signal('show_list')
-manage = signal('manage')
-custom_list = signal('custom_list')
-post_list_column_head = signal('post_list_column_head')
-post_list_column = signal('post_list_column')
-post_search_select = signal('post_search_select')
-edit_post = signal('edit_post')
-edit = signal('edit')
-submit = signal('submit')
+from ...admin.signals import show_list, manage, edit, submit
 
 
 @plugin.route('/post/static/<path:filename>')
@@ -32,13 +23,13 @@ def show_list(sender, args):
     if selected_tab != '全部':
         query = query.filter(Post.post_status.has(key=selected_tab))
     query = query.order_by(Post.timestamp.desc())
-    result = custom_list.send(args=args, query={'query': query})
+    result = signals.custom_list.send(args=args, query={'query': query})
     if result:
         query = result[0][1]['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
     head = ['', '标题', '作者', '时间']
-    post_list_column_head.send(args=args, head=head)
+    signals.post_list_column_head.send(args=args, head=head)
     rows = []
     for post in posts:
         row = [post.id
@@ -46,7 +37,7 @@ def show_list(sender, args):
                         url_for('.edit', type='post', id=post.id))
             , Plain('Plain', post.author.name)
             , Datetime('Datetime', post.timestamp)]
-        post_list_column.send(args=args, post=post, row=row)
+        signals.post_list_column.send(args=args, post=post, row=row)
         rows.append(row)
     tabs = Tabs('Tabs', [Hyperlink('Hyperlink', '全部', url_for('.show_list', type='post', tab='全部'))],
                 selected_tab=selected_tab)
@@ -58,7 +49,7 @@ def show_list(sender, args):
     if 'page' in args:
         del args['page']
     search_selects = []
-    post_search_select.send(args=args, selects=search_selects)
+    signals.post_search_select.send(args=args, selects=search_selects)
     return {
         **args,
         'title': 'POST',
@@ -104,9 +95,9 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
     scripts.append(os.path.join('post', 'templates', 'script_editor.html'))
     widgets.append(os.path.join('post', 'templates', 'widget_content_submit.html'))
     scripts.append(os.path.join('post', 'templates', 'widget_script_submit.html'))
-    edit_post.send(post=post, args=args, context=context, styles=styles, hiddens=hiddens,
-                   contents=contents, widgets=widgets,
-                   scripts=scripts)
+    signals.edit_post.send(post=post, args=args, context=context, styles=styles, hiddens=hiddens,
+                           contents=contents, widgets=widgets,
+                           scripts=scripts)
 
 
 @submit.connect_via('post')

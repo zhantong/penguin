@@ -1,4 +1,3 @@
-from blinker import signal
 from ...models import db
 from ..post.models import Post
 from .models import Template, TemplateField
@@ -6,21 +5,10 @@ from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 from jinja2 import Template as Jinja2Tempalte
 import os.path
-
-sidebar = signal('sidebar')
-show_list = signal('show_list')
-manage = signal('manage')
-custom_list = signal('custom_list')
-edit_article = signal('edit_article')
-submit_article = signal('submit_article')
-submit_article_with_action = signal('submit_article_with_action')
-edit_page = signal('edit_page')
-submit_page = signal('submit_page')
-submit_page_with_action = signal('submit_page_with_action')
-edit = signal('edit')
-submit = signal('submit')
-article = signal('article')
-page = signal('page')
+from ...admin.signals import sidebar, show_list, manage, edit, submit
+from ..post.signals import custom_list
+from ..article.signals import submit_article, submit_article_with_action, article, edit_article
+from ..page.signals import edit_page, page, submit_page, submit_page_with_action
 
 
 @sidebar.connect

@@ -1,9 +1,9 @@
-from . import signals
 from ..post.models import Post
 import os.path
+from ..article.signals import article
 
 
-@signals.article.connect
+@article.connect
 def article(sender, post, context, left_widgets, **kwargs):
     prev_next_articles = []
     prev_article = Post.query.filter(Post.timestamp < post.timestamp).order_by(Post.timestamp.desc()).limit(1).first()
