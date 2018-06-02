@@ -53,3 +53,18 @@ def download_js_packages():
         config_file_path = os.path.abspath(os.path.join('app/plugins', name, 'static', 'package.json'))
         if os.path.exists(config_file_path):
             download_js_package(config_file_path)
+
+
+@app.cli.command()
+def show_signals():
+    import blinker
+    import inspect
+    signals = blinker.signal.__self__
+    for name, signal in sorted(signals.items()):
+        print(name)
+        for func in signal.receivers.values():
+            func_type = type(func)
+            if func_type is blinker._utilities.annotatable_weakref:
+                func = func()
+            print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ',
+                  inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
