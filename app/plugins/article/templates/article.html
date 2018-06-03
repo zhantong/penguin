@@ -23,12 +23,28 @@
         code {
             word-break: break-word;
         }
+
+        article > ul.meta {
+            padding: 0;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 {% endblock %}
 
 {% block main %}
     <article>
         <h1>{{ post.title }}</h1>
+        <ul class="meta">
+            <li>
+                <i class="fa fa-calendar fa-fw" title="发表时间"></i>
+                {{ moment(post.timestamp).format('L') }}
+            </li>
+            {% for article_meta in article_metas %}
+                {% include article_meta %}
+            {% endfor %}
+        </ul>
         {% for before_content in before_contents %}
             {% include before_content %}
         {% endfor %}

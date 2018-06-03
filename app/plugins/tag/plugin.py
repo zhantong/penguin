@@ -7,7 +7,7 @@ import os.path
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
-from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article
+from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article
 
 
 @sidebar.connect
@@ -129,3 +129,8 @@ def submit(sender, args, form, **kwargs):
 @post_keywords.connect
 def post_keywords(sender, post, keywords, **kwargs):
     keywords.extend(category.name for category in post.categories)
+
+
+@article.connect
+def article(sender, article_metas, **kwargs):
+    article_metas.append(os.path.join('tag', 'templates', 'main', 'article_meta.html'))

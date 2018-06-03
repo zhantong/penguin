@@ -94,10 +94,14 @@ def manage(sender, form):
 
 
 @article.connect
-def article(sender, post, context, contents, **kwargs):
+def article(sender, post, context, contents, article_metas, **kwargs):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
+    count_comment = len(comments)
     context['comments'] = format_comments(comments)
     contents.append(os.path.join('comment', 'templates', 'comment.html'))
+
+    context['count_comment'] = count_comment
+    article_metas.append(os.path.join('comment', 'templates', 'main', 'article_meta.html'))
 
 
 @page.connect

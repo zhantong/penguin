@@ -9,7 +9,7 @@ from ...main.signals import index
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
-    article_search_select
+    article_search_select, article
 from ..article_list.signals import custom_article_list
 
 
@@ -139,3 +139,8 @@ def index(sender, context, left_widgets, **kwargs):
 @post_keywords.connect
 def post_keywords(sender, post, keywords, **kwargs):
     keywords.extend(category.name for category in post.categories)
+
+
+@article.connect
+def article(sender, article_metas, **kwargs):
+    article_metas.append(os.path.join('category', 'templates', 'main', 'article_meta.html'))
