@@ -29,7 +29,7 @@ class Attachment(db.Model):
         relative_file_path = os.path.join(str(datetime.today().year), '%02d' % datetime.today().month, random_filename)
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
-        shutil.move(file_path, abs_file_path)
+        shutil.copy(file_path, abs_file_path)
         filter_kwargs = {}
         for param in ['id', 'mime', 'timestamp', 'post']:
             if eval(param) is not None:
