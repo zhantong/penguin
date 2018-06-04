@@ -7,7 +7,9 @@ import os.path
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
-from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article
+from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
+    restore_article
+from ...signals import restore
 
 
 @sidebar.connect
@@ -134,3 +136,32 @@ def post_keywords(sender, post, keywords, **kwargs):
 @article.connect
 def article(sender, article_metas, **kwargs):
     article_metas.append(os.path.join('tag', 'templates', 'main', 'article_meta.html'))
+
+
+@restore_article.connect
+def restore_article(sender, data, article, **kwargs):
+    if 'tags' in data:
+        ts = []
+        for tag in data['tags']:
+            t = Tag.query.filter_by(name=tag).first()
+            if t is None:
+                t = Tag.create(name=tag, slug=slugify(tag))
+                db.session.add(t)
+                db.session.flush()
+            ts.append(t)
+        article.tags = ts
+        db.session.flush()
+
+
+@restore.connect
+def restore(sender, data, **kwargs):
+    if 'tag' in data:
+        for tag in data['tag']:
+            t = Tag.query.filter_by(name=tag['name']).first()
+            if t is None:
+                t = Tag.create(name=tag['name'], slug=slugify(tag['name']),
+                               description=tag['description'])
+                db.session.add(t)
+                db.session.flush()
+            else:
+                t.description = tag['description']

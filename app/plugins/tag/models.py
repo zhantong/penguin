@@ -16,3 +16,11 @@ class Tag(db.Model):
     description = db.Column(db.Text)
     posts = relationship("Post", secondary=lambda: association_table,
                          backref='tags')
+
+    @staticmethod
+    def create(id=None, name=None, slug=None, description=None):
+        filter_kwargs = {}
+        for param in ['id', 'name', 'slug', 'description']:
+            if eval(param) is not None:
+                filter_kwargs[param] = eval(param)
+        return Tag(**filter_kwargs)

@@ -9,8 +9,10 @@ from ...main.signals import index
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
-    article_search_select, article
+    article_search_select, article, restore_article
 from ..article_list.signals import custom_article_list
+from ...utils import slugify
+from ...signals import restore
 
 
 @sidebar.connect
@@ -144,3 +146,32 @@ def post_keywords(sender, post, keywords, **kwargs):
 @article.connect
 def article(sender, article_metas, **kwargs):
     article_metas.append(os.path.join('category', 'templates', 'main', 'article_meta.html'))
+
+
+@restore_article.connect
+def restore_article(sender, data, article, **kwargs):
+    if 'categories' in data:
+        cs = []
+        for category in data['categories']:
+            c = Category.query.filter_by(name=category).first()
+            if c is None:
+                c = Category.create(name=category, slug=slugify(category))
+                db.session.add(c)
+                db.session.flush()
+            cs.append(c)
+        article.categories = cs
+        db.session.flush()
+
+
+@restore.connect
+def restore(sender, data, **kwargs):
+    if 'category' in data:
+        for category in data['category']:
+            c = Category.query.filter_by(name=category['name']).first()
+            if c is None:
+                c = Category.create(name=category['name'], slug=slugify(category['name']),
+                                    description=category['description'])
+                db.session.add(c)
+                db.session.flush()
+            else:
+                c.description = category['description']
