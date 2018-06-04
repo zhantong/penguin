@@ -1,11 +1,14 @@
 from . import signals
-from ..post.models import Post
+from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, url_for
 import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post
 from ...signals import navbar
 from ...admin.signals import sidebar
+from ...signals import restore
+from datetime import datetime
+from ...models import db, User
 
 
 @main.route('/<string:slug>.html')
@@ -61,3 +64,18 @@ def update_post(sender, post, **kwargs):
                 signals.submit_page.send(form=kwargs['form'], post=post)
             else:
                 signals.submit_page_with_action.send(kwargs['form']['action'], form=kwargs['form'], post=post)
+
+
+@restore.connect
+def restore(sender, data, directory, **kwargs):
+    if 'page' in data:
+        pages = data['page']
+        for page in pages:
+            p = Post.create()
+            p.update(title=page['title'], slug=page['slug'], post_type='page',
+                     body=page['body'],
+                     timestamp=datetime.utcfromtimestamp(page['timestamp']),
+                     post_status=PostStatus.published(), author=User.query.filter_by(username=page['author']).one())
+            db.session.add(p)
+            db.session.flush()
+            signals.restore_page.send(data=page, directory=directory, page=p)
