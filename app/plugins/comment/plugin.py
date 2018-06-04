@@ -11,8 +11,9 @@ from ...utils import format_comments
 from . import signals
 from ...main.signals import index
 from ...admin.signals import sidebar, show_list, manage
-from ..article.signals import article
-from ..page.signals import page
+from ..article.signals import article, restore_article
+from ..page.signals import page, restore_page
+from datetime import datetime
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -116,3 +117,34 @@ def index(sender, context, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     context['comments'] = comments
     right_widgets.append(os.path.join('comment', 'templates', 'main', 'widget_content.html'))
+
+
+def restore_post(data, post):
+    def process_comments(comments, parent=0):
+        for comment in comments:
+            if type(comment['author']) is str:
+                author = User.query.filter_by(name=comment['author']).one()
+            else:
+                author = User.create(role=Role.guest(), name=comment['author']['name'],
+                                     email=comment['author']['email'],
+                                     member_since=datetime.utcfromtimestamp(comment['author']['member_since']))
+                db.session.add(author)
+                db.session.flush()
+            c = Comment.create(body=comment['body'], timestamp=datetime.utcfromtimestamp(comment['timestamp']),
+                               ip=comment['ip'], agent=comment['agent'], parent=parent, author=author, post=post)
+            db.session.add(c)
+            db.session.flush()
+            process_comments(comment['children'], parent=c.id)
+
+    if 'comments' in data:
+        process_comments(data['comments'])
+
+
+@restore_article.connect
+def restore_article(sender, data, article, **kwargs):
+    restore_post(data, article)
+
+
+@restore_page.connect
+def restore_article(sender, data, page, **kwargs):
+    restore_post(data, page)
