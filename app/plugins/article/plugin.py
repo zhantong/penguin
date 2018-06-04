@@ -1,11 +1,15 @@
 from . import signals
-from ..post.models import Post
+from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, request, flash
 import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
 from ...admin.signals import sidebar
+from ...signals import restore
+from datetime import datetime
+from ...models import User
+from ...models import db
 
 
 @main.route('/archives/')
@@ -87,3 +91,18 @@ def update_post(sender, post, **kwargs):
                 signals.submit_article.send(form=kwargs['form'], post=post)
             else:
                 signals.submit_article_with_action.send(kwargs['form']['action'], form=kwargs['form'], post=post)
+
+
+@restore.connect
+def restore(sender, data, directory, **kwargs):
+    if 'article' in data:
+        articles = data['article']
+        for article in articles:
+            a = Post.create()
+            a.update(title=article['title'], slug=article['slug'], post_type='article',
+                     body=article['body'],
+                     timestamp=datetime.utcfromtimestamp(article['timestamp']),
+                     post_status=PostStatus.published(), author=User.query.filter_by(username=article['author']).one())
+            db.session.add(a)
+            db.session.flush()
+            signals.restore_article.send(data=article, directory=directory, article=a)
