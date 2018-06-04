@@ -2,16 +2,23 @@ import hashlib
 from slugify import Slugify
 
 
-def format_comments(comments, parent=0):
-    result = []
+def format_comments(comments):
+    def process_children(parents, parent):
+        result = []
+        if parent in parents:
+            for c in parents[parent]:
+                result.append({
+                    'comment': c,
+                    'children': process_children(parents, c.id)
+                })
+        return result
+
+    parents = {}
     for comment in comments:
-        if comment.parent == parent:
-            comments.remove(comment)
-            result.append({
-                'comment': comment,
-                'children': format_comments(comments, comment.id)
-            })
-    return result
+        if comment.parent not in parents:
+            parents[comment.parent] = []
+        parents[comment.parent].append(comment)
+    return process_children(parents, 0)
 
 
 def md5(file_path):
