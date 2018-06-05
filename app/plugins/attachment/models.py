@@ -26,7 +26,11 @@ class Attachment(db.Model):
     @staticmethod
     def create(file_path, original_filename, file_extension, id=None, mime=None, timestamp=None, post=None):
         random_filename = uuid.uuid4().hex + '.' + file_extension
-        relative_file_path = os.path.join(str(datetime.today().year), '%02d' % datetime.today().month, random_filename)
+        if timestamp is not None:
+            dt = timestamp
+        else:
+            dt = datetime.today()
+        relative_file_path = os.path.join(str(dt.year), '%02d' % dt.month, random_filename)
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], relative_file_path)
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
         shutil.copy(file_path, abs_file_path)
