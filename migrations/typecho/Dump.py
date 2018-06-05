@@ -121,6 +121,9 @@ class Dump:
             tags = Dump.process_tags(tags)
             article['tags'] = tags
 
+            article['article_counts'] = {}
+            article['article_counts']['view_count'] = post.viewsNum
+
             self.data['article'].append(article)
 
     def dump_page(self):
