@@ -2,10 +2,21 @@ from ..article.signals import article, restore_article
 from .models import ArticleCount
 from ...models import db
 import os
+import json
 
 
 @article.connect
-def article(sender, post, context, article_metas, **kwargs):
+def article(sender, post, context, article_metas, cookies, cookies_to_set, **kwargs):
+    article_count_viewed_articles = cookies.get('article_count_viewed_articles')
+    if article_count_viewed_articles is None:
+        article_count_viewed_articles = []
+    else:
+        article_count_viewed_articles = json.loads(article_count_viewed_articles)
+    if post.id not in article_count_viewed_articles:
+        post.article_count.view_count += 1
+        db.session.commit()
+        article_count_viewed_articles.append(post.id)
+        cookies_to_set['article_count_viewed_articles'] = json.dumps(article_count_viewed_articles)
     context['view_count'] = post.article_count.view_count
     article_metas.append(os.path.join('article_count', 'templates', 'main', 'article_meta.html'))
 

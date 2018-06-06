@@ -1,7 +1,7 @@
 from . import signals
 from ..post.models import Post, PostStatus
 from ...main import main
-from flask import render_template, request, flash
+from flask import render_template, request, make_response
 import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
@@ -20,6 +20,7 @@ def show_none_post():
 @main.route('/archives/<string:slug>.html')
 def show_article(slug):
     args = request.args
+    cookies = request.cookies
     post = Post.query.filter_by(slug=slug).first_or_404()
     context = {}
     styles = []
@@ -28,15 +29,21 @@ def show_article(slug):
     left_widgets = []
     right_widgets = []
     scripts = []
+    cookies_to_set = {}
     article_metas = []
     article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
-    signals.article.send(args=args, post=post, context=context, article_content=article_content, styles=styles,
-                         before_contents=before_contents, contents=contents, article_metas=article_metas,
-                         left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
-    return render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
-                           article_content=article_content['article_content'], styles=styles,
-                           before_contents=before_contents, contents=contents, article_metas=article_metas,
-                           left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
+    signals.article.send(args=args, cookies=cookies, post=post, context=context, article_content=article_content,
+                         styles=styles, before_contents=before_contents, contents=contents, article_metas=article_metas,
+                         left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
+                         cookies_to_set=cookies_to_set)
+    resp = make_response(render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
+                                         article_content=article_content['article_content'], styles=styles,
+                                         before_contents=before_contents, contents=contents,
+                                         article_metas=article_metas, left_widgets=left_widgets,
+                                         right_widgets=right_widgets, scripts=scripts))
+    for key, value in cookies_to_set.items():
+        resp.set_cookie(key, value)
+    return resp
 
 
 @sidebar.connect
