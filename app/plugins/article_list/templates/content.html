@@ -20,7 +20,10 @@
                 </div>
                 <div class="panel-footer">
                     <ul class="list-inline small">
-                        <li><i class="fa fa-calendar fa-fw"></i>{{ moment(post.timestamp).format('lll') }}</li>
+                        <li><i class="fa fa-calendar fa-fw"></i>{{ moment(post.timestamp).format('L') }}</li>
+                        {% for meta in metas %}
+                            {% include meta %}
+                        {% endfor %}
                     </ul>
                 </div>
             </div>

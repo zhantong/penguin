@@ -17,4 +17,7 @@ def index(sender, args, context, contents, **kwargs):
     posts = pagination.items
     context['posts'] = posts
     context['pagination'] = pagination
+    metas = []
+    signals.article_list_meta.send(metas=metas)
+    context['metas'] = metas
     contents.append(os.path.join('article_list', 'templates', 'content.html'))
