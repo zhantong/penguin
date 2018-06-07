@@ -14,6 +14,7 @@ from ...admin.signals import sidebar, show_list, manage
 from ..article.signals import article, restore_article
 from ..page.signals import page, restore_page
 from datetime import datetime
+from ..article_contents.signals import article_contents_column_head, article_contents_column
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -146,5 +147,15 @@ def restore_article(sender, data, article, **kwargs):
 
 
 @restore_page.connect
-def restore_article(sender, data, page, **kwargs):
+def restore_page(sender, data, page, **kwargs):
     restore_post(data, page)
+
+
+@article_contents_column_head.connect
+def article_contents_column_head(sender, column_heads, **kwargs):
+    column_heads.append(os.path.join('comment', 'templates', 'main', 'article_contents_column_head.html'))
+
+
+@article_contents_column.connect
+def article_contents_column(sender, columns, **kwargs):
+    columns.append(os.path.join('comment', 'templates', 'main', 'article_contents_column.html'))
