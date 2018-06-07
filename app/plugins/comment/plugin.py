@@ -15,6 +15,7 @@ from ..article.signals import article, restore_article
 from ..page.signals import page, restore_page
 from datetime import datetime
 from ..article_contents.signals import article_contents_column_head, article_contents_column
+from ..article_list.signals import article_list_meta
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -159,3 +160,8 @@ def article_contents_column_head(sender, column_heads, **kwargs):
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
     columns.append(os.path.join('comment', 'templates', 'main', 'article_contents_column.html'))
+
+
+@article_list_meta.connect
+def article_list_meta(sender, metas, **kwargs):
+    metas.append(os.path.join('comment', 'templates', 'main', 'article_list_meta.html'))
