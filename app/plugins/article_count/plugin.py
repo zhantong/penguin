@@ -4,6 +4,7 @@ from ...models import db
 import os
 import json
 from ..article_contents.signals import article_contents_column_head, article_contents_column
+from ..article_list.signals import article_list_meta
 
 
 @article.connect
@@ -38,3 +39,8 @@ def article_contents_column_head(sender, column_heads, **kwargs):
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
     columns.append(os.path.join('article_count', 'templates', 'main', 'article_contents_column.html'))
+
+
+@article_list_meta.connect
+def article_list_meta(sender, metas, **kwargs):
+    metas.append(os.path.join('article_count', 'templates', 'main', 'article_list_meta.html'))
