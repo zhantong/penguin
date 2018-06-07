@@ -3,6 +3,7 @@ from .models import ArticleCount
 from ...models import db
 import os
 import json
+from ..article_contents.signals import article_contents_column_head, article_contents_column
 
 
 @article.connect
@@ -27,3 +28,13 @@ def restore_article(sender, data, article, **kwargs):
         ac = ArticleCount.create(post=article, view_count=data['article_counts']['view_count'])
         db.session.add(ac)
         db.session.flush()
+
+
+@article_contents_column_head.connect
+def article_contents_column_head(sender, column_heads, **kwargs):
+    column_heads.append(os.path.join('article_count', 'templates', 'main', 'article_contents_column_head.html'))
+
+
+@article_contents_column.connect
+def article_contents_column(sender, columns, **kwargs):
+    columns.append(os.path.join('article_count', 'templates', 'main', 'article_contents_column.html'))
