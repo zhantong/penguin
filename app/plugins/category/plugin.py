@@ -13,6 +13,7 @@ from ..article.signals import article_list_column_head, article_list_column, sub
 from ..article_list.signals import custom_article_list
 from ...utils import slugify
 from ...signals import restore
+from ..article_list.signals import article_list_meta
 
 
 @sidebar.connect
@@ -175,3 +176,8 @@ def restore(sender, data, **kwargs):
                 db.session.flush()
             else:
                 c.description = category['description']
+
+
+@article_list_meta.connect
+def article_list_meta(sender, metas, **kwargs):
+    metas.append(os.path.join('category', 'templates', 'main', 'article_list_meta.html'))

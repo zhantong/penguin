@@ -1,0 +1,9 @@
+<li>
+    <i class="fa fa-bookmark fa-fw" title="分类"></i>
+    {% for category in post.categories %}
+        <a href="{{ url_for('.index',category=category.slug) }}">{{ category.name }}</a>
+        {% if not loop.last %}
+            ,
+        {% endif %}
+    {% endfor %}
+</li>
