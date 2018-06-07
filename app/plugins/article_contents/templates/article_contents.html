@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}文章目录 - Penguin{% endblock %}
+
+{% block main %}
+    <article>
+        <h1>文章目录</h1>
+        <table class="table table-striped table-hover table-condensed">
+            <thead>
+            <tr class="small">
+                <th>发表时间<i class="fa fa-sort fa-fw"></i></th>
+                <th>标题</th>
+                {% for column_head in column_heads %}
+                    {% include column_head %}
+                {% endfor %}
+            </tr>
+            </thead>
+            {% for article in articles %}
+                <tr>
+                    <td>
+                        <span class="small" title="发表时间">{{ moment(article.timestamp).format('L') }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('main.show_article', slug=article.slug) }}">{{ article.title }}</a>
+                    </td>
+                    {% for column in columns %}
+                        {% include column %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </article>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).on('click', 'th', function () {
+            var table = $(this).parents('table').eq(0);
+            var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));
+            this.asc = !this.asc;
+            if (!this.asc) {
+                rows = rows.reverse();
+            }
+            table.children('tbody').empty().html(rows);
+        });
+
+        function comparer(index) {
+            return function (a, b) {
+                var valA = getCellValue(a, index), valB = getCellValue(b, index);
+                return $.isNumeric(valA) && $.isNumeric(valB) ?
+                    valA - valB : valA.localeCompare(valB);
+            };
+        }
+
+        function getCellValue(row, index) {
+            return $(row).children('td').eq(index).text();
+        }
+    </script>
+{% endblock %}
