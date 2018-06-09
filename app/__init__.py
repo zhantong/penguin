@@ -50,7 +50,5 @@ def create_app(config_name):
     jinja2_customs.custom(app)
 
     flask_whooshalchemyplus.init_app(app)
-    with app.app_context():
-        index_all(app)
 
     return app
