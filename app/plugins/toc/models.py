@@ -11,7 +11,7 @@ class Toc(db.Model):
 
     @staticmethod
     def on_changed_post_body(target, value, oldvalue, initiator):
-        markdown_html = markdown2.markdown(value, extras=['toc', 'fenced-code-blocks'])
+        markdown_html = markdown2.markdown(value, extras=['toc', 'fenced-code-blocks', 'tables'])
         target.body_html = markdown_html
         target.toc = Toc(toc_html=markdown_html.toc_html)
 
