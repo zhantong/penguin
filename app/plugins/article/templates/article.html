@@ -41,6 +41,10 @@
                 <i class="fa fa-calendar fa-fw" title="发表时间"></i>
                 {{ moment(post.timestamp).format('L') }}
             </li>
+            <li>
+                <i class="fa fa-share-alt fa-fw" title="短链接"></i>
+                {{ url_for('.show_article_by_number', number=post.number, _external=True) }}
+            </li>
             {% for article_meta in article_metas %}
                 {% include article_meta %}
             {% endfor %}

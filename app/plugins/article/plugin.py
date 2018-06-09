@@ -1,7 +1,7 @@
 from . import signals
 from ..post.models import Post, PostStatus
 from ...main import main
-from flask import render_template, request, make_response
+from flask import render_template, request, make_response, redirect, url_for
 import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
@@ -44,6 +44,12 @@ def show_article(slug):
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
+
+
+@main.route('/a/<int:number>')
+def show_article_by_number(number):
+    slug = Post.query.filter_by(number=number).first_or_404().slug
+    return redirect(url_for('.show_article', slug=slug))
 
 
 @sidebar.connect

@@ -8,8 +8,19 @@ import markdown2
 from flask import url_for
 import re
 from . import signals
+from random import randint
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
+
+
+def random_number():
+    the_min = 1
+    the_max = 10000
+    rand = randint(the_min, the_max)
+
+    while Post.query.filter_by(number=rand).first() is not None:
+        rand = randint(the_min, the_max)
+    return rand
 
 
 class Post(db.Model):
@@ -17,6 +28,7 @@ class Post(db.Model):
     __searchable__ = ['title', 'body']
     __analyzer__ = ChineseAnalyzer()
     id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer, default=random_number, unique=True)
     title = db.Column(db.String(200), default='')
     _slug = db.Column('slug', db.String(200), default='')
     post_type = db.Column(db.String(40), default='')
