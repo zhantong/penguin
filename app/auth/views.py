@@ -3,6 +3,7 @@ from flask_login import login_user
 from . import auth
 from .forms import LoginForm
 from ..models import User
+from werkzeug.security import check_password_hash
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -11,10 +12,12 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is not None:
-            login_user(user, form.remember_me.data)
-            next = request.args.get('next')
-            if next is None or not next.startswith('/'):
-                next = url_for('admin.index')
-            return redirect(next)
+            password = form.password.data
+            if check_password_hash(user.password_hash, password):
+                login_user(user, form.remember_me.data)
+                next = request.args.get('next')
+                if next is None or not next.startswith('/'):
+                    next = url_for('admin.index')
+                return redirect(next)
         flash('用户名或密码错误')
     return render_template('auth/login.html', form=form)
