@@ -31,7 +31,12 @@ def submit_comment(id):
         author = User.create(role=Role.guest(), name=name, email=email)
         db.session.add(author)
         db.session.flush()
-    comment = Comment.create(body=body, parent=parent, author=author, post=post)
+    if request.headers.getlist('X-Forwarded-For'):
+        ip = request.headers.getlist('X-Forwarded-For')[0]
+    else:
+        ip = request.remote_addr
+    agent = request.user_agent.string
+    comment = Comment.create(body=body, parent=parent, author=author, post=post, ip=ip, agent=agent)
     db.session.add(comment)
     db.session.commit()
     signals.comment_submitted.send(comment=comment)
