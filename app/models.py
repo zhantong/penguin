@@ -1,6 +1,7 @@
 from . import db, login_manager
 from datetime import datetime
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Role(db.Model):
@@ -43,13 +44,24 @@ class User(UserMixin, db.Model):
     role = db.relationship('Role', back_populates='users')
 
     @staticmethod
-    def create(role, id=None, username=None, name=None, email=None, member_since=None, **kwargs):
+    def create(role, id=None, username=None, name=None, email=None, member_since=None, password=None, **kwargs):
         filter_kwargs = {}
-        for param in ['id', 'username', 'name', 'email', 'member_since']:
+        for param in ['id', 'username', 'name', 'email', 'member_since', 'password']:
             if eval(param) is not None:
                 filter_kwargs[param] = eval(param)
         filter_kwargs['role'] = role
         return User(**filter_kwargs)
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 @login_manager.user_loader

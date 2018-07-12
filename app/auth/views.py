@@ -3,7 +3,6 @@ from flask_login import login_user
 from . import auth
 from .forms import LoginForm
 from ..models import User
-from werkzeug.security import check_password_hash
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -13,7 +12,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is not None:
             password = form.password.data
-            if check_password_hash(user.password_hash, password):
+            if user.verify_password(password):
                 login_user(user, form.remember_me.data)
                 next = request.args.get('next')
                 if next is None or not next.startswith('/'):
