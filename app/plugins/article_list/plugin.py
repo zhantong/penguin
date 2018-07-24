@@ -1,8 +1,9 @@
 from . import signals
 from ..post.models import Post
 from flask import current_app
-import os.path
 from ...main.signals import index
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @index.connect
@@ -20,4 +21,4 @@ def index(sender, args, context, contents, **kwargs):
     metas = []
     signals.article_list_meta.send(metas=metas)
     context['metas'] = metas
-    contents.append(os.path.join('article_list', 'templates', 'content.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content.html')

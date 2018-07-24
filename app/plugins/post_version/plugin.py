@@ -1,17 +1,18 @@
 from ...models import db
 from ..post.models import PostStatus
 from .models import PostVersion
-import os.path
 from flask import current_app, url_for, flash
 from sqlalchemy import desc
 from ...element_models import Hyperlink, Plain, Table, Pagination, Datetime
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import submit_article, article, edit_article
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @edit_article.connect
 def edit_article(sender, widgets, **kwargs):
-    widgets.append(os.path.join('post_version', 'templates', 'admin', 'widget_content.html'))
+    add_template_file(widgets, Path(__file__), 'templates', 'admin', 'widget_content.html')
 
 
 @submit_article.connect
@@ -27,15 +28,16 @@ def submit_article(sender, form, post, **kwargs):
 @article.connect
 def article(sender, args, post, context, article_content, before_contents, **kwargs):
     context['post_versions'] = post.post_versions
-    before_contents.append(os.path.join('post_version', 'templates', 'main', 'content.html'))
+    add_template_file(before_contents, Path(__file__), 'templates', 'main', 'content.html')
     if 'post_version' in args:
         context['versioned_post'] = PostVersion.query.get(args.get('post_version', int))
-        article_content['article_content'] = os.path.join('post_version', 'templates', 'main', 'article_content.html')
+        article_content['article_content'] = Path('post_version', 'templates', 'main',
+                                                  'article_content.html').as_posix()
 
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('post_version', 'templates', 'admin', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'admin', 'sidebar.html')
 
 
 @show_list.connect_via('post-version')
@@ -88,7 +90,6 @@ def edit(sender, args, context, contents, **kwargs):
     id = args.get('id', type=int)
     post_version = PostVersion.query.get(id)
     context['post_version'] = post_version
-    contents.append(os.path.join('post_version', 'templates', 'admin', 'content.html'))
 
 
 @submit.connect_via('post-version')

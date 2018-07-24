@@ -2,7 +2,6 @@ from . import signals
 from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, request, make_response, redirect, url_for
-import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
 from ...admin.signals import sidebar
@@ -10,6 +9,8 @@ from ...signals import restore
 from datetime import datetime
 from ...models import User
 from ...models import db
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @main.route('/archives/')
@@ -31,12 +32,12 @@ def show_article(slug):
     scripts = []
     cookies_to_set = {}
     article_metas = []
-    article_content = {'article_content': os.path.join('article', 'templates', 'article_content.html')}
+    article_content = {'article_content': Path('article', 'templates', 'article_content.html').as_posix()}
     signals.article.send(args=args, cookies=cookies, post=post, context=context, article_content=article_content,
                          styles=styles, before_contents=before_contents, contents=contents, article_metas=article_metas,
                          left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
                          cookies_to_set=cookies_to_set)
-    resp = make_response(render_template(os.path.join('article', 'templates', 'article.html'), **context, post=post,
+    resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), **context, post=post,
                                          article_content=article_content['article_content'], styles=styles,
                                          before_contents=before_contents, contents=contents,
                                          article_metas=article_metas, left_widgets=left_widgets,
@@ -54,7 +55,7 @@ def show_article_by_number(number):
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('article', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @custom_list.connect

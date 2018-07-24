@@ -3,18 +3,19 @@ from .models import Tag
 from ..post.models import Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination
-import os.path
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
     restore_article
 from ...signals import restore
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('tag', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @show_list.connect_via('tag')
@@ -84,8 +85,8 @@ def manage(sender, form):
 def edit_article(sender, context, widgets, scripts, **kwargs):
     context['all_tag_name'] = [tag.name for tag in Tag.query.all()]
     context['tag_names'] = [tag.name for tag in context['post'].tags]
-    widgets.append(os.path.join('tag', 'templates', 'widget_content_tag.html'))
-    scripts.append(os.path.join('tag', 'templates', 'widget_script_tag.html'))
+    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_tag.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_tag.html')
 
 
 @submit_article.connect
@@ -110,7 +111,7 @@ def edit(sender, args, context, contents, **kwargs):
     if id is not None:
         tag = Tag.query.get(id)
     context['tag'] = tag
-    contents.append(os.path.join('tag', 'templates', 'content.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content.html')
 
 
 @submit.connect_via('tag')
@@ -135,7 +136,7 @@ def post_keywords(sender, post, keywords, **kwargs):
 
 @article.connect
 def article(sender, article_metas, **kwargs):
-    article_metas.append(os.path.join('tag', 'templates', 'main', 'article_meta.html'))
+    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
 @restore_article.connect

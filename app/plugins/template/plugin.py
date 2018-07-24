@@ -4,16 +4,17 @@ from .models import Template, TemplateField
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 from jinja2 import Template as Jinja2Tempalte
-import os.path
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..post.signals import custom_list
 from ..article.signals import submit_article, submit_article_with_action, article, edit_article
 from ..page.signals import edit_page, page, submit_page, submit_page_with_action
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('template', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @show_list.connect_via('template')
@@ -71,9 +72,9 @@ def manage(sender, form):
 @edit_article.connect
 def edit_article(sender, context, contents, widgets, scripts, **kwargs):
     context['all_template'] = Template.query.all()
-    contents.append(os.path.join('template', 'templates', 'content_template.html'))
-    scripts.append(os.path.join('template', 'templates', 'script_template.html'))
-    widgets.append(os.path.join('template', 'templates', 'widget_content_template.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content_template.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'script_template.html')
+    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_template.html')
 
 
 @submit_page.connect
@@ -111,7 +112,7 @@ def edit(sender, args, context, contents, **kwargs):
     if id is not None:
         template = Template.query.get(id)
     context['template'] = template
-    contents.append(os.path.join('template', 'templates', 'content.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content.html')
 
 
 @submit.connect_via('template')

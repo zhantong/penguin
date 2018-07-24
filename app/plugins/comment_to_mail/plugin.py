@@ -11,6 +11,8 @@ from .models import CommentToMail
 from ...models import db
 from threading import Thread
 from ...admin.signals import sidebar, edit, submit
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 def _format_address(s):
@@ -59,12 +61,12 @@ def send_email(app, to_address, subject, content):
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('comment_to_mail', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @edit.connect_via('comment_to_mail')
 def edit(sender, contents, **kwargs):
-    contents.append(os.path.join('comment_to_mail', 'templates', 'content.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content.html')
 
 
 @submit.connect_via('comment_to_mail')
@@ -79,12 +81,12 @@ def comment_submitted(sender, comment, **kwargs):
     if comment.author.email:
         app = current_app._get_current_object()
 
-        def async(app):
+        def async_function(app):
             with app.app_context():
                 is_sent, log = send_email(app, comment.author.email, '新的评论', comment.body)
                 comment_to_mail = CommentToMail(is_sent=is_sent, log=log, comment=comment)
                 db.session.add(comment_to_mail)
                 db.session.commit()
 
-        thread = Thread(target=async, args=[app])
+        thread = Thread(target=async_function, args=[app])
         thread.start()

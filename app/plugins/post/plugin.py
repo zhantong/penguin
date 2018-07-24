@@ -7,6 +7,8 @@ import os.path
 from datetime import datetime
 from .. import plugin
 from ...admin.signals import show_list, manage, edit, submit
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @plugin.route('/post/static/<path:filename>')
@@ -86,15 +88,15 @@ def edit(sender, args, context, styles, hiddens, contents, widgets, scripts):
         db.session.add(post)
         db.session.commit()
     context['post'] = post
-    styles.append(os.path.join('post', 'templates', 'style_editor.html'))
-    hiddens.append(os.path.join('post', 'templates', 'hidden_id.html'))
-    contents.append(os.path.join('post', 'templates', 'content_title.html'))
-    contents.append(os.path.join('post', 'templates', 'content_slug.html'))
-    contents.append(os.path.join('post', 'templates', 'content_editor.html'))
-    scripts.append(os.path.join('post', 'templates', 'script_slug.html'))
-    scripts.append(os.path.join('post', 'templates', 'script_editor.html'))
-    widgets.append(os.path.join('post', 'templates', 'widget_content_submit.html'))
-    scripts.append(os.path.join('post', 'templates', 'widget_script_submit.html'))
+    add_template_file(styles, Path(__file__), 'templates', 'style_editor.html')
+    add_template_file(hiddens, Path(__file__), 'templates', 'hidden_id.html')
+    add_template_file(contents, Path(__file__), 'templates', 'content_title.html')
+    add_template_file(contents, Path(__file__), 'templates', 'content_slug.html')
+    add_template_file(contents, Path(__file__), 'templates', 'content_editor.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'script_slug.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'script_editor.html')
+    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_submit.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_submit.html')
     signals.edit_post.send(post=post, args=args, context=context, styles=styles, hiddens=hiddens,
                            contents=contents, widgets=widgets,
                            scripts=scripts)

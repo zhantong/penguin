@@ -3,7 +3,6 @@ from .models import Category
 from ..post.models import Post
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
-import os.path
 from sqlalchemy.orm import load_only
 from ...main.signals import index
 from ..post.signals import post_keywords, custom_list
@@ -14,11 +13,13 @@ from ..article_list.signals import custom_article_list
 from ...utils import slugify
 from ...signals import restore
 from ..article_list.signals import article_list_meta
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('category', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @show_list.connect_via('category')
@@ -97,7 +98,7 @@ def manage(sender, form):
 def edit_article(sender, context, widgets, **kwargs):
     context['all_category'] = Category.query.all()
     context['category_ids'] = [category.id for category in context['post'].categories]
-    widgets.append(os.path.join('category', 'templates', 'widget_content_category.html'))
+    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_category.html')
 
 
 @submit_article.connect
@@ -114,7 +115,7 @@ def edit(sender, args, context, contents, **kwargs):
     else:
         category = Category.query.get(id)
     context['category'] = category
-    contents.append(os.path.join('category', 'templates', 'content.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'content.html')
 
 
 @submit.connect_via('category')
@@ -136,7 +137,7 @@ def submit(sender, args, form, **kwargs):
 def index(sender, context, left_widgets, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
     context['all_category'] = all_category
-    left_widgets.append(os.path.join('category', 'templates', 'main', 'widget_content.html'))
+    add_template_file(left_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
 
 
 @post_keywords.connect
@@ -146,7 +147,7 @@ def post_keywords(sender, post, keywords, **kwargs):
 
 @article.connect
 def article(sender, article_metas, **kwargs):
-    article_metas.append(os.path.join('category', 'templates', 'main', 'article_meta.html'))
+    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
 @restore_article.connect
@@ -180,4 +181,4 @@ def restore(sender, data, **kwargs):
 
 @article_list_meta.connect
 def article_list_meta(sender, metas, **kwargs):
-    metas.append(os.path.join('category', 'templates', 'main', 'article_list_meta.html'))
+    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')

@@ -1,10 +1,11 @@
 from ..article.signals import article, restore_article
 from .models import ArticleCount
 from ...models import db
-import os
 import json
 from ..article_contents.signals import article_contents_column_head, article_contents_column
 from ..article_list.signals import article_list_meta
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @article.connect
@@ -20,7 +21,7 @@ def article(sender, post, context, article_metas, cookies, cookies_to_set, **kwa
         article_count_viewed_articles.append(post.id)
         cookies_to_set['article_count_viewed_articles'] = json.dumps(article_count_viewed_articles)
     context['view_count'] = post.article_count.view_count
-    article_metas.append(os.path.join('article_count', 'templates', 'main', 'article_meta.html'))
+    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
 @restore_article.connect
@@ -33,14 +34,14 @@ def restore_article(sender, data, article, **kwargs):
 
 @article_contents_column_head.connect
 def article_contents_column_head(sender, column_heads, **kwargs):
-    column_heads.append(os.path.join('article_count', 'templates', 'main', 'article_contents_column_head.html'))
+    add_template_file(column_heads, Path(__file__), 'templates', 'main', 'article_contents_column_head.html')
 
 
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
-    columns.append(os.path.join('article_count', 'templates', 'main', 'article_contents_column.html'))
+    add_template_file(columns, Path(__file__), 'templates', 'main', 'article_contents_column.html')
 
 
 @article_list_meta.connect
 def article_list_meta(sender, metas, **kwargs):
-    metas.append(os.path.join('article_count', 'templates', 'main', 'article_list_meta.html'))
+    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')

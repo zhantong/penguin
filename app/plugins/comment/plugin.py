@@ -6,7 +6,6 @@ from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
 from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
-import os.path
 from ...utils import format_comments
 from . import signals
 from ...main.signals import index
@@ -16,6 +15,8 @@ from ..page.signals import page, restore_page
 from datetime import datetime
 from ..article_contents.signals import article_contents_column_head, article_contents_column
 from ..article_list.signals import article_list_meta
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -48,7 +49,7 @@ def submit_comment(id):
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('comment', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @show_list.connect_via('comment')
@@ -106,24 +107,24 @@ def article(sender, post, context, contents, article_metas, **kwargs):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
     count_comment = len(comments)
     context['comments'] = format_comments(comments)
-    contents.append(os.path.join('comment', 'templates', 'comment.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'comment.html')
 
     context['count_comment'] = count_comment
-    article_metas.append(os.path.join('comment', 'templates', 'main', 'article_meta.html'))
+    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
 @page.connect
 def page(sender, post, context, page_content, contents, scripts):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
     context['comments'] = format_comments(comments)
-    contents.append(os.path.join('comment', 'templates', 'comment.html'))
+    add_template_file(contents, Path(__file__), 'templates', 'comment.html')
 
 
 @index.connect
 def index(sender, context, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     context['comments'] = comments
-    right_widgets.append(os.path.join('comment', 'templates', 'main', 'widget_content.html'))
+    add_template_file(right_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
 
 
 def restore_post(data, post):
@@ -159,14 +160,14 @@ def restore_page(sender, data, page, **kwargs):
 
 @article_contents_column_head.connect
 def article_contents_column_head(sender, column_heads, **kwargs):
-    column_heads.append(os.path.join('comment', 'templates', 'main', 'article_contents_column_head.html'))
+    add_template_file(column_heads, Path(__file__), 'templates', 'main', 'article_contents_column_head.html')
 
 
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
-    columns.append(os.path.join('comment', 'templates', 'main', 'article_contents_column.html'))
+    add_template_file(columns, Path(__file__), 'templates', 'main', 'article_contents_column.html')
 
 
 @article_list_meta.connect
 def article_list_meta(sender, metas, **kwargs):
-    metas.append(os.path.join('comment', 'templates', 'main', 'article_list_meta.html'))
+    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')

@@ -46,7 +46,7 @@ def download_js_packages():
     download_js_package(os.path.abspath('app/static/package.json'))
 
     for name in os.listdir('app/plugins/'):
-        config_file_path = os.path.abspath(os.path.join('app/plugins', name, 'static', 'package.json'))
+        config_file_path = os.path.abspath(os.path.join('app', 'plugins', name, 'static', 'package.json'))
         if os.path.exists(config_file_path):
             download_js_package(config_file_path)
 

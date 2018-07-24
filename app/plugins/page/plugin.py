@@ -2,13 +2,14 @@ from . import signals
 from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, url_for
-import os.path
 from ..post.signals import update_post, custom_list, edit_post, create_post
 from ...signals import navbar
 from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
 from ...models import db, User
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @main.route('/<string:slug>.html')
@@ -17,9 +18,9 @@ def show_page(slug):
     context = {}
     contents = []
     scripts = []
-    page_content = {'page_content': os.path.join('page', 'templates', 'page_content.html')}
+    page_content = {'page_content': Path('page', 'templates', 'page_content.html').as_posix()}
     signals.page.send(post=post, context=context, page_content=page_content, contents=contents, scripts=scripts)
-    return render_template(os.path.join('page', 'templates', 'page.html'), **context, post=post,
+    return render_template(Path('page', 'templates', 'page.html').as_posix(), **context, post=post,
                            page_content=page_content['page_content'], contents=contents, scripts=scripts)
 
 
@@ -31,7 +32,7 @@ def navbar(sender, content):
 
 @sidebar.connect
 def sidebar(sender, sidebars):
-    sidebars.append(os.path.join('page', 'templates', 'sidebar.html'))
+    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @custom_list.connect

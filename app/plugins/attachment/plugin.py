@@ -12,6 +12,8 @@ import re
 from ..page.signals import edit_page, restore_page
 from ..article.signals import edit_article, restore_article
 from datetime import datetime
+from ...plugins import add_template_file
+from pathlib import Path
 
 
 @plugin.route('/attachment/static/<path:filename>')
@@ -80,8 +82,8 @@ def delete_upload(id):
 @edit_article.connect
 def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
     context['attachments'] = Attachment.query.filter_by(post_id=context['post'].id).all()
-    widgets.append(os.path.join('attachment', 'templates', 'widget_content_attachment.html'))
-    scripts.append(os.path.join('attachment', 'templates', 'widget_script_attachment.html'))
+    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_attachment.html')
+    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_attachment.html')
 
 
 @update_post.connect
