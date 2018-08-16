@@ -12,6 +12,7 @@ from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
 import os.path
+from ..article import signals as article_signals
 
 
 @sidebar.connect
@@ -54,8 +55,15 @@ def custom_list(sender, args, query):
     return query
 
 
+@article_signals.custom_list.connect
+def custom_list(sender, request, query_wrap, **kwargs):
+    if 'tag' in request.args and request.args['tag'] != '':
+        query_wrap['query'] = query_wrap['query'].join(Post.tags).filter(Tag.slug == request.args['tag'])
+
+
+@article_signals.list_column_head.connect
 @article_list_column_head.connect
-def article_list_column_head(sender, head):
+def article_list_column_head(sender, head, **kwargs):
     head.append('标签')
 
 
@@ -63,6 +71,13 @@ def article_list_column_head(sender, head):
 def article_list_column(sender, post, row):
     row.append([Hyperlink('Hyperlink', tag.name,
                           url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in post.tags])
+
+
+@article_signals.list_column.connect
+def article_list_column(sender, article, row, **kwargs):
+    row.append([Hyperlink('Hyperlink', tag.name,
+                          url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in
+                article.tags])
 
 
 @manage.connect_via('tag')

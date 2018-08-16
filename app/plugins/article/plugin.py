@@ -1,16 +1,18 @@
 from . import signals, meta
 from ..post.models import Post, PostStatus
 from ...main import main
-from flask import render_template, request, make_response, redirect, url_for
+from flask import render_template, request, make_response, redirect, url_for, current_app
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
-from ...admin.signals import sidebar
+from ...admin.signals import sidebar, dispatch
 from ...signals import restore
 from datetime import datetime
 from ...models import User
 from ...models import db
 from ...plugins import add_template_file
 from pathlib import Path
+import os.path
+from ...element_models import Hyperlink, Plain, Datetime
 
 
 @main.route('/archives/')
@@ -125,3 +127,34 @@ def restore(sender, data, directory, **kwargs):
 @signals.article_list_url.connect
 def article_list_url(sender, params, **kwargs):
     return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)
+
+
+@dispatch.connect_via('article')
+def dispatch(sender, request, templates, **kwargs):
+    name = request.path.split('/')[3]
+    if name == 'list':
+        show_list(request, templates)
+
+
+def show_list(request, templates):
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '', type=str)
+    query = Post.query.filter(Post.post_type == 'article')
+    query = query.filter(Post.title.contains(search))
+    query = query.order_by(Post.timestamp.desc())
+    query_wrap = {'query': query}
+    signals.custom_list.send(request=request, query_wrap=query_wrap)
+    query = query_wrap['query']
+    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    articles = pagination.items
+    head = ['标题', '作者', '时间']
+    signals.list_column_head.send(request=request, head=head)
+    rows = []
+    for article in articles:
+        row = [Hyperlink('Hyperlink', article.title if article.title else '（无标题）',
+                         url_for('.edit', type='post', id=article.id))
+            , Plain('Plain', article.author.name)
+            , Datetime('Datetime', article.timestamp)]
+        signals.list_column.send(request=request, article=article, row=row)
+        rows.append(row)
+    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), head=head, rows=rows))

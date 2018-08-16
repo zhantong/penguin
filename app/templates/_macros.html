@@ -30,3 +30,18 @@
         </ul>
     </nav>
 {% endmacro %}
+
+{% macro convert(element) %}
+    {% if element is list %}
+        {% for e in element %}
+            {{ convert(e) }}
+            {{ ', ' if not loop.last }}
+        {% endfor %}
+    {% elif element.type=='Plain' %}
+        {{ element.text }}
+    {% elif element.type=='Hyperlink' %}
+        <a href="{{ element.link }}">{{ element.text }}</a>
+    {% elif element.type=='Datetime' %}
+        {{ moment(element.utc).format('lll') }}
+    {% endif %}
+{% endmacro %}
