@@ -1,4 +1,4 @@
-from . import signals
+from . import signals, meta
 from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, request, make_response, redirect, url_for
@@ -120,3 +120,8 @@ def restore(sender, data, directory, **kwargs):
             db.session.add(a)
             db.session.flush()
             signals.restore_article.send(data=article, directory=directory, article=a)
+
+
+@signals.article_list_url.connect
+def article_list_url(sender, params, **kwargs):
+    return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)

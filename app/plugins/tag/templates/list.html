@@ -1,0 +1,20 @@
+<table class="table">
+    <thead>
+    <tr>
+        <th>名称</th>
+        <th>别名</th>
+        <th>文章数</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for tag in tags %}
+        <tr>
+            <td>{{ tag.name }}</td>
+            <td>{{ tag.slug }}</td>
+            <td>
+                <a href="{{ signal_article_list_url.send(params={'tag':tag.slug})[0][1] }}">{{ tag.posts|length }}</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block title %}Penguin{% endblock %}
+
+{% block navbar %}
+    {% include "admin/_navbar.html" %}
+{% endblock %}
+
+{% block body_attribs %}
+    style = "padding-top: 70px;"
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="panel panel-default">
+                    {% for sidebar in sidebars %}
+                        {% include sidebar %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div class="container">
+                    {% for message in get_flashed_messages() %}
+                        <div class="alert alert-warning alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% for template in templates %}
+                    {{ template|safe }}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

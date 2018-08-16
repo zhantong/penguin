@@ -1,16 +1,17 @@
 from ...models import db
 from .models import Tag
 from ..post.models import Post
-from flask import current_app, url_for, flash
+from flask import current_app, url_for, flash, render_template
 from ...element_models import Hyperlink, Plain, Table, Pagination
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
-from ...admin.signals import sidebar, show_list, manage, edit, submit
+from ...admin.signals import sidebar, show_list, manage, edit, submit, dispatch
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
-    restore_article
+    restore_article, article_list_url
 from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
+import os.path
 
 
 @sidebar.connect
@@ -166,3 +167,13 @@ def restore(sender, data, **kwargs):
                 db.session.flush()
             else:
                 t.description = tag['description']
+
+
+@dispatch.connect_via('tag')
+def dispatch(sender, request, templates, **kwargs):
+    page = request.args.get('page', 1, type=int)
+    pagination = Tag.query.order_by(Tag.name) \
+        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    tags = pagination.items
+    templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tags=tags,
+                                     signal_article_list_url=article_list_url))

@@ -65,6 +65,16 @@ def manage():
     return redirect(url_for('.show_list', type=type))
 
 
+@admin.route('/<path:path>')
+def dispatch(path):
+    sidebars = []
+    signals.sidebar.send(sidebars=sidebars)
+    plugin_name = path.split('/')[0]
+    templates = []
+    signals.dispatch.send(plugin_name, request=request, templates=templates)
+    return render_template('admin/framework.html', sidebars=sidebars, templates=templates)
+
+
 @admin.route('/trans-slug')
 def trans_slug():
     return jsonify({
