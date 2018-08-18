@@ -5,7 +5,7 @@ from flask import current_app, url_for, flash, render_template
 from ...element_models import Hyperlink, Plain, Table, Pagination
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
-from ...admin.signals import sidebar, show_list, manage, edit, submit, dispatch
+from ...admin.signals import sidebar, show_list, manage, edit, submit, dispatch, new_sidebar
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
     restore_article, article_list_url
 from ...signals import restore
@@ -18,6 +18,20 @@ from ..article import signals as article_signals
 @sidebar.connect
 def sidebar(sender, sidebars):
     add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
+
+
+@new_sidebar.connect
+def new_sidebar(sender, new_sidebars, **kwargs):
+    new_sidebars.append({
+        'name': '标签',
+        'slug': 'tag',
+        'items': [
+            {
+                'name': '管理标签',
+                'url': url_for('.dispatch', path='tag')
+            }
+        ]
+    })
 
 
 @show_list.connect_via('tag')

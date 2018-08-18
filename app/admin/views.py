@@ -15,7 +15,9 @@ def before_request():
 def index():
     sidebars = []
     signals.sidebar.send(sidebars=sidebars)
-    return render_template('admin/index.html', sidebars=sidebars)
+    new_sidebars = []
+    signals.new_sidebar.send(new_sidebars=new_sidebars)
+    return render_template('admin/index.html', sidebars=sidebars, new_sidebars=new_sidebars)
 
 
 @admin.route('/edit')
@@ -69,10 +71,12 @@ def manage():
 def dispatch(path):
     sidebars = []
     signals.sidebar.send(sidebars=sidebars)
+    new_sidebars = []
+    signals.new_sidebar.send(new_sidebars=new_sidebars)
     plugin_name = path.split('/')[0]
     templates = []
     signals.dispatch.send(plugin_name, request=request, templates=templates)
-    return render_template('admin/framework.html', sidebars=sidebars, templates=templates)
+    return render_template('admin/framework.html', sidebars=sidebars, new_sidebars=new_sidebars, templates=templates)
 
 
 @admin.route('/trans-slug')
