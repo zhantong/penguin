@@ -5,7 +5,6 @@ from flask import current_app, url_for, flash, render_template, jsonify, redirec
 from ...element_models import Hyperlink
 from ...utils import slugify
 from ..post.signals import post_keywords
-from ...admin.signals import submit
 from ..article.signals import submit_article, edit_article, article, restore_article
 from ...signals import restore
 from ...plugins import add_template_file
@@ -16,6 +15,7 @@ from ..Plugin import Plugin
 from ..article.plugin import article as article_instance
 
 tag = Plugin('标签', 'tag')
+tag_instance = tag
 
 
 @article_signals.custom_list.connect
@@ -56,21 +56,6 @@ def submit_article(sender, form, post):
             db.session.flush()
         tags.append(tag)
     post.tags = tags
-
-
-@submit.connect_via('tag')
-def submit(sender, args, form, **kwargs):
-    id = form.get('id', type=int)
-    if id is None:
-        tag = Tag()
-    else:
-        tag = Tag.query.get(id)
-    tag.name = form['name']
-    tag.slug = form['slug']
-    tag.description = form['description']
-    if tag.id is None:
-        db.session.add(tag)
-    db.session.commit()
 
 
 @post_keywords.connect
@@ -130,12 +115,27 @@ def dispatch(request, templates, scripts, meta, **kwargs):
 
 
 @tag.route('admin', '/edit', None)
-def edit_tag(request, templates, **kwargs):
-    id = request.args.get('id', type=int)
-    tag = None
-    if id is not None:
-        tag = Tag.query.get(id)
-    templates.append(render_template(os.path.join('tag', 'templates', 'edit.html'), tag=tag))
+def edit_tag(request, templates, meta, **kwargs):
+    if request.method == 'GET':
+        id = request.args.get('id', type=int)
+        tag = None
+        if id is not None:
+            tag = Tag.query.get(id)
+        templates.append(render_template(os.path.join('tag', 'templates', 'edit.html'), tag=tag))
+    else:
+        id = request.form.get('id', type=int)
+        if id is None:
+            tag = Tag()
+        else:
+            tag = Tag.query.get(id)
+        tag.name = request.form['name']
+        tag.slug = request.form['slug']
+        tag.description = request.form['description']
+        if tag.id is None:
+            db.session.add(tag)
+        db.session.commit()
+        meta['override_render'] = True
+        templates.append(redirect(tag_instance.url_for('/list')))
 
 
 @tag.route('admin', '/new', '新建标签')
