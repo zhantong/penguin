@@ -31,8 +31,7 @@ def article_list_column_head(sender, head, **kwargs):
 
 @article_signals.list_column.connect
 def article_list_column(sender, article, row, **kwargs):
-    row.append([Hyperlink('Hyperlink', tag.name,
-                          url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in
+    row.append([Hyperlink('Hyperlink', tag.name, article_instance.url_for('/list', tag=tag.slug)) for tag in
                 article.tags])
 
 
