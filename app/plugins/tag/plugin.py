@@ -1,7 +1,7 @@
 from ...models import db
 from .models import Tag
 from ..post.models import Post
-from flask import current_app, url_for, flash, render_template
+from flask import current_app, url_for, flash, render_template, jsonify
 from ...element_models import Hyperlink, Plain, Table, Pagination
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
@@ -199,10 +199,29 @@ def restore(sender, data, **kwargs):
 
 
 @dispatch.connect_via('tag')
-def dispatch(sender, request, templates, **kwargs):
-    page = request.args.get('page', 1, type=int)
-    pagination = Tag.query.order_by(Tag.name) \
-        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    tags = pagination.items
-    templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tags=tags,
-                                     signal_article_list_url=article_list_url))
+def dispatch(sender, request, templates, scripts, meta, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+    else:
+        page = request.args.get('page', 1, type=int)
+        pagination = Tag.query.order_by(Tag.name) \
+            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        tags = pagination.items
+        templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tags=tags,
+                                         signal_article_list_url=article_list_url))
+        scripts.append(render_template(os.path.join('tag', 'templates', 'list.js.html')))
+
+
+def delete(tag_id):
+    tag = Tag.query.get(tag_id)
+    tag_name = tag.name
+    db.session.delete(tag)
+    db.session.commit()
+    message = '已删除标签"' + tag_name + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
