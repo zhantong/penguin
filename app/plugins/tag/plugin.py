@@ -2,12 +2,11 @@ from ...models import db
 from .models import Tag
 from ..post.models import Post
 from flask import current_app, url_for, flash, render_template, jsonify, redirect
-from ...element_models import Hyperlink, Plain, Table, Pagination
+from ...element_models import Hyperlink
 from ...utils import slugify
-from ..post.signals import post_keywords, custom_list
-from ...admin.signals import sidebar, show_list, manage, edit, submit, dispatch, new_sidebar
-from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
-    restore_article
+from ..post.signals import post_keywords
+from ...admin.signals import submit
+from ..article.signals import submit_article, edit_article, article, restore_article
 from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
@@ -19,60 +18,6 @@ from ..article.plugin import article as article_instance
 tag = Plugin('标签', 'tag')
 
 
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
-
-
-@new_sidebar.connect
-def new_sidebar(sender, new_sidebars, **kwargs):
-    new_sidebars.append({
-        'name': '标签',
-        'slug': 'tag',
-        'items': [
-            {
-                'name': '管理标签',
-                'url': url_for('.dispatch', path='tag')
-            }
-        ]
-    })
-
-
-@show_list.connect_via('tag')
-def show_list(sender, args):
-    page = args.get('page', 1, type=int)
-    pagination = Tag.query.order_by(Tag.name) \
-        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    tags = pagination.items
-    head = ('', '名称', '别名', '文章数')
-    rows = []
-    for tag in tags:
-        rows.append((tag.id
-                     , Hyperlink('Hyperlink', tag.name,
-                                 url_for('.edit', type='tag', id=tag.id))
-                     , Plain('Plain', tag.slug)
-                     , Hyperlink('Hyperlink', len(tag.posts),
-                                 url_for('.show_list', type='post', sub_type='article', tag=tag.slug))))
-    table = Table('Table', head, rows)
-    args = args.to_dict()
-    if 'page' in args:
-        del args['page']
-    return {
-        **args,
-        'title': '标签',
-        'table': table,
-        'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, '.show_list', args)
-    }
-
-
-@custom_list.connect
-def custom_list(sender, args, query):
-    if 'tag' in args and args['tag'] != '':
-        query['query'] = query['query'].join(Post.tags).filter(Tag.slug == args['tag'])
-    return query
-
-
 @article_signals.custom_list.connect
 def custom_list(sender, request, query_wrap, **kwargs):
     if 'tag' in request.args and request.args['tag'] != '':
@@ -80,15 +25,8 @@ def custom_list(sender, request, query_wrap, **kwargs):
 
 
 @article_signals.list_column_head.connect
-@article_list_column_head.connect
 def article_list_column_head(sender, head, **kwargs):
     head.append('标签')
-
-
-@article_list_column.connect
-def article_list_column(sender, post, row):
-    row.append([Hyperlink('Hyperlink', tag.name,
-                          url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in post.tags])
 
 
 @article_signals.list_column.connect
@@ -96,23 +34,6 @@ def article_list_column(sender, article, row, **kwargs):
     row.append([Hyperlink('Hyperlink', tag.name,
                           url_for('.show_list', type='post', sub_type='article', tag=tag.slug)) for tag in
                 article.tags])
-
-
-@manage.connect_via('tag')
-def manage(sender, form):
-    action = form.get('action', '', type=str)
-    if action == 'delete':
-        ids = form.getlist('id')
-        ids = [int(id) for id in ids]
-        if ids:
-            first_tag_name = Tag.query.get(ids[0]).name
-            for tag in Tag.query.filter(Tag.id.in_(ids)):
-                db.session.delete(tag)
-            db.session.commit()
-            message = '已删除标签"' + first_tag_name + '"'
-            if len(ids) > 1:
-                message += '以及剩下的' + str(len(ids) - 1) + '个标签'
-            flash(message)
 
 
 @edit_article.connect
@@ -136,16 +57,6 @@ def submit_article(sender, form, post):
             db.session.flush()
         tags.append(tag)
     post.tags = tags
-
-
-@edit.connect_via('tag')
-def edit(sender, args, context, contents, **kwargs):
-    id = args.get('id', type=int)
-    tag = None
-    if id is not None:
-        tag = Tag.query.get(id)
-    context['tag'] = tag
-    add_template_file(contents, Path(__file__), 'templates', 'content.html')
 
 
 @submit.connect_via('tag')
