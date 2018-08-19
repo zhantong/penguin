@@ -56,3 +56,10 @@
         </div>
     </div>
 {% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% for script in scripts %}
+        {{ script|safe }}
+    {% endfor %}
+{% endblock %}

@@ -1,5 +1,5 @@
 from . import signals
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, abort
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
@@ -67,7 +67,7 @@ def manage():
     return redirect(url_for('.show_list', type=type))
 
 
-@admin.route('/<path:path>')
+@admin.route('/<path:path>', methods=['GET', 'POST'])
 def dispatch(path):
     sidebars = []
     signals.sidebar.send(sidebars=sidebars)
@@ -75,8 +75,19 @@ def dispatch(path):
     signals.new_sidebar.send(new_sidebars=new_sidebars)
     plugin_name = path.split('/')[0]
     templates = []
-    signals.dispatch.send(plugin_name, request=request, templates=templates)
-    return render_template('admin/framework.html', sidebars=sidebars, new_sidebars=new_sidebars, templates=templates)
+    scripts = []
+    csss = []
+    meta = {
+        'override_render': False
+    }
+    signals.dispatch.send(plugin_name, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
+    if meta['override_render']:
+        if len(templates) == 0:
+            abort(404)
+        else:
+            return templates[0]
+    return render_template('admin/framework.html', sidebars=sidebars, new_sidebars=new_sidebars, templates=templates,
+                           scripts=scripts, csss=csss)
 
 
 @admin.route('/trans-slug')
