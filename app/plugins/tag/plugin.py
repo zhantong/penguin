@@ -7,13 +7,14 @@ from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit, dispatch, new_sidebar
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, article, \
-    restore_article, article_list_url
+    restore_article
 from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ..article import signals as article_signals
 from ..Plugin import Plugin
+from ..article.plugin import article as article_instance
 
 tag = Plugin('标签', 'tag')
 
@@ -214,7 +215,7 @@ def dispatch(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
         templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tag_instance=tag, tags=tags,
-                                         signal_article_list_url=article_list_url))
+                                         article_instance=article_instance))
         scripts.append(render_template(os.path.join('tag', 'templates', 'list.js.html')))
 
 

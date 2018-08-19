@@ -4,7 +4,7 @@ from ...main import main
 from flask import render_template, request, make_response, redirect, url_for, current_app
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
-from ...admin.signals import sidebar, dispatch
+from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
 from ...models import User
@@ -13,6 +13,9 @@ from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ...element_models import Hyperlink, Plain, Datetime
+from ..Plugin import Plugin
+
+article = Plugin('文章', 'article')
 
 
 @main.route('/archives/')
@@ -129,14 +132,8 @@ def article_list_url(sender, params, **kwargs):
     return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)
 
 
-@dispatch.connect_via('article')
-def dispatch(sender, request, templates, **kwargs):
-    name = request.path.split('/')[3]
-    if name == 'list':
-        show_list(request, templates)
-
-
-def show_list(request, templates):
+@article.route('admin', '/list', '管理文章')
+def article_list(request, templates, **kwargs):
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '', type=str)
     query = Post.query.filter(Post.post_type == 'article')

@@ -13,7 +13,7 @@
             <td><a href="{{ tag_instance.url_for('/edit', id=tag.id) }}">{{ tag.name }}</a></td>
             <td>{{ tag.slug }}</td>
             <td>
-                <a href="{{ signal_article_list_url.send(params={'tag':tag.slug})[0][1] }}">{{ tag.posts|length }}</a>
+                <a href="{{ article_instance.url_for('/list', tag=tag.slug) }}">{{ tag.posts|length }}</a>
             </td>
             <td>
                 <button type="button" class="btn btn-danger tag-item" data-id="{{ tag.id }}">删除</button>
