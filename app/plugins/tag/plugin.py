@@ -1,7 +1,7 @@
 from ...models import db
 from .models import Tag
 from ..post.models import Post
-from flask import current_app, url_for, flash, render_template, jsonify
+from flask import current_app, url_for, flash, render_template, jsonify, redirect
 from ...element_models import Hyperlink, Plain, Table, Pagination
 from ...utils import slugify
 from ..post.signals import post_keywords, custom_list
@@ -213,9 +213,24 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         pagination = Tag.query.order_by(Tag.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
-        templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tags=tags,
+        templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tag_instance=tag, tags=tags,
                                          signal_article_list_url=article_list_url))
         scripts.append(render_template(os.path.join('tag', 'templates', 'list.js.html')))
+
+
+@tag.route('admin', '/edit', None)
+def edit_tag(request, templates, **kwargs):
+    id = request.args.get('id', type=int)
+    tag = None
+    if id is not None:
+        tag = Tag.query.get(id)
+    templates.append(render_template(os.path.join('tag', 'templates', 'edit.html'), tag=tag))
+
+
+@tag.route('admin', '/new', '新建标签')
+def new_tag(templates, meta, **kwargs):
+    meta['override_render'] = True
+    templates.append(redirect(tag.url_for('/edit')))
 
 
 def delete(tag_id):

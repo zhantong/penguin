@@ -1,4 +1,5 @@
 from flask import url_for
+from urllib.parse import urlencode
 
 
 class Plugin:
@@ -14,7 +15,7 @@ class Plugin:
         self.slug = slug
         self.routes = {}
 
-    def route(self, blueprint, rule, name='', **kwargs):
+    def route(self, blueprint, rule, name=None, **kwargs):
         def wrap(f):
             self.routes[rule] = Route(self, blueprint, rule, f, name)
             return f
@@ -25,9 +26,12 @@ class Plugin:
         rule = '/' + path.split('/')[1]
         self.routes[rule].func(**kwargs)
 
+    def url_for(self, rule, **values):
+        return self.routes[rule].path() + '?' + urlencode(values)
+
 
 class Route:
-    def __init__(self, plugin, blueprint, rule, func, name=''):
+    def __init__(self, plugin, blueprint, rule, func, name=None):
         self.plugin = plugin
         self.blueprint = blueprint
         self.rule = rule
