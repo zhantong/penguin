@@ -18,21 +18,21 @@
                     {% for sidebar in sidebars %}
                         {% include sidebar %}
                     {% endfor %}
-                    {% for sidebar in new_sidebars %}
-                        <div class="panel-heading" role="tab" id="nav-{{ sidebar['slug'] }}-heading">
+                    {% for plugin in plugins.values() %}
+                        <div class="panel-heading" role="tab" id="nav-{{ plugin.slug }}-heading">
                             <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" href="#nav-{{ sidebar['slug'] }}-collapse"
-                                   aria-expanded="true" aria-controls="nav-{{ sidebar['slug'] }}-collapse">
-                                    {{ sidebar['name'] }}
+                                <a role="button" data-toggle="collapse" href="#nav-{{ plugin.slug }}-collapse"
+                                   aria-expanded="true" aria-controls="nav-{{ plugin['slug'] }}-collapse">
+                                    {{ plugin.name }}
                                 </a>
                             </h4>
                         </div>
-                        <div id="nav-{{ sidebar['slug'] }}-collapse" class="panel-collapse collapse in" role="tabpanel"
-                             aria-labelledby="nav-{{ sidebar['slug'] }}-heading">
+                        <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse in" role="tabpanel"
+                             aria-labelledby="nav-{{ plugin.slug }}-heading">
                             <ul class="list-group">
-                                {% for item in sidebar['items'] %}
+                                {% for route in plugin.routes.values() %}
                                     <li class="list-group-item">
-                                        <a href="{{ item['url'] }}">{{ item['name'] }}</a>
+                                        <a href="{{ route.path() }}">{{ route.name }}</a>
                                     </li>
                                 {% endfor %}
                             </ul>

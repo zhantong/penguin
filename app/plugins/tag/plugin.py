@@ -13,6 +13,9 @@ from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ..article import signals as article_signals
+from ..Plugin import Plugin
+
+tag = Plugin('标签', 'tag')
 
 
 @sidebar.connect
@@ -198,8 +201,8 @@ def restore(sender, data, **kwargs):
                 t.description = tag['description']
 
 
-@dispatch.connect_via('tag')
-def dispatch(sender, request, templates, scripts, meta, **kwargs):
+@tag.route('admin', '/list', '管理标签')
+def dispatch(request, templates, scripts, meta, **kwargs):
     if request.method == 'POST':
         if request.form['action'] == 'delete':
             meta['override_render'] = True

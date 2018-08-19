@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, url_for, jsonify, abort
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
+from ..plugins.Plugin import Plugin
 
 
 @admin.before_request
@@ -15,9 +16,7 @@ def before_request():
 def index():
     sidebars = []
     signals.sidebar.send(sidebars=sidebars)
-    new_sidebars = []
-    signals.new_sidebar.send(new_sidebars=new_sidebars)
-    return render_template('admin/index.html', sidebars=sidebars, new_sidebars=new_sidebars)
+    return render_template('admin/index.html', sidebars=sidebars, plugins=Plugin.plugins)
 
 
 @admin.route('/edit')
@@ -73,20 +72,21 @@ def dispatch(path):
     signals.sidebar.send(sidebars=sidebars)
     new_sidebars = []
     signals.new_sidebar.send(new_sidebars=new_sidebars)
-    plugin_name = path.split('/')[0]
+    plugin_slug = path.split('/')[0]
     templates = []
     scripts = []
     csss = []
     meta = {
         'override_render': False
     }
-    signals.dispatch.send(plugin_name, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
+    Plugin.find_plugin(plugin_slug).request(path, request=request, templates=templates, scripts=scripts, csss=csss,
+                                            meta=meta)
     if meta['override_render']:
         if len(templates) == 0:
             abort(404)
         else:
             return templates[0]
-    return render_template('admin/framework.html', sidebars=sidebars, new_sidebars=new_sidebars, templates=templates,
+    return render_template('admin/framework.html', sidebars=sidebars, plugins=Plugin.plugins, templates=templates,
                            scripts=scripts, csss=csss)
 
 
