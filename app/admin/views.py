@@ -3,7 +3,7 @@ from flask import render_template, request, redirect, url_for, jsonify, abort
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
-from ..plugins.Plugin import Plugin
+from ..plugins.plugin import Plugin
 
 
 @admin.before_request
@@ -36,7 +36,7 @@ def edit():
     return render_template('admin/edit.html', **request.args.to_dict(), **context, sidebars=sidebars, styles=styles,
                            hiddens=hiddens,
                            contents=contents, widgets=widgets,
-                           scripts=scripts)
+                           scripts=scripts, plugins=Plugin.plugins, templates=[])
 
 
 @admin.route('/edit', methods=['POST'])
@@ -56,7 +56,8 @@ def show_list():
     context = result[0][1]
     sidebars = []
     signals.sidebar.send(sidebars=sidebars)
-    return render_template('admin/manage.html', **context, sidebars=sidebars)
+    return render_template('admin/manage.html', **context, sidebars=sidebars, plugins=Plugin.plugins, templates=[],
+                           scripts=[], csss=[])
 
 
 @admin.route('/manage', methods=['POST'])

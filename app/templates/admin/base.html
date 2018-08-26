@@ -31,9 +31,11 @@
                              aria-labelledby="nav-{{ plugin.slug }}-heading">
                             <ul class="list-group">
                                 {% for route in plugin.routes.values() %}
-                                    <li class="list-group-item">
-                                        <a href="{{ route.path() }}">{{ route.name }}</a>
-                                    </li>
+                                    {% if route.name is not none %}
+                                        <li class="list-group-item">
+                                            <a href="{{ route.path() }}">{{ route.name }}</a>
+                                        </li>
+                                    {% endif %}
                                 {% endfor %}
                             </ul>
                         </div>

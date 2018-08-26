@@ -13,7 +13,7 @@ from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ...element_models import Hyperlink, Plain, Datetime
-from ..Plugin import Plugin
+from ..plugin import Plugin
 
 article = Plugin('文章', 'article')
 

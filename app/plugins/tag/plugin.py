@@ -11,7 +11,7 @@ from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ..article import signals as article_signals
-from ..Plugin import Plugin
+from ..plugin import Plugin
 from ..article.plugin import article as article_instance
 
 tag = Plugin('标签', 'tag')
