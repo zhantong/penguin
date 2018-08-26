@@ -3,7 +3,7 @@ from flask import render_template, request, redirect, url_for, jsonify, abort
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
-from ..plugins.plugin import Plugin
+from ..plugins.models import Plugin
 
 
 @admin.before_request
