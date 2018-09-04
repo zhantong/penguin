@@ -1,0 +1,61 @@
+<script src="{{ url_for('plugin.attachment_static', filename='jQuery-File-Upload-9.20.0/js/vendor/jquery.ui.widget.js') }}"></script>
+<script src="{{ url_for('plugin.attachment_static', filename='jQuery-File-Upload-9.20.0/js/jquery.fileupload.js') }}"></script>
+<script>
+    var origUploadItem = $('#hide-area').find('.upload-item');
+    $('#fileupload').fileupload({
+        beforeSend: function (xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+        },
+        url: "{{ url_for('.upload') }}",
+        formData: {
+            'post_id': {{ post.id }}
+        },
+        dropZone: $('#option-attachment-collapse'),
+        add: function (e, data) {
+            console.log(data);
+            var clonedUploadItem = $(origUploadItem).clone().show();
+            clonedUploadItem.appendTo('#panel-body-upload');
+            data.context = clonedUploadItem;
+            data.submit();
+            data.context.find('h5').text(data.files[0].name);
+        },
+        progress: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            data.context.find('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress);
+        },
+        fail: function (e, data) {
+            data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+            data.context.find('.progress-bar').addClass('progress-bar-danger');
+            data.context.find('strong').text('未知错误').show();
+        },
+        done: function (e, data) {
+            if (data.result['code'] === 0) {
+                data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                data.context.find('.progress-bar').addClass('progress-bar-success');
+                data.context.find('h5').text(data.result['file_name']).append('<small>' + data.result['file_size'] + '</small>');
+                data.context.find('span mark').text(data.result['relative_path']);
+                data.context.find('span').show();
+                data.context.find('button').data('url', data.result['delete_url']);
+                data.context.find('button').show();
+
+            } else {
+                data.context.find('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+                data.context.find('.progress-bar').addClass('progress-bar-danger');
+                data.context.find('strong').text(data.result['message']).show();
+            }
+        }
+    });
+
+    $(document).on('click', '.upload-item button.delete', function (event) {
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            type: 'DELETE',
+            url: $(this).data('url'),
+            success: function () {
+                $(event.target).parents('section').remove();
+            }
+        })
+    });
+</script>

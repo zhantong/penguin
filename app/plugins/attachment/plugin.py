@@ -2,7 +2,7 @@ from ...models import db
 from .models import Attachment
 from ...admin import admin
 from ...main import main
-from flask import request, jsonify, current_app, url_for, send_from_directory
+from flask import request, jsonify, current_app, url_for, send_from_directory, render_template
 import os.path
 import uuid
 from .. import plugin
@@ -14,6 +14,7 @@ from ..article.signals import edit_article, restore_article
 from datetime import datetime
 from ...plugins import add_template_file
 from pathlib import Path
+from ..article import signals as article_signals
 
 
 @plugin.route('/attachment/static/<path:filename>')
@@ -121,3 +122,15 @@ def restore_article(sender, data, directory, article, **kwargs):
 @restore_page.connect
 def restore_page(sender, data, directory, page, **kwargs):
     restore_post(data, directory, page)
+
+
+@article_signals.show_edit_article_widget.connect
+def show_edit_article_widget(sender, post, widgets, **kwargs):
+    widgets.append({
+        'slug': 'attachment',
+        'name': '附件',
+        'html': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.html'),
+                                post=post),
+        'js': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.js.html'),
+                              post=post)
+    })
