@@ -155,3 +155,16 @@ def article_list(request, templates, **kwargs):
         signals.list_column.send(request=request, article=article, row=row)
         rows.append(row)
     templates.append(render_template(os.path.join('article', 'templates', 'list.html'), head=head, rows=rows))
+
+
+@article.route('admin', '/edit', '撰写文章')
+def edit_article(request, templates, scripts, csss, **kwargs):
+    if 'id' in request.args:
+        post = Post.query.get(int(request.args['id']))
+    else:
+        post = Post.create(request.args)
+        db.session.add(post)
+        db.session.commit()
+    templates.append(render_template(os.path.join('article', 'templates', 'edit.html'), post=post))
+    scripts.append(render_template(os.path.join('article', 'templates', 'edit.js.html'), post=post))
+    scripts.append(render_template(os.path.join('article', 'templates', 'edit.css.html')))
