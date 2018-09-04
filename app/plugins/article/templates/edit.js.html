@@ -37,3 +37,9 @@
         $('#submit-datetime').next().val(Math.floor(date.getTime() / 1000))
     }
 </script>
+
+{% for widget in widgets %}
+    {% if 'js' in widget %}
+        {{ widget['js']|safe }}
+    {% endif %}
+{% endfor %}

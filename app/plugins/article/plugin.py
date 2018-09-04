@@ -165,6 +165,8 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         post = Post.create(request.args)
         db.session.add(post)
         db.session.commit()
-    templates.append(render_template(os.path.join('article', 'templates', 'edit.html'), post=post))
-    scripts.append(render_template(os.path.join('article', 'templates', 'edit.js.html'), post=post))
-    scripts.append(render_template(os.path.join('article', 'templates', 'edit.css.html')))
+    widgets = []
+    signals.show_edit_article_widget.send(request=request, post=post, widgets=widgets)
+    templates.append(render_template(os.path.join('article', 'templates', 'edit.html'), post=post, widgets=widgets))
+    scripts.append(render_template(os.path.join('article', 'templates', 'edit.js.html'), post=post, widgets=widgets))
+    csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))

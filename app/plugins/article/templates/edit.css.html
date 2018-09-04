@@ -1,1 +1,6 @@
 <link rel="stylesheet" href="{{ url_for('plugin.post_static', filename='editor.md-1.5.0/css/editormd.css') }}">
+{% for widget in widgets %}
+    {% if 'css' in widget %}
+        {{ widget['css']|safe }}
+    {% endif %}
+{% endfor %}
