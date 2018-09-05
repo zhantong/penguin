@@ -1,0 +1,11 @@
+<div class="panel-body">
+    {% for category in all_category %}
+        <div class="checkbox">
+            <label>
+                <input name="category-id" value="{{ category.id }}" type="checkbox"
+                       {% if category.id in category_ids %}checked="checked"{% endif %}>
+                {{ category.name }}
+            </label>
+        </div>
+    {% endfor %}
+</div>

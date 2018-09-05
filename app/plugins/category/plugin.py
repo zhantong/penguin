@@ -1,7 +1,7 @@
 from ...models import db
 from .models import Category
 from ..post.models import Post
-from flask import current_app, url_for, flash
+from flask import current_app, url_for, flash, render_template
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 from sqlalchemy.orm import load_only
 from ...main.signals import index
@@ -15,6 +15,8 @@ from ...signals import restore
 from ..article_list.signals import article_list_meta
 from ...plugins import add_template_file
 from pathlib import Path
+from ..article import signals as article_signals
+import os.path
 
 
 @sidebar.connect
@@ -182,3 +184,15 @@ def restore(sender, data, **kwargs):
 @article_list_meta.connect
 def article_list_meta(sender, metas, **kwargs):
     add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')
+
+
+@article_signals.show_edit_article_widget.connect
+def show_edit_article_widget(sender, post, widgets, **kwargs):
+    all_category = Category.query.all()
+    category_ids = [category.id for category in post.categories]
+    widgets.append({
+        'slug': 'category',
+        'name': '分类',
+        'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
+                                all_category=all_category, category_ids=category_ids)
+    })
