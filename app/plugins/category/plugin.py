@@ -1,7 +1,7 @@
 from ...models import db
 from .models import Category
 from ..post.models import Post
-from flask import current_app, url_for, flash, render_template
+from flask import current_app, url_for, flash, render_template, jsonify, redirect
 from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
 from sqlalchemy.orm import load_only
 from ...main.signals import index
@@ -17,6 +17,11 @@ from ...plugins import add_template_file
 from pathlib import Path
 from ..article import signals as article_signals
 import os.path
+from ..models import Plugin
+from ..article.plugin import article as article_instance
+
+category = Plugin('分类', 'category')
+category_instance = category
 
 
 @sidebar.connect
@@ -196,3 +201,66 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
         'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
                                 all_category=all_category, category_ids=category_ids)
     })
+
+
+def delete(category_id):
+    category = Category.query.get(category_id)
+    category_name = category.name
+    db.session.delete(category)
+    db.session.commit()
+    message = '已删除分类"' + category_name + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
+
+
+@category.route('admin', '/list', '管理分类')
+def list_tags(request, templates, scripts, meta, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+    else:
+        page = request.args.get('page', 1, type=int)
+        pagination = Category.query.order_by(Category.name) \
+            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        categories = pagination.items
+        templates.append(
+            render_template(os.path.join('category', 'templates', 'list.html'), category_instance=category_instance,
+                            categories=categories,
+                            article_instance=article_instance,
+                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                        'url_for': category_instance.url_for}))
+        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html')))
+
+
+@category.route('admin', '/edit', None)
+def edit_tag(request, templates, meta, **kwargs):
+    if request.method == 'GET':
+        id = request.args.get('id', type=int)
+        category = None
+        if id is not None:
+            category = Category.query.get(id)
+        templates.append(render_template(os.path.join('category', 'templates', 'edit.html'), category=category))
+    else:
+        id = request.form.get('id', type=int)
+        if id is None:
+            category = Category()
+        else:
+            category = Category.query.get(id)
+        category.name = request.form['name']
+        category.slug = request.form['slug']
+        category.description = request.form['description']
+        if category.id is None:
+            db.session.add(category)
+        db.session.commit()
+        meta['override_render'] = True
+        templates.append(redirect(category_instance.url_for('/list')))
+
+
+@category.route('admin', '/new', '新建分类')
+def new_tag(templates, meta, **kwargs):
+    meta['override_render'] = True
+    templates.append(redirect(category_instance.url_for('/edit')))
