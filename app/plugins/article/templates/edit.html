@@ -65,9 +65,7 @@
                         <div id="widget-{{ widget['slug'] }}-collapse" class="panel-collapse collapse in"
                              role="tabpanel"
                              aria-labelledby="widget-{{ widget['slug'] }}-heading">
-                            <div class="panel-body">
-                                {{ widget['html']|safe }}
-                            </div>
+                            {{ widget['html']|safe }}
                         </div>
                     </div>
                 {% endfor %}

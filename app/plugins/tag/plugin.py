@@ -154,3 +154,17 @@ def delete(tag_id):
     return {
         'result': 'OK'
     }
+
+
+@article_signals.show_edit_article_widget.connect
+def show_edit_article_widget(sender, post, widgets, **kwargs):
+    all_tag_name = [tag.name for tag in Tag.query.all()]
+    tag_names = [tag.name for tag in post.tags]
+    widgets.append({
+        'slug': 'tag',
+        'name': '标签',
+        'html': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.html'),
+                                all_tag_name=all_tag_name),
+        'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
+                              tag_names=tag_names)
+    })
