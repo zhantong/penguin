@@ -1,3 +1,4 @@
+{% import "_macros.html" as macros %}
 <table class="table">
     <thead>
     <tr>
@@ -22,3 +23,8 @@
     {% endfor %}
     </tbody>
 </table>
+{% if pagination %}
+    <div class="text-center">
+        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+    </div>
+{% endif %}

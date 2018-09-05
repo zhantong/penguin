@@ -110,7 +110,9 @@ def dispatch(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
         templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tag_instance=tag, tags=tags,
-                                         article_instance=article_instance))
+                                         article_instance=article_instance,
+                                         pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                                     'url_for': tag_instance.url_for}))
         scripts.append(render_template(os.path.join('tag', 'templates', 'list.js.html')))
 
 
