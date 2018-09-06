@@ -9,7 +9,6 @@ from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
     article_search_select, article, restore_article
-from ..article_list.signals import custom_article_list
 from ...utils import slugify
 from ...signals import restore
 from ..article_list.signals import article_list_meta
@@ -24,12 +23,11 @@ category = Plugin('分类', 'category')
 category_instance = category
 
 
-@custom_article_list.connect
-@custom_list.connect
-def custom_list(sender, args, query):
-    if 'category' in args and args['category'] != '':
-        query['query'] = query['query'].join(Post.categories).filter(Category.slug == args['category'])
-    return query
+@article_signals.custom_list.connect
+def custom_list(sender, request, query_wrap, **kwargs):
+    if 'category' in request.args and request.args['category'] != '':
+        query_wrap['query'] = query_wrap['query'].join(Post.categories).filter(
+            Category.slug == request.args['category'])
 
 
 @article_list_column_head.connect
