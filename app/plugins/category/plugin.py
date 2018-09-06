@@ -30,16 +30,16 @@ def custom_list(sender, request, query_wrap, **kwargs):
             Category.slug == request.args['category'])
 
 
-@article_list_column_head.connect
-def article_list_column_head(sender, head):
+@article_signals.list_column_head.connect
+def article_list_column_head(sender, head, **kwargs):
     head.append('分类')
 
 
-@article_list_column.connect
-def article_list_column(sender, post, row):
-    row.append([Hyperlink('Hyperlink', category.name,
-                          url_for('.show_list', type='post', sub_type='article', category=category.slug)) for
-                category in post.categories])
+@article_signals.list_column.connect
+def article_list_column(sender, article, row, **kwargs):
+    row.append(
+        [Hyperlink('Hyperlink', category.name, article_instance.url_for('/list', category=category.slug)) for category
+         in article.categories])
 
 
 @article_search_select.connect
