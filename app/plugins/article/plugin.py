@@ -16,6 +16,7 @@ from ...element_models import Hyperlink, Plain, Datetime
 from ..models import Plugin
 
 article = Plugin('文章', 'article')
+article_instance = article
 
 
 @main.route('/archives/')
@@ -154,7 +155,9 @@ def article_list(request, templates, **kwargs):
             , Datetime('Datetime', article.timestamp)]
         signals.list_column.send(request=request, article=article, row=row)
         rows.append(row)
-    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), head=head, rows=rows))
+    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), head=head, rows=rows,
+                                     pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                                 'url_for': article_instance.url_for}))
 
 
 @article.route('admin', '/edit', '撰写文章')
