@@ -1,7 +1,7 @@
 from ...models import db, User, Role
 from ..comment.models import Comment
 from ..post.models import Post
-from flask import current_app, url_for, flash, request, jsonify
+from flask import current_app, url_for, flash, request, jsonify, render_template
 from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
 from ...main import main
 from flask_login import current_user
@@ -10,13 +10,19 @@ from ...utils import format_comments
 from . import signals
 from ...main.signals import index
 from ...admin.signals import sidebar, show_list, manage
-from ..article.signals import article, restore_article
-from ..page.signals import page, restore_page
+from ..article.signals import article
+from ..page.signals import page
 from datetime import datetime
 from ..article_contents.signals import article_contents_column_head, article_contents_column
 from ..article_list.signals import article_list_meta
 from ...plugins import add_template_file
 from pathlib import Path
+from ..models import Plugin
+import os.path
+from ..article.plugin import article as article_instance
+
+comment = Plugin('评论', 'comment')
+comment_instance = comment
 
 
 @main.route('/comment/<int:id>', methods=['POST'])
@@ -102,6 +108,39 @@ def manage(sender, form):
             flash(message)
 
 
+def delete(comment_id):
+    comment = Comment.query.get(comment_id)
+    comment_name = comment.body
+    db.session.delete(comment)
+    db.session.commit()
+    message = '已删除评论"' + comment_name + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
+
+
+@comment.route('admin', '/list', '管理评论')
+def list_tags(request, templates, scripts, meta, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+    else:
+        page = request.args.get('page', 1, type=int)
+        pagination = Comment.query.order_by(desc(Comment.timestamp)) \
+            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        comments = pagination.items
+        templates.append(
+            render_template(os.path.join('category', 'templates', 'list.html'), comment_instance=comment_instance,
+                            comments=comments,
+                            article_instance=article_instance,
+                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                        'url_for': comment_instance.url_for}))
+        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html')))
+
+
 @article.connect
 def article(sender, post, context, contents, article_metas, **kwargs):
     comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
@@ -127,7 +166,8 @@ def index(sender, context, right_widgets, **kwargs):
     add_template_file(right_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
 
 
-def restore_post(data, post):
+@signals.restore.connect
+def restore(sender, comments, restored_comments, **kwargs):
     def process_comments(comments, parent=0):
         for comment in comments:
             if type(comment['author']) is str:
@@ -139,23 +179,13 @@ def restore_post(data, post):
                 db.session.add(author)
                 db.session.flush()
             c = Comment.create(body=comment['body'], timestamp=datetime.utcfromtimestamp(comment['timestamp']),
-                               ip=comment['ip'], agent=comment['agent'], parent=parent, author=author, post=post)
+                               ip=comment['ip'], agent=comment['agent'], parent=parent, author=author)
             db.session.add(c)
             db.session.flush()
+            restored_comments.append(c)
             process_comments(comment['children'], parent=c.id)
 
-    if 'comments' in data:
-        process_comments(data['comments'])
-
-
-@restore_article.connect
-def restore_article(sender, data, article, **kwargs):
-    restore_post(data, article)
-
-
-@restore_page.connect
-def restore_page(sender, data, page, **kwargs):
-    restore_post(data, page)
+    process_comments(comments)
 
 
 @article_contents_column_head.connect

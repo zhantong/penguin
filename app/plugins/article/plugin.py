@@ -15,6 +15,7 @@ import os.path
 from ...element_models import Hyperlink, Plain, Datetime
 from ..models import Plugin
 from .models import Article, Status
+from ..comment import signals as comment_signals
 
 article = Plugin('文章', 'article')
 article_instance = article
@@ -124,7 +125,12 @@ def restore(sender, data, directory, **kwargs):
                         author=User.query.filter_by(username=article['author']).one())
             db.session.add(a)
             db.session.flush()
-            signals.restore_article.send(data=article, directory=directory, article=a)
+            if 'comments' in article:
+                restored_comments = []
+                comment_signals.restore.send(comments=article['comments'], restored_comments=restored_comments)
+                a.comments = restored_comments
+                db.session.flush()
+            signals.restore.send(data=article, directory=directory, article=a)
 
 
 @signals.article_list_url.connect

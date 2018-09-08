@@ -10,18 +10,16 @@ class Comment(db.Model):
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     ip = db.Column(db.String(64))
     agent = db.Column(db.String(200))
     parent = db.Column(db.Integer)
     author = db.relationship('User', backref='comments')
-    post = db.relationship('Post', backref='comments')
 
     @staticmethod
     def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None,
                post=None):
         filter_kwargs = {}
-        for param in ['id', 'body', 'body_html', 'timestamp', 'ip', 'agent', 'parent', 'author', 'post']:
+        for param in ['id', 'body', 'body_html', 'timestamp', 'ip', 'agent', 'parent', 'author']:
             if eval(param) is not None:
                 filter_kwargs[param] = eval(param)
         return Comment(**filter_kwargs)

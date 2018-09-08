@@ -11,6 +11,7 @@ from ...models import db, User
 from ...plugins import add_template_file
 from pathlib import Path
 from .models import Page, Status
+from ..comment import signals as comment_signals
 
 
 @main.route('/<string:slug>.html')
@@ -78,4 +79,9 @@ def restore(sender, data, directory, **kwargs):
                      author=User.query.filter_by(username=page['author']).one())
             db.session.add(p)
             db.session.flush()
-            signals.restore_page.send(data=page, directory=directory, page=p)
+            if 'comments' in page:
+                restored_comments = []
+                comment_signals.restore.send(comments=page['comments'], restored_comments=restored_comments)
+                p.comments = restored_comments
+                db.session.flush()
+            signals.restore.send(data=page, directory=directory, page=p)

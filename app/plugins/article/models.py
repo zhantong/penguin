@@ -6,6 +6,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from ...utils import slugify
 import markdown2
 import re
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import backref
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -49,6 +51,12 @@ class Status(db.Model):
         return Status.query.filter_by(key='draft').first()
 
 
+association_table = Table('article_comment_association', db.Model.metadata,
+                          Column('article_id', Integer, ForeignKey('articles.id')),
+                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
+                          )
+
+
 class Article(db.Model):
     __tablename__ = 'articles'
     __searchable__ = ['title', 'body']
@@ -65,6 +73,7 @@ class Article(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.relationship(Status, back_populates='articles')
     author = db.relationship('User', backref='articles')
+    comments = db.relationship('Comment', secondary=association_table, backref=backref('article', uselist=False))
 
     @hybrid_property
     def slug(self):

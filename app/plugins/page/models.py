@@ -5,6 +5,8 @@ from ...utils import slugify
 import markdown2
 import re
 from ...models import User
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import backref
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -38,6 +40,12 @@ class Status(db.Model):
         return Status.query.filter_by(key='draft').first()
 
 
+association_table = Table('page_comment_association', db.Model.metadata,
+                          Column('page_id', Integer, ForeignKey('pages.id')),
+                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
+                          )
+
+
 class Page(db.Model):
     __tablename__ = 'pages'
     id = db.Column(db.Integer, primary_key=True)
@@ -50,6 +58,7 @@ class Page(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.relationship(Status, back_populates='pages')
     author = db.relationship(User, backref='pages')
+    comments = db.relationship('Comment', secondary=association_table, backref=backref('page', uselist=False))
 
     @hybrid_property
     def slug(self):
