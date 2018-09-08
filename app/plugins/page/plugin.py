@@ -10,6 +10,7 @@ from datetime import datetime
 from ...models import db, User
 from ...plugins import add_template_file
 from pathlib import Path
+from .models import Page, Status
 
 
 @main.route('/<string:slug>.html')
@@ -72,11 +73,9 @@ def restore(sender, data, directory, **kwargs):
     if 'page' in data:
         pages = data['page']
         for page in pages:
-            p = Post.create()
-            p.update(title=page['title'], slug=page['slug'], post_type='page',
-                     body=page['body'],
-                     timestamp=datetime.utcfromtimestamp(page['timestamp']),
-                     post_status=PostStatus.published(), author=User.query.filter_by(username=page['author']).one())
+            p = Page(title=page['title'], slug=page['slug'], body=page['body'],
+                     timestamp=datetime.utcfromtimestamp(page['timestamp']), status=Status.published(),
+                     author=User.query.filter_by(username=page['author']).one())
             db.session.add(p)
             db.session.flush()
             signals.restore_page.send(data=page, directory=directory, page=p)

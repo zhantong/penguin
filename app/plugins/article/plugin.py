@@ -14,6 +14,7 @@ from pathlib import Path
 import os.path
 from ...element_models import Hyperlink, Plain, Datetime
 from ..models import Plugin
+from .models import Article, Status
 
 article = Plugin('文章', 'article')
 article_instance = article
@@ -118,11 +119,9 @@ def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']
         for article in articles:
-            a = Post.create()
-            a.update(title=article['title'], slug=article['slug'], post_type='article',
-                     body=article['body'],
-                     timestamp=datetime.utcfromtimestamp(article['timestamp']),
-                     post_status=PostStatus.published(), author=User.query.filter_by(username=article['author']).one())
+            a = Article(title=article['title'], slug=article['slug'], body=article['body'],
+                        timestamp=datetime.utcfromtimestamp(article['timestamp']), status=Status.published(),
+                        author=User.query.filter_by(username=article['author']).one())
             db.session.add(a)
             db.session.flush()
             signals.restore_article.send(data=article, directory=directory, article=a)
