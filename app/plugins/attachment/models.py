@@ -12,7 +12,6 @@ import shutil
 class Attachment(db.Model):
     __tablename__ = 'attachments'
     id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     original_filename = db.Column(db.String(200))
     filename = db.Column(db.String(200))
     file_path = db.Column(db.String(200))
@@ -21,10 +20,9 @@ class Attachment(db.Model):
     mime = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     md5 = db.Column(db.String(32))
-    post = db.relationship(Post, backref=backref('attachments', lazy='dynamic'))
 
     @staticmethod
-    def create(file_path, original_filename, file_extension, id=None, mime=None, timestamp=None, post=None):
+    def create(file_path, original_filename, file_extension, id=None, mime=None, timestamp=None):
         random_filename = uuid.uuid4().hex + '.' + file_extension
         if timestamp is not None:
             dt = timestamp
@@ -35,7 +33,7 @@ class Attachment(db.Model):
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
         shutil.copy(file_path, abs_file_path)
         filter_kwargs = {}
-        for param in ['id', 'mime', 'timestamp', 'post']:
+        for param in ['id', 'mime', 'timestamp']:
             if eval(param) is not None:
                 filter_kwargs[param] = eval(param)
         return Attachment(original_filename=original_filename, filename=random_filename, file_path=relative_file_path,

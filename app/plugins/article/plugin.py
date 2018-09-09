@@ -16,6 +16,7 @@ from ...element_models import Hyperlink, Plain, Datetime
 from ..models import Plugin
 from .models import Article, Status
 from ..comment import signals as comment_signals
+from ..attachment import signals as attachment_signals
 
 article = Plugin('文章', 'article')
 article_instance = article
@@ -129,6 +130,17 @@ def restore(sender, data, directory, **kwargs):
                 restored_comments = []
                 comment_signals.restore.send(comments=article['comments'], restored_comments=restored_comments)
                 a.comments = restored_comments
+                db.session.flush()
+            if 'attachments' in article:
+                def attachment_restored(attachment, attachment_name):
+                    a.body.replace(attachment['file_path'], attachment_name)
+                    db.session.flush()
+
+                restored_attachments = []
+                attachment_signals.restore.send(attachments=article['attachments'], directory=directory,
+                                                restored_attachments=restored_attachments,
+                                                attachment_restored=attachment_restored)
+                a.attachments = restored_attachments
                 db.session.flush()
             signals.restore.send(data=article, directory=directory, article=a)
 

@@ -1,4 +1,4 @@
-from ..article.signals import article, restore_article
+from ..article.signals import article
 from .models import ArticleCount
 from ...models import db
 import json
@@ -6,6 +6,7 @@ from ..article_contents.signals import article_contents_column_head, article_con
 from ..article_list.signals import article_list_meta
 from ...plugins import add_template_file
 from pathlib import Path
+from ..article import signals as article_signals
 
 
 @article.connect
@@ -24,10 +25,10 @@ def article(sender, post, context, article_metas, cookies, cookies_to_set, **kwa
     add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
-@restore_article.connect
-def restore_article(sender, data, article, **kwargs):
+@article_signals.restore.connect
+def article_restore(sender, data, article, **kwargs):
     if 'article_counts' in data:
-        ac = ArticleCount.create(post=article, view_count=data['article_counts']['view_count'])
+        ac = ArticleCount(article=article, view_count=data['article_counts']['view_count'])
         db.session.add(ac)
         db.session.flush()
 

@@ -53,6 +53,12 @@ def submit_comment(id):
     })
 
 
+def get_comment_show_info(comment):
+    info = {}
+    signals.get_comment_show_info.send(comment=comment, anchor='comment-' + str(comment.id), info=info)
+    return info
+
+
 @sidebar.connect
 def sidebar(sender, sidebars):
     add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
@@ -163,6 +169,7 @@ def page(sender, post, context, page_content, contents, scripts):
 def index(sender, context, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     context['comments'] = comments
+    context['get_comment_show_info'] = get_comment_show_info
     add_template_file(right_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
 
 

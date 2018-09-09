@@ -51,10 +51,15 @@ class Status(db.Model):
         return Status.query.filter_by(key='draft').first()
 
 
-association_table = Table('article_comment_association', db.Model.metadata,
-                          Column('article_id', Integer, ForeignKey('articles.id')),
-                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
-                          )
+article_comment_association_table = Table('article_comment_association', db.Model.metadata,
+                                          Column('article_id', Integer, ForeignKey('articles.id')),
+                                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
+                                          )
+
+article_attachment_association_table = Table('article_attachment_association', db.Model.metadata,
+                                             Column('article_id', Integer, ForeignKey('articles.id')),
+                                             Column('attachment_id', Integer, ForeignKey('attachments.id'))
+                                             )
 
 
 class Article(db.Model):
@@ -73,7 +78,9 @@ class Article(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.relationship(Status, back_populates='articles')
     author = db.relationship('User', backref='articles')
-    comments = db.relationship('Comment', secondary=association_table, backref=backref('article', uselist=False))
+    comments = db.relationship('Comment', secondary=article_comment_association_table,
+                               backref=backref('article', uselist=False))
+    attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
 
     @hybrid_property
     def slug(self):

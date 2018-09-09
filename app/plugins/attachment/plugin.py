@@ -9,12 +9,13 @@ from .. import plugin
 from ..post.models import Post
 from ..post.signals import update_post
 import re
-from ..page.signals import edit_page, restore_page
-from ..article.signals import edit_article, restore_article
+from ..page.signals import edit_page
+from ..article.signals import edit_article
 from datetime import datetime
 from ...plugins import add_template_file
 from pathlib import Path
 from ..article import signals as article_signals
+from . import signals
 
 
 @plugin.route('/attachment/static/<path:filename>')
@@ -99,29 +100,19 @@ def update_post(sender, post, **kwargs):
     db.session.commit()
 
 
-def restore_post(data, directory, post):
-    if 'attachments' in data:
-        for attachment in data['attachments']:
-            a = Attachment.create(file_path=os.path.join(directory, attachment['file_path'] if attachment['file_path'][
-                                                                                                   0] != '/' else
-            attachment['file_path'][1:]),
-                                  original_filename=attachment['original_filename'],
-                                  file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(),
-                                  mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']),
-                                  post=post)
-            db.session.add(a)
-            db.session.flush()
-            post.update(body=post.body.replace(attachment['file_path'], a.original_filename))
-
-
-@restore_article.connect
-def restore_article(sender, data, directory, article, **kwargs):
-    restore_post(data, directory, article)
-
-
-@restore_page.connect
-def restore_page(sender, data, directory, page, **kwargs):
-    restore_post(data, directory, page)
+@signals.restore.connect
+def restore(sender, attachments, directory, restored_attachments, attachment_restored, **kwargs):
+    for attachment in attachments:
+        a = Attachment.create(file_path=os.path.join(directory,
+                                                     attachment['file_path'] if attachment['file_path'][0] != '/' else
+                                                     attachment['file_path'][1:]),
+                              original_filename=attachment['original_filename'],
+                              file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(),
+                              mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']))
+        db.session.add(a)
+        db.session.flush()
+        restored_attachments.append(a)
+        attachment_restored(attachment, a.original_filename)
 
 
 @article_signals.show_edit_article_widget.connect

@@ -5,7 +5,7 @@ from flask import current_app, url_for, flash, render_template, jsonify, redirec
 from ...element_models import Hyperlink
 from ...utils import slugify
 from ..post.signals import post_keywords
-from ..article.signals import submit_article, edit_article, article, restore_article
+from ..article.signals import submit_article, edit_article, article
 from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
@@ -68,7 +68,7 @@ def article(sender, article_metas, **kwargs):
     add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
-@restore_article.connect
+@article_signals.restore.connect
 def restore_article(sender, data, article, **kwargs):
     if 'tags' in data:
         ts = []

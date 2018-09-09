@@ -8,7 +8,7 @@ from ...main.signals import index
 from ..post.signals import post_keywords, custom_list
 from ...admin.signals import sidebar, show_list, manage, edit, submit
 from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
-    article_search_select, article, restore_article
+    article_search_select, article
 from ...utils import slugify
 from ...signals import restore
 from ..article_list.signals import article_list_meta
@@ -73,8 +73,8 @@ def article(sender, article_metas, **kwargs):
     add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
-@restore_article.connect
-def restore_article(sender, data, article, **kwargs):
+@article_signals.restore.connect
+def article_restore(sender, data, article, **kwargs):
     if 'categories' in data:
         cs = []
         for category in data['categories']:
