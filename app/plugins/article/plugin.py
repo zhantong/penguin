@@ -133,6 +133,13 @@ def restore(sender, data, directory, **kwargs):
             signals.restore.send(data=article, directory=directory, article=a)
 
 
+@comment_signals.get_comment_show_info.connect
+def get_comment_show_info(sender, comment, anchor, info, **kwargs):
+    if comment.article is not None:
+        info['title'] = comment.article.title
+        info['url'] = url_for('.show_article', slug=comment.article.slug, _anchor=anchor)
+
+
 @signals.article_list_url.connect
 def article_list_url(sender, params, **kwargs):
     return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)

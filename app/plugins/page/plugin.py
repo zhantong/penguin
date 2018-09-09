@@ -85,3 +85,10 @@ def restore(sender, data, directory, **kwargs):
                 p.comments = restored_comments
                 db.session.flush()
             signals.restore.send(data=page, directory=directory, page=p)
+
+
+@comment_signals.get_comment_show_info.connect
+def get_comment_show_info(sender, comment, anchor, info, **kwargs):
+    if comment.page is not None:
+        info['title'] = comment.page.title
+        info['url'] = url_for('.show_page', slug=comment.page.slug, _anchor=anchor)

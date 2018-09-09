@@ -12,9 +12,10 @@
         <ul class="list-group">
             {% for comment in comments %}
                 <li class="list-group-item">
-                    <a href="{{ url_for('main.show_article', slug=comment.post.slug,_anchor='comment-' + comment.id|string) }}">
+                    {% set comment_info=get_comment_show_info(comment) %}
+                    <a href="{{ comment_info['url'] }}">
                         {{ comment.author.name }}
-                        <small>（{{ comment.post.title }}）</small>
+                        <small>（{{ comment_info['title'] }}）</small>
                         ：
                     </a>
                     {{ comment.body_html|safe }}
