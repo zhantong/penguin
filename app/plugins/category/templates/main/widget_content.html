@@ -13,7 +13,7 @@
             {% for category in all_category %}
                 <li class="list-group-item">
                     <a href="{{ url_for('.index',category=category.slug) }}">{{ category.name }}</a>
-                    <span class="badge">{{ category.posts|length }}</span>
+                    <span class="badge">{{ category.articles|length }}</span>
                 </li>
             {% endfor %}
         </ul>
