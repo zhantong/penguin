@@ -10,7 +10,7 @@ def navbar(sender, content, **kwargs):
 
 
 @custom_article_list.connect
-def custom_article_list(sender, args, query):
-    if 'search' in args and args['search'] != '':
-        search = args['search']
+def custom_article_list(sender, request, query, **kwargs):
+    if 'search' in request.args and request.args['search'] != '':
+        search = request.args['search']
         query['query'] = query['query'].whoosh_search(search)

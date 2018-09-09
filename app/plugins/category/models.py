@@ -1,6 +1,7 @@
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from ... import db
+from flask import url_for
 
 association_table = Table('article_category_association', db.Model.metadata,
                           Column('article_id', Integer, ForeignKey('articles.id')),
@@ -23,3 +24,9 @@ class Category(db.Model):
             if eval(param) is not None:
                 filter_kwargs[param] = eval(param)
         return Category(**filter_kwargs)
+
+    def get_info(self):
+        return {
+            'name': self.name,
+            'url': url_for('.index', category=self.slug)
+        }

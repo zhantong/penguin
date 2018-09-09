@@ -5,16 +5,15 @@ from flask import request, render_template
 
 @main.route('/')
 def index():
-    context = {}
-    styles = []
     contents = []
     left_widgets = []
     right_widgets = []
     scripts = []
-    signals.index.send(args=request.args, context=context, styles=styles, contents=contents, left_widgets=left_widgets,
-                       right_widgets=right_widgets, scripts=scripts)
-    return render_template('index.html', **request.args.to_dict(), **context, styles=styles, contents=contents,
-                           left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts)
+    styles = []
+    signals.index.send(request=request, contents=contents, left_widgets=left_widgets,
+                       right_widgets=right_widgets, scripts=scripts, styles=styles)
+    return render_template('index.html', contents=contents, left_widgets=left_widgets, right_widgets=right_widgets,
+                           scripts=scripts, styles=styles)
 
 
 @main.errorhandler(404)

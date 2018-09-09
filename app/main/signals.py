@@ -1,3 +1,3 @@
 from blinker import signal
 
-index = signal('index')
+index = signal('main.index')

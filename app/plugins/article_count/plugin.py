@@ -41,8 +41,3 @@ def article_contents_column_head(sender, column_heads, **kwargs):
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
     add_template_file(columns, Path(__file__), 'templates', 'main', 'article_contents_column.html')
-
-
-@article_list_meta.connect
-def article_list_meta(sender, metas, **kwargs):
-    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')

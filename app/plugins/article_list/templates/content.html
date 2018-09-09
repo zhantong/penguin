@@ -1,14 +1,14 @@
 {% import "_macros.html" as macros %}
 
 <div>
-    {% for post in posts %}
+    {% for article in articles %}
         <article>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a href="{{ url_for('main.show_article', slug=post.slug) }}">
+                    <a href="{{ url_for('main.show_article', slug=article.slug) }}">
                         <h4>
-                            {% if post.title %}
-                                {{ post.title }}
+                            {% if article.title %}
+                                {{ article.title }}
                             {% else %}
                                 （无标题）
                             {% endif %}
@@ -16,14 +16,32 @@
                     </a>
                 </div>
                 <div class="panel-body">
-                    {{ post.body_abstract }}
+                    {{ article.body_abstract }}
                 </div>
                 <div class="panel-footer">
                     <ul class="list-inline small">
-                        <li><i class="fa fa-calendar fa-fw"></i>{{ moment(post.timestamp).format('L') }}</li>
-                        {% for meta in metas %}
-                            {% include meta %}
-                        {% endfor %}
+                        <li>
+                            <i class="fa fa-calendar fa-fw"></i>
+                            {{ moment(article.timestamp).format('L') }}
+                        </li>
+                        <li>
+                            <i class="fa fa-heart fa-fw" title="阅读量"></i>
+                            <span class="badge">{{ article.article_count.get_view_count() }}</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-bookmark fa-fw" title="分类"></i>
+                            {% for category in article.categories %}
+                                {% set category_info=category.get_info() %}
+                                <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                                {% if not loop.last %}
+                                    ,
+                                {% endif %}
+                            {% endfor %}
+                        </li>
+                        <li>
+                            <i class="fa fa-comment fa-fw" title="评论数"></i>
+                            <span class="badge">{{ article.comments|length }}</span>
+                        </li>
                     </ul>
                 </div>
             </div>

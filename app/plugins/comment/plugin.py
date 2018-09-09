@@ -166,11 +166,11 @@ def page(sender, post, context, page_content, contents, scripts):
 
 
 @index.connect
-def index(sender, context, right_widgets, **kwargs):
+def index(sender, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
-    context['comments'] = comments
-    context['get_comment_show_info'] = get_comment_show_info
-    add_template_file(right_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
+    right_widgets.append(
+        render_template(os.path.join('comment', 'templates', 'main', 'widget_content.html'), comments=comments,
+                        get_comment_show_info=get_comment_show_info))
 
 
 @signals.restore.connect
@@ -203,8 +203,3 @@ def article_contents_column_head(sender, column_heads, **kwargs):
 @article_contents_column.connect
 def article_contents_column(sender, columns, **kwargs):
     add_template_file(columns, Path(__file__), 'templates', 'main', 'article_contents_column.html')
-
-
-@article_list_meta.connect
-def article_list_meta(sender, metas, **kwargs):
-    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')

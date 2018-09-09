@@ -57,10 +57,10 @@ def submit_article(sender, form, post):
 
 
 @index.connect
-def index(sender, context, left_widgets, **kwargs):
+def index(sender, left_widgets, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
-    context['all_category'] = all_category
-    add_template_file(left_widgets, Path(__file__), 'templates', 'main', 'widget_content.html')
+    left_widgets.append(render_template(os.path.join('category', 'templates', 'main', 'widget_content.html'),
+                                        all_category=all_category))
 
 
 @post_keywords.connect
@@ -100,11 +100,6 @@ def restore(sender, data, **kwargs):
                 db.session.flush()
             else:
                 c.description = category['description']
-
-
-@article_list_meta.connect
-def article_list_meta(sender, metas, **kwargs):
-    add_template_file(metas, Path(__file__), 'templates', 'main', 'article_list_meta.html')
 
 
 @article_signals.show_edit_article_widget.connect

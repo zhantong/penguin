@@ -3,31 +3,31 @@
 {% block styles %}
     {{ super() }}
     {% for style in styles %}
-        {% include style %}
+        {{ style|safe }}
     {% endfor %}
 {% endblock %}
 
 {% block main %}
     {% for content in contents %}
-        {% include content %}
+        {{ content|safe }}
     {% endfor %}
 {% endblock %}
 
 {% block sidebar_left %}
     {% for left_widget in left_widgets %}
-        {% include left_widget %}
+        {{ left_widget|safe }}
     {% endfor %}
 {% endblock %}
 
 {% block sidebar_right %}
     {% for right_widget in right_widgets %}
-        {% include right_widget %}
+        {{ right_widget|safe }}
     {% endfor %}
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     {% for script in scripts %}
-        {% include script %}
+        {{ script|safe }}
     {% endfor %}
 {% endblock %}

@@ -9,3 +9,6 @@ class ArticleCount(db.Model):
     article_id = db.Column(db.Integer, ForeignKey('articles.id'))
     article = relationship('Article', backref=backref('article_count', uselist=False))
     view_count = db.Column(db.Integer, default=0)
+
+    def get_view_count(self):
+        return self.view_count
