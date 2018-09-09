@@ -1,3 +1,8 @@
+from ..models import Plugin
+
+article = Plugin('文章', 'article')
+article_instance = article
+
 from . import signals, meta
 from ..post.models import Post, PostStatus
 from ...main import main
@@ -13,13 +18,10 @@ from ...plugins import add_template_file
 from pathlib import Path
 import os.path
 from ...element_models import Hyperlink, Plain, Datetime
-from ..models import Plugin
+
 from .models import Article, Status
 from ..comment import signals as comment_signals
 from ..attachment import signals as attachment_signals
-
-article = Plugin('文章', 'article')
-article_instance = article
 
 
 @main.route('/archives/')

@@ -5,7 +5,7 @@
         <article>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a href="{{ post.url() }}">
+                    <a href="{{ url_for('main.show_article', slug=post.slug) }}">
                         <h4>
                             {% if post.title %}
                                 {{ post.title }}
