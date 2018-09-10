@@ -1,18 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}{{ post.title }} - Penguin{% endblock %}
+{% block title %}{{ article.title }} - Penguin{% endblock %}
 
 {% block metas %}
     {{ super() }}
-    <meta name="description" content="{{ post.body_abstract[:100]|replace('\n',' ') }}"/>
-    <meta name="keywords" content="{{ post.keywords()|join(',') }}"/>
-    <meta name="author" content="{{ post.author.name }}"/>
+    <meta name="description" content="{{ article.body_abstract[:100]|replace('\n',' ') }}"/>
+    {% set keywords=[] %}
+    {% for category in article.categories %}
+        {% do keywords.append(category.get_info()['name']) %}
+    {% endfor %}
+    {% for tag in article.tags %}
+        {% do keywords.append(tag.get_info()['name']) %}
+    {% endfor %}
+    <meta name="keywords" content="{{ keywords|join(',') }}"/>
+    <meta name="author" content="{{ article.author.name }}"/>
 {% endblock %}
 
 {% block styles %}
     {{ super() }}
     {% for style in styles %}
-        {% include style %}
+        {{ style|safe }}
     {% endfor %}
     <style type="text/css">
         article img {
@@ -35,42 +42,62 @@
 
 {% block main %}
     <article class="post">
-        <h1>{{ post.title }}</h1>
+        <h1>{{ article.title }}</h1>
         <ul class="meta">
             <li>
                 <i class="fa fa-calendar fa-fw" title="发表时间"></i>
-                {{ moment(post.timestamp).format('L') }}
+                {{ moment(article.timestamp).format('L') }}
             </li>
             <li>
                 <i class="fa fa-share-alt fa-fw" title="短链接"></i>
-                {{ url_for('.show_article_by_number', number=post.number, _external=True) }}
+                {{ url_for('.show_article_by_number', number=article.number, _external=True) }}
             </li>
-            {% for article_meta in article_metas %}
-                {% include article_meta %}
-            {% endfor %}
+            <li>
+                <i class="fa fa-bookmark fa-fw" title="分类"></i>
+                {% for category in article.categories %}
+                    {% set category_info=category.get_info() %}
+                    <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                    {% if not loop.last %}
+                        ,
+                    {% endif %}
+                {% endfor %}
+            </li>
+            <li>
+                <i class="fa fa-tag fa-fw" title="标签"></i>
+                {% for tag in article.tags %}
+                    {% set tag_info=tag.get_info() %}
+                    <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
+                    {% if not loop.last %}
+                        ,
+                    {% endif %}
+                {% endfor %}
+            </li>
+            <li>
+                <i class="fa fa-comment fa-fw" title="评论数"></i>
+                <span class="badge">{{ article.comments|length }}</span>
+            </li>
+            <li>
+                <i class="fa fa-heart fa-fw" title="阅读量"></i>
+                <span class="badge">{{ article.article_count.get_view_count() }}</span>
+            </li>
         </ul>
-        {% for before_content in before_contents %}
-            {% include before_content %}
-        {% endfor %}
         <div>
-            {% include article_content %}
+            {{ article.body_html | safe }}
         </div>
     </article>
-    {% for content in contents %}
-        {% include content %}
-    {% endfor %}
+    {{ rendered_comments|safe }}
 {% endblock %}
 
 {% block sidebar_left %}
     {% for left_widget in left_widgets %}
-        {% include left_widget %}
+        {{ left_widget|safe }}
     {% endfor %}
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     {% for script in scripts %}
-        {% include script %}
+        {{ script|safe }}
     {% endfor %}
     <script>
         $('a.reply-comment').click(function (event) {
@@ -87,7 +114,7 @@
                     xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
                 },
                 type: 'POST',
-                url: '{{ url_for('.submit_comment',id=post.id) }}',
+                url: '{{ url_for('.submit_comment',id=article.id) }}',
                 data: {
                     parent: $('#comment-parent').val(),
                     name: $('#comment-name').val(),

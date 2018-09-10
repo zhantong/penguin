@@ -2,16 +2,23 @@ from ..post.models import Post
 from ..article.signals import article
 from ...plugins import add_template_file
 from pathlib import Path
+from ..article.models import Article
+from flask import render_template
+import os.path
+from ..article import signals as article_signals
 
 
-@article.connect
-def article(sender, post, context, left_widgets, **kwargs):
+@article_signals.show.connect
+def article_show(sender, article, left_widgets, **kwargs):
     prev_next_articles = []
-    prev_article = Post.query.filter(Post.timestamp < post.timestamp).order_by(Post.timestamp.desc()).limit(1).first()
+    prev_article = Article.query.filter(Article.timestamp < article.timestamp).order_by(Article.timestamp.desc()).limit(
+        1).first()
     if prev_article is not None:
         prev_next_articles.append(prev_article)
-    next_article = Post.query.filter(Post.timestamp > post.timestamp).order_by(Post.timestamp).limit(1).first()
+    next_article = Article.query.filter(Article.timestamp > article.timestamp).order_by(Article.timestamp).limit(
+        1).first()
     if next_article is not None:
         prev_next_articles.append(next_article)
-    context['prev_next_articles'] = prev_next_articles
-    add_template_file(left_widgets, Path(__file__), 'templates', 'widget_content.html')
+    left_widgets.append(
+        render_template(os.path.join('prev_next_articles', 'templates', 'widget_content.html'), article=article,
+                        prev_next_articles=prev_next_articles))

@@ -131,12 +131,12 @@ def submit(sender, args, form, **kwargs):
     db.session.commit()
 
 
-@article.connect
-def article(sender, post, context, article_content, **kwargs):
-    if post.template is not None:
-        template = Jinja2Tempalte(post.template.body)
-        article_content['article_content'] = template
-        context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})
+# @article.connect
+# def article(sender, post, context, article_content, **kwargs):
+#     if post.template is not None:
+#         template = Jinja2Tempalte(post.template.body)
+#         article_content['article_content'] = template
+#         context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})
 
 
 @page.connect

@@ -1,10 +1,13 @@
 from ..article.signals import article
 from ...plugins import add_template_file
 from pathlib import Path
+from ..article import signals as article_signals
+from flask import render_template
+import os.path
 
 
-@article.connect
-def article(sender, styles, left_widgets, scripts, **kwargs):
-    add_template_file(styles, Path(__file__), 'templates', 'widget_style_toc.html')
-    add_template_file(left_widgets, Path(__file__), 'templates', 'widget_content_toc.html')
-    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_toc.html')
+@article_signals.show.connect
+def article_show(sender, article, left_widgets, scripts, styles, **kwargs):
+    left_widgets.append(render_template(os.path.join('toc', 'templates', 'widget_content_toc.html'), article=article))
+    scripts.append(render_template(os.path.join('toc', 'templates', 'widget_script_toc.html')))
+    styles.append(render_template(os.path.join('toc', 'templates', 'widget_style_toc.html')))

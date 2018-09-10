@@ -31,28 +31,20 @@ def show_none_post():
 
 @main.route('/archives/<string:slug>.html')
 def show_article(slug):
-    args = request.args
-    cookies = request.cookies
-    post = Post.query.filter_by(slug=slug).first_or_404()
-    context = {}
-    styles = []
-    before_contents = []
-    contents = []
+    article = Article.query.filter_by(slug=slug).first_or_404()
     left_widgets = []
     right_widgets = []
     scripts = []
+    styles = []
     cookies_to_set = {}
-    article_metas = []
-    article_content = {'article_content': Path('article', 'templates', 'article_content.html').as_posix()}
-    signals.article.send(args=args, cookies=cookies, post=post, context=context, article_content=article_content,
-                         styles=styles, before_contents=before_contents, contents=contents, article_metas=article_metas,
-                         left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
-                         cookies_to_set=cookies_to_set)
-    resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), **context, post=post,
-                                         article_content=article_content['article_content'], styles=styles,
-                                         before_contents=before_contents, contents=contents,
-                                         article_metas=article_metas, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, scripts=scripts))
+    rendered_comments = {}
+    comment_signals.get_rendered_comments.send(comments=article.comments, rendered_comments=rendered_comments)
+    rendered_comments = rendered_comments['rendered_comments']
+    signals.show.send(request=request, article=article, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
+                      right_widgets=right_widgets, scripts=scripts, styles=styles)
+    resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), article=article,
+                                         rendered_comments=rendered_comments, left_widgets=left_widgets,
+                                         right_widgets=right_widgets, scripts=scripts, styles=styles))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp

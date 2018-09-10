@@ -146,15 +146,11 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html')))
 
 
-@article.connect
-def article(sender, post, context, contents, article_metas, **kwargs):
-    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
-    count_comment = len(comments)
-    context['comments'] = format_comments(comments)
-    add_template_file(contents, Path(__file__), 'templates', 'comment.html')
-
-    context['count_comment'] = count_comment
-    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
+@signals.get_rendered_comments.connect
+def get_rendered_comments(sender, comments, rendered_comments, **kwargs):
+    comments = format_comments(comments)
+    rendered_comments['rendered_comments'] = render_template(os.path.join('comment', 'templates', 'comment.html'),
+                                                             comments=comments)
 
 
 @page.connect

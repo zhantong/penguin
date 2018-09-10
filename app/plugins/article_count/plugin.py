@@ -8,20 +8,18 @@ from pathlib import Path
 from ..article import signals as article_signals
 
 
-@article.connect
-def article(sender, post, context, article_metas, cookies, cookies_to_set, **kwargs):
-    article_count_viewed_articles = cookies.get('article_count_viewed_articles')
+@article_signals.show.connect
+def article_show(sender, request, article, cookies_to_set, **kwargs):
+    article_count_viewed_articles = request.cookies.get('article_count_viewed_articles')
     if article_count_viewed_articles is None:
         article_count_viewed_articles = []
     else:
         article_count_viewed_articles = json.loads(article_count_viewed_articles)
-    if post.id not in article_count_viewed_articles:
-        post.article_count.view_count += 1
+    if article.id not in article_count_viewed_articles:
+        article.article_count.view_count += 1
         db.session.commit()
-        article_count_viewed_articles.append(post.id)
+        article_count_viewed_articles.append(article.id)
         cookies_to_set['article_count_viewed_articles'] = json.dumps(article_count_viewed_articles)
-    context['view_count'] = post.article_count.view_count
-    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
 
 
 @article_signals.restore.connect

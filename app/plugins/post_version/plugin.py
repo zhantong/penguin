@@ -25,14 +25,14 @@ def submit_article(sender, form, post, **kwargs):
         db.session.commit()
 
 
-@article.connect
-def article(sender, args, post, context, article_content, before_contents, **kwargs):
-    context['post_versions'] = post.post_versions
-    add_template_file(before_contents, Path(__file__), 'templates', 'main', 'content.html')
-    if 'post_version' in args:
-        context['versioned_post'] = PostVersion.query.get(args.get('post_version', int))
-        article_content['article_content'] = Path('post_version', 'templates', 'main',
-                                                  'article_content.html').as_posix()
+# @article.connect
+# def article(sender, args, post, context, article_content, before_contents, **kwargs):
+#     context['post_versions'] = post.post_versions
+#     add_template_file(before_contents, Path(__file__), 'templates', 'main', 'content.html')
+#     if 'post_version' in args:
+#         context['versioned_post'] = PostVersion.query.get(args.get('post_version', int))
+#         article_content['article_content'] = Path('post_version', 'templates', 'main',
+#                                                   'article_content.html').as_posix()
 
 
 @sidebar.connect

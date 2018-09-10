@@ -63,11 +63,6 @@ def post_keywords(sender, post, keywords, **kwargs):
     keywords.extend(category.name for category in post.categories)
 
 
-@article.connect
-def article(sender, article_metas, **kwargs):
-    add_template_file(article_metas, Path(__file__), 'templates', 'main', 'article_meta.html')
-
-
 @article_signals.restore.connect
 def restore_article(sender, data, article, **kwargs):
     if 'tags' in data:
