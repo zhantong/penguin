@@ -2,7 +2,6 @@ from ..article.signals import article
 from .models import ArticleCount
 from ...models import db
 import json
-from ..article_contents.signals import article_contents_column_head, article_contents_column
 from ..article_list.signals import article_list_meta
 from ...plugins import add_template_file
 from pathlib import Path
@@ -31,13 +30,3 @@ def article_restore(sender, data, article, **kwargs):
         ac = ArticleCount(article=article, view_count=data['article_counts']['view_count'])
         db.session.add(ac)
         db.session.flush()
-
-
-@article_contents_column_head.connect
-def article_contents_column_head(sender, column_heads, **kwargs):
-    add_template_file(column_heads, Path(__file__), 'templates', 'main', 'article_contents_column_head.html')
-
-
-@article_contents_column.connect
-def article_contents_column(sender, columns, **kwargs):
-    add_template_file(columns, Path(__file__), 'templates', 'main', 'article_contents_column.html')

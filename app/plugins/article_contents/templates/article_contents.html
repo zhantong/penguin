@@ -10,9 +10,8 @@
             <tr class="small">
                 <th>发表时间<i class="fa fa-sort fa-fw"></i></th>
                 <th>标题</th>
-                {% for column_head in column_heads %}
-                    {% include column_head %}
-                {% endfor %}
+                <th>评论<i class="fa fa-sort fa-fw"></i></th>
+                <th>阅读<i class="fa fa-sort fa-fw"></i></th>
             </tr>
             </thead>
             {% for article in articles %}
@@ -23,9 +22,12 @@
                     <td>
                         <a href="{{ url_for('main.show_article', slug=article.slug) }}">{{ article.title }}</a>
                     </td>
-                    {% for column in columns %}
-                        {% include column %}
-                    {% endfor %}
+                    <td>
+                        <span class="badge" title="评论量">{{ article.comments|length }}</span>
+                    </td>
+                    <td>
+                        <span class="badge" title="阅读量">{{ article.article_count.get_view_count() }}</span>
+                    </td>
                 </tr>
             {% endfor %}
         </table>
