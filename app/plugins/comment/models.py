@@ -16,8 +16,7 @@ class Comment(db.Model):
     author = db.relationship('User', backref='comments')
 
     @staticmethod
-    def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None,
-               post=None):
+    def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None):
         filter_kwargs = {}
         for param in ['id', 'body', 'body_html', 'timestamp', 'ip', 'agent', 'parent', 'author']:
             if eval(param) is not None:

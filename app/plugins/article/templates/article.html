@@ -99,32 +99,4 @@
     {% for script in scripts %}
         {{ script|safe }}
     {% endfor %}
-    <script>
-        $('a.reply-comment').click(function (event) {
-            event.preventDefault();
-            $('#new-comment').detach().insertAfter($(event.target).parent());
-            console.log($(event.target));
-            $('#comment-parent').val($(event.target).data('parent'));
-        });
-        $('#comment-submit').click(function (event) {
-            event.preventDefault();
-            $(this).prop('disabled', true);
-            $.ajax({
-                beforeSend: function (xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
-                },
-                type: 'POST',
-                url: '{{ url_for('.submit_comment',id=article.id) }}',
-                data: {
-                    parent: $('#comment-parent').val(),
-                    name: $('#comment-name').val(),
-                    email: $('#comment-email').val(),
-                    body: $('#comment-body').val(),
-                    success: function (msg) {
-                        location.reload();
-                    }
-                }
-            });
-        })
-    </script>
 {% endblock %}

@@ -19,14 +19,15 @@ from pathlib import Path
 from ..models import Plugin
 import os.path
 from ..article.plugin import article as article_instance
+import json
 
 comment = Plugin('评论', 'comment')
 comment_instance = comment
 
 
-@main.route('/comment/<int:id>', methods=['POST'])
-def submit_comment(id):
-    post = Post.query.get_or_404(id)
+@main.route('/comment', methods=['POST'])
+def submit_comment():
+    meta = json.loads(request.form.get('meta', type=str))
     parent = request.form.get('parent', type=int)
     name = request.form.get('name', type=str)
     email = request.form.get('email', None, type=str)
@@ -42,9 +43,10 @@ def submit_comment(id):
     else:
         ip = request.remote_addr
     agent = request.user_agent.string
-    comment = Comment.create(body=body, parent=parent, author=author, post=post, ip=ip, agent=agent)
+    comment = Comment(body=body, parent=parent, author=author, ip=ip, agent=agent)
     db.session.add(comment)
     db.session.commit()
+    signals.on_new_comment.send(comment=comment, meta=meta)
     signals.comment_submitted.send(comment=comment)
     return jsonify({
         'code': 0,
@@ -143,14 +145,15 @@ def list_tags(request, templates, scripts, meta, **kwargs):
                             article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': comment_instance.url_for}))
-        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html')))
+        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html'), meta=meta))
 
 
 @signals.get_rendered_comments.connect
-def get_rendered_comments(sender, comments, rendered_comments, **kwargs):
+def get_rendered_comments(sender, comments, rendered_comments, scripts, meta, **kwargs):
     comments = format_comments(comments)
     rendered_comments['rendered_comments'] = render_template(os.path.join('comment', 'templates', 'comment.html'),
-                                                             comments=comments)
+                                                             comments=comments, meta=meta)
+    scripts.append(render_template(os.path.join('comment', 'templates', 'comment.js.html'), meta=meta))
 
 
 @page.connect

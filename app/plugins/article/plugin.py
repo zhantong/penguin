@@ -38,7 +38,9 @@ def show_article(slug):
     styles = []
     cookies_to_set = {}
     rendered_comments = {}
-    comment_signals.get_rendered_comments.send(comments=article.comments, rendered_comments=rendered_comments)
+    comment_signals.get_rendered_comments.send(comments=article.comments, rendered_comments=rendered_comments,
+                                               scripts=scripts, styles=styles,
+                                               meta={'type': 'article', 'article_id': article.id})
     rendered_comments = rendered_comments['rendered_comments']
     signals.show.send(request=request, article=article, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
                       right_widgets=right_widgets, scripts=scripts, styles=styles)
@@ -191,3 +193,12 @@ def edit_article(request, templates, scripts, csss, **kwargs):
     templates.append(render_template(os.path.join('article', 'templates', 'edit.html'), post=post, widgets=widgets))
     scripts.append(render_template(os.path.join('article', 'templates', 'edit.js.html'), post=post, widgets=widgets))
     csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))
+
+
+@comment_signals.on_new_comment.connect
+def on_new_comment(sender, comment, meta, **kwargs):
+    if 'type' in meta and meta['type'] == 'article':
+        article_id = int(meta['article_id'])
+        article = Article.query.get(article_id)
+        article.comments.append(comment)
+        db.session.commit()
