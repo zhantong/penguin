@@ -27,7 +27,8 @@ def attachment_static(filename):
 def show_attachment(filename):
     attachment = Attachment.query.filter_by(filename=filename).first()
     path = attachment.file_path
-    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
+    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path,
+                               as_attachment=True, attachment_filename=attachment.original_filename)
 
 
 @admin.route('/upload', methods=['POST'])
