@@ -23,9 +23,9 @@ def attachment_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/attachments/<int:post_id>/<string:filename>')
-def show_attachment(post_id, filename):
-    attachment = Attachment.query.filter_by(post_id=post_id, original_filename=filename).first()
+@main.route('/attachments/<string:filename>')
+def show_attachment(filename):
+    attachment = Attachment.query.filter_by(filename=filename).first()
     path = attachment.file_path
     return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path)
 
@@ -112,7 +112,7 @@ def restore(sender, attachments, directory, restored_attachments, attachment_res
         db.session.add(a)
         db.session.flush()
         restored_attachments.append(a)
-        attachment_restored(attachment, a.original_filename)
+        attachment_restored(attachment, a.filename)
 
 
 @article_signals.show_edit_article_widget.connect

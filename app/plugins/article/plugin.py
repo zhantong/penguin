@@ -127,7 +127,7 @@ def restore(sender, data, directory, **kwargs):
                 db.session.flush()
             if 'attachments' in article:
                 def attachment_restored(attachment, attachment_name):
-                    a.body.replace(attachment['file_path'], attachment_name)
+                    a.body = a.body.replace(attachment['file_path'], '/attachments/' + attachment_name)
                     db.session.flush()
 
                 restored_attachments = []
