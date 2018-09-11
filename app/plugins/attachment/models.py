@@ -13,7 +13,7 @@ class Attachment(db.Model):
     __tablename__ = 'attachments'
     id = db.Column(db.Integer, primary_key=True)
     original_filename = db.Column(db.String(200))
-    filename = db.Column(db.String(200))
+    filename = db.Column(db.String(200), unique=True)
     file_path = db.Column(db.String(200))
     file_extension = db.Column(db.String(32))
     file_size = db.Column(db.Integer)
