@@ -5,14 +5,72 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 import sys
-from flask import current_app
+from flask import current_app, url_for
 from ..comment.signals import comment_submitted
-from .models import CommentToMail
+from .models import CommentToMail, OAuth2Token
 from ...models import db
 from threading import Thread
 from ...admin.signals import sidebar, edit, submit
 from ...plugins import add_template_file
 from pathlib import Path
+from ... import signals as app_signals
+from authlib.flask.client import OAuth
+from ..models import Plugin
+
+comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
+comment_to_mail_instance = comment_to_mail
+
+oauth = OAuth()
+
+
+@app_signals.init_app.connect
+def init_app(sender, app, **kwargs):
+    oauth.init_app(app)
+
+    oauth.register('microsoft',
+                   client_id='4859a905-c6f4-4b9f-8e65-69f8b02eb26b',
+                   client_secret='secret',
+                   authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+                   authorize_params={'response_type': 'code',
+                                     'response_mode': 'query'},
+                   access_token_url='https://login.microsoftonline.com/common/oauth2/v2.0/token',
+                   client_kwargs={'scope': 'User.Read'},
+                   api_base_url='https://graph.microsoft.com/v1.0/',
+                   save_request_token=save_request_token,
+                   fetch_request_token=fetch_request_token
+                   )
+
+
+def save_request_token(token):
+    print('save')
+    print(token)
+
+
+def fetch_request_token():
+    item = OAuth2Token.query.filter_by(
+        name='microsoft'
+    ).first()
+    print('fetch')
+    return item.to_token()
+
+
+@comment_to_mail.route('admin', '/list', '管理')
+def article_list(request, templates, meta, **kwargs):
+    meta['override_render'] = True
+    templates.append(oauth.microsoft.authorize_redirect(
+        redirect_uri=url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[1:]))
+
+
+@comment_to_mail.route('admin', '/authorize')
+def authorize(request, **kwargs):
+    # token = oauth.microsoft.authorize_access_token()
+    # print(token)
+    print(oauth.microsoft.get('me').json())
+
+
+@comment_to_mail.route('admin', '/me', '我')
+def me(request, **kwargs):
+    print(oauth.microsoft.get('me').json())
 
 
 def _format_address(s):
