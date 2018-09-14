@@ -5,7 +5,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 import sys
-from flask import current_app, url_for
+from flask import current_app, url_for, redirect
 from ..comment.signals import comment_submitted
 from .models import CommentToMail, OAuth2Token
 from ...models import db
@@ -14,63 +14,58 @@ from ...admin.signals import sidebar, edit, submit
 from ...plugins import add_template_file
 from pathlib import Path
 from ... import signals as app_signals
-from authlib.flask.client import OAuth
 from ..models import Plugin
+import urllib.request
+import time
+import urllib.parse
+import json
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
 
-oauth = OAuth()
+opener = urllib.request.build_opener()
 
 
-@app_signals.init_app.connect
-def init_app(sender, app, **kwargs):
-    oauth.init_app(app)
+def authorized_required(func):
+    def decorated_view(*args, **kwargs):
+        token = OAuth2Token.query.filter_by(name='microsoft').first()
+        if token is None or token.expires_at - 10 < int(time.time()):
+            kwargs['meta']['override_render'] = True
+            kwargs['templates'].append(redirect(
+                'https://login.microsoftonline.com/common/oauth2/v2.0/authorize' + '?' + urllib.parse.urlencode(
+                    {'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b', 'response_type': 'code',
+                     'redirect_uri': url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[
+                                                                             1:], 'response_mode': 'query',
+                     'scope': 'User.Read'})))
+            return
+        return func(*args, **kwargs)
 
-    oauth.register('microsoft',
-                   client_id='4859a905-c6f4-4b9f-8e65-69f8b02eb26b',
-                   client_secret='secret',
-                   authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
-                   authorize_params={'response_type': 'code',
-                                     'response_mode': 'query'},
-                   access_token_url='https://login.microsoftonline.com/common/oauth2/v2.0/token',
-                   client_kwargs={'scope': 'User.Read'},
-                   api_base_url='https://graph.microsoft.com/v1.0/',
-                   save_request_token=save_request_token,
-                   fetch_request_token=fetch_request_token
-                   )
-
-
-def save_request_token(token):
-    print('save')
-    print(token)
+    return decorated_view
 
 
-def fetch_request_token():
-    item = OAuth2Token.query.filter_by(
-        name='microsoft'
-    ).first()
-    print('fetch')
-    return item.to_token()
-
-
-@comment_to_mail.route('admin', '/list', '管理')
+@comment_to_mail.route('admin', '/manage', '管理')
+@authorized_required
 def article_list(request, templates, meta, **kwargs):
-    meta['override_render'] = True
-    templates.append(oauth.microsoft.authorize_redirect(
-        redirect_uri=url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[1:]))
+    pass
 
 
 @comment_to_mail.route('admin', '/authorize')
 def authorize(request, **kwargs):
-    # token = oauth.microsoft.authorize_access_token()
-    # print(token)
-    print(oauth.microsoft.get('me').json())
+    code = request.args['code']
+    with urllib.request.urlopen('https://login.microsoftonline.com/common/oauth2/v2.0/token',
+                                data=urllib.parse.urlencode({'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b',
+                                                             'grant_type': 'authorization_code', 'scope': 'User.Read',
+                                                             'code': code, 'redirect_uri': url_for('main.index',
+                                                                                                   _external=True) + comment_to_mail.url_for(
+                                        '/authorize')[1:],
+                                                             'client_secret': 'llhHLBNK2(_inmnZV1561]}'}).encode()) as f:
+        result = json.loads(f.read().decode())
+        print(result)
 
 
 @comment_to_mail.route('admin', '/me', '我')
 def me(request, **kwargs):
-    print(oauth.microsoft.get('me').json())
+    pass
 
 
 def _format_address(s):
