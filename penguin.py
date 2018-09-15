@@ -70,3 +70,7 @@ def show_signals():
                 func = func()
             print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ',
                   inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
+
+
+if __name__ == '__main__':
+    app.run(ssl_context='adhoc')
