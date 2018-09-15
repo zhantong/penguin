@@ -27,6 +27,8 @@ class Plugin:
         self.routes[rule].func(**kwargs)
 
     def url_for(self, rule, **values):
+        if len(values) == 0:
+            return self.routes[rule].path()
         return self.routes[rule].path() + '?' + urlencode(values)
 
 

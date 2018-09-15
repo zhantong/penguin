@@ -38,19 +38,15 @@ def authorized_required(func):
                                                                              1:], 'response_mode': 'query',
                      'scope': 'User.Read'})))
             return
+        else:
+            opener.addheaders = [('Authorization', token.token_type + ' ' + token.access_token)]
         return func(*args, **kwargs)
 
     return decorated_view
 
 
-@comment_to_mail.route('admin', '/manage', '管理')
-@authorized_required
-def article_list(request, templates, meta, **kwargs):
-    pass
-
-
 @comment_to_mail.route('admin', '/authorize')
-def authorize(request, **kwargs):
+def authorize(request, meta, templates, **kwargs):
     code = request.args['code']
     with urllib.request.urlopen('https://login.microsoftonline.com/common/oauth2/v2.0/token',
                                 data=urllib.parse.urlencode({'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b',
@@ -60,12 +56,25 @@ def authorize(request, **kwargs):
                                         '/authorize')[1:],
                                                              'client_secret': 'llhHLBNK2(_inmnZV1561]}'}).encode()) as f:
         result = json.loads(f.read().decode())
-        print(result)
+        token = OAuth2Token.query.filter_by(name='microsoft').first()
+        if token is None:
+            token = OAuth2Token(name='microsoft')
+            db.session.add(token)
+            db.session.flush()
+        token.token_type = result['token_type']
+        token.access_token = result['access_token']
+        token.expires_at = int(time.time()) + result['expires_in']
+        db.session.commit()
+        opener.addheaders = [('Authorization', token.token_type + ' ' + token.access_token)]
+    meta['override_render'] = True
+    templates.append(redirect(comment_to_mail.url_for('/me')))
 
 
 @comment_to_mail.route('admin', '/me', '我')
+@authorized_required
 def me(request, **kwargs):
-    pass
+    with opener.open('https://graph.microsoft.com/v1.0/me') as f:
+        print(f.read().decode())
 
 
 def _format_address(s):

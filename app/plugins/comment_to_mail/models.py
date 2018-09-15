@@ -10,3 +10,13 @@ class CommentToMail(db.Model):
     is_sent = db.Column(db.Boolean, default=False)
     log = db.Column(db.Text)
     comment = db.relationship('Comment', backref='comment_to_mail')
+
+
+class OAuth2Token(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False, unique=True)
+
+    token_type = db.Column(db.String(20))
+    access_token = db.Column(db.String(48))
+    refresh_token = db.Column(db.String(48))
+    expires_at = db.Column(db.Integer)
