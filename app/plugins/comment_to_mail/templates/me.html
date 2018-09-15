@@ -1,0 +1,23 @@
+{% if me is not none %}
+    <table class="table table-striped">
+        <tbody>
+        <tr>
+            <td>昵称</td>
+            <td>{{ me['displayName'] }}</td>
+        </tr>
+        <tr>
+            <td>用户名</td>
+            <td>{{ me['userPrincipalName'] }}</td>
+        </tr>
+        <tr>
+            <td>ID</td>
+            <td>{{ me['id'] }}</td>
+        </tr>
+        </tr>
+        <tr>
+            <td>邮箱</td>
+            <td>{{ me['mail'] }}</td>
+        </tr>
+        </tbody>
+    </table>
+{% endif %}

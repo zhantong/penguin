@@ -5,7 +5,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 import sys
-from flask import current_app, url_for, redirect
+from flask import current_app, url_for, redirect, render_template
 from ..comment.signals import comment_submitted
 from .models import CommentToMail, OAuth2Token
 from ...models import db
@@ -72,9 +72,10 @@ def authorize(request, meta, templates, **kwargs):
 
 @comment_to_mail.route('admin', '/me', '我')
 @authorized_required
-def me(request, **kwargs):
+def me(templates, **kwargs):
     with opener.open('https://graph.microsoft.com/v1.0/me') as f:
-        print(f.read().decode())
+        me = json.loads(f.read().decode())
+    templates.append(render_template(os.path.join('comment_to_mail', 'templates', 'me.html'), me=me))
 
 
 def _format_address(s):
