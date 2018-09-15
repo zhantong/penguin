@@ -19,6 +19,7 @@ import urllib.request
 import time
 import urllib.parse
 import json
+import urllib.error
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -31,18 +32,24 @@ def authorized_required(func):
         token = OAuth2Token.query.filter_by(name='microsoft').first()
         if token is None or token.expires_at - 10 < int(time.time()):
             kwargs['meta']['override_render'] = True
-            kwargs['templates'].append(redirect(
-                'https://login.microsoftonline.com/common/oauth2/v2.0/authorize' + '?' + urllib.parse.urlencode(
-                    {'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b', 'response_type': 'code',
-                     'redirect_uri': url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[
-                                                                             1:], 'response_mode': 'query',
-                     'scope': 'User.Read'})))
+            kwargs['templates'].append(redirect(comment_to_mail.url_for('/login')))
             return
         else:
             opener.addheaders = [('Authorization', token.token_type + ' ' + token.access_token)]
         return func(*args, **kwargs)
 
     return decorated_view
+
+
+@comment_to_mail.route('admin', '/login', None)
+def login(meta, templates, **kwargs):
+    meta['override_render'] = True
+    templates.append(redirect(
+        'https://login.microsoftonline.com/common/oauth2/v2.0/authorize' + '?' + urllib.parse.urlencode(
+            {'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b', 'response_type': 'code',
+             'redirect_uri': url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[
+                                                                     1:], 'response_mode': 'query',
+             'scope': 'User.Read'})))
 
 
 @comment_to_mail.route('admin', '/authorize')
@@ -71,11 +78,14 @@ def authorize(request, meta, templates, **kwargs):
 
 
 @comment_to_mail.route('admin', '/me', '我')
-@authorized_required
 def me(templates, **kwargs):
-    with opener.open('https://graph.microsoft.com/v1.0/me') as f:
+    try:
+        f = opener.open('https://graph.microsoft.com/v1.0/me')
         me = json.loads(f.read().decode())
-    templates.append(render_template(os.path.join('comment_to_mail', 'templates', 'me.html'), me=me))
+    except urllib.error.HTTPError as e:
+        me = None
+    templates.append(render_template(os.path.join('comment_to_mail', 'templates', 'me.html'), me=me,
+                                     login_url=comment_to_mail.url_for('/login')))
 
 
 def _format_address(s):
