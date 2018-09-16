@@ -1,0 +1,43 @@
+<form class="form-horizontal" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="form-group">
+        <label class="col-md-4">收件人</label>
+        <div class="col-md-8">
+            <input id="send-mail-recipient" name="recipient" type="email" class="form-control"
+                   value="{{ email if email else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">主题</label>
+        <div class="col-md-8">
+            <input id="send-mail-subject" name="subject" type="text" class="form-control"
+                   value="{{ password if password else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">SMTP服务器</label>
+        <div class="col-md-8">
+            <textarea id="send-mail-body" name="body" class="form-control" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-4 col-md-8">
+            <button id="send-mail-submit" type="submit" class="btn btn-default">发送</button>
+        </div>
+    </div>
+</form>
+
+<form class="form-horizontal">
+    <div class="form-group">
+        <label class="col-md-4 control-label">状态</label>
+        <div class="col-md-8">
+            <p id="send-mail-status" class="form-control-static"></p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">日志</label>
+        <div class="col-md-8">
+            <p id="send-mail-comment" class="form-control-static"></p>
+        </div>
+    </div>
+</form>

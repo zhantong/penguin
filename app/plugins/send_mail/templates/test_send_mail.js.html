@@ -1,0 +1,22 @@
+<script>
+    $('#send-mail-submit').click(function (event) {
+        event.preventDefault();
+        $(this).prop('disabled', true);
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            type: 'POST',
+            data: {
+                recipient: $('#send-mail-recipient').val(),
+                subject: $('#send-mail-subject').val(),
+                body: $('#send-mail-body').val()
+            },
+            success: function (msg) {
+                $(this).prop('disabled', false);
+                $('#send-mail-status').text(msg['status']);
+                $('#send-mail-comment').text(msg['log']);
+            }
+        });
+    })
+</script>
