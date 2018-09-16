@@ -1,0 +1,56 @@
+<form class="form-horizontal" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="form-group">
+        <label class="col-md-4">Application ID</label>
+        <div class="col-md-8">
+            <input name="client-id" type="text" class="form-control"
+                   value="{{ client_id if client_id else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">Redirect URL</label>
+        <div class="col-md-8">
+            <input name="redirect-url" type="text" class="form-control"
+                   value="{{ redirect_url if redirect_url else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">Delegated Permissions</label>
+        <div class="col-md-8">
+            <input name="scope" type="text" class="form-control" value="{{ scope if scope else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">Application Secret</label>
+        <div class="col-md-8">
+            <input name="client-secret" type="text" class="form-control"
+                   value="{{ client_secret if client_secret else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">Authorize URL</label>
+        <div class="col-md-8">
+            <input name="authorize-url" type="text" class="form-control"
+                   value="{{ authorize_url if authorize_url else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">Token URL</label>
+        <div class="col-md-8">
+            <input name="token-url" type="text" class="form-control"
+                   value="{{ token_url if token_url else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4">API Base URL</label>
+        <div class="col-md-8">
+            <input name="api-base-url" type="text" class="form-control"
+                   value="{{ api_base_url if api_base_url else '' }}">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-4 col-md-8">
+            <button type="submit" class="btn btn-default">提交</button>
+        </div>
+    </div>
+</form>

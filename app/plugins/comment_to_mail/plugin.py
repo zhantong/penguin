@@ -7,7 +7,7 @@ from email.utils import parseaddr, formataddr
 import sys
 from flask import current_app, url_for, redirect, render_template
 from ..comment.signals import comment_submitted
-from .models import CommentToMail, OAuth2Token
+from .models import CommentToMail
 from ...models import db
 from threading import Thread
 from ...admin.signals import sidebar, edit, submit
@@ -20,6 +20,7 @@ import time
 import urllib.parse
 import json
 import urllib.error
+from .models import OAuth2Meta
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -27,62 +28,117 @@ comment_to_mail_instance = comment_to_mail
 opener = urllib.request.build_opener()
 
 
-def authorized_required(func):
-    def decorated_view(*args, **kwargs):
-        token = OAuth2Token.query.filter_by(name='microsoft').first()
-        if token is None or token.expires_at - 10 < int(time.time()):
-            kwargs['meta']['override_render'] = True
-            kwargs['templates'].append(redirect(comment_to_mail.url_for('/login')))
-            return
-        else:
-            opener.addheaders = [('Authorization', token.token_type + ' ' + token.access_token)]
-        return func(*args, **kwargs)
+def is_authorized():
+    access_token = OAuth2Meta.get('access_token')
+    if access_token is None:
+        return False
+    expires_at = int(OAuth2Meta.get('expires_at'))
+    if expires_at - 10 < int(time.time()):
+        token_url = OAuth2Meta.get('token_url')
+        refresh_token = OAuth2Meta.get('refresh_token')
+        client_id = OAuth2Meta.get('client_id')
+        redirect_url = OAuth2Meta.get('redirect_url')
+        scope = OAuth2Meta.get('scope')
+        client_secret = OAuth2Meta.get('client_secret')
+        if refresh_token is None:
+            return False
+        with urllib.request.urlopen(token_url,
+                                    data=urllib.parse.urlencode({'client_id': client_id,
+                                                                 'grant_type': 'authorization_code',
+                                                                 'scope': scope,
+                                                                 'refresh_token': refresh_token,
+                                                                 'redirect_uri': redirect_url,
+                                                                 'client_secret': client_secret}).encode()) as f:
+            result = json.loads(f.read().decode())
+            OAuth2Meta.set('access_token', result['access_token'])
+            OAuth2Meta.set('token_type', result['token_type'])
+            OAuth2Meta.set('expires_at', str(int(time.time()) + result['expires_in']))
+            OAuth2Meta.set('refresh_token', result['refresh_token'])
+    token_type = OAuth2Meta.get('token_type')
+    access_token = OAuth2Meta.get('access_token')
+    opener.addheaders = [('Authorization', token_type + ' ' + access_token)]
+    return True
 
-    return decorated_view
+
+@comment_to_mail.route('admin', '/settings', '设置')
+def account(request, templates, **kwargs):
+    if request.method == 'GET':
+        client_id = OAuth2Meta.get('client_id')
+        redirect_url = OAuth2Meta.get('redirect_url')
+        scope = OAuth2Meta.get('scope')
+        client_secret = OAuth2Meta.get('client_secret')
+        authorize_url = OAuth2Meta.get('authorize_url')
+        token_url = OAuth2Meta.get('token_url')
+        api_base_url = OAuth2Meta.get('api_base_url')
+        templates.append(
+            render_template(os.path.join('comment_to_mail', 'templates', 'account.html'), client_id=client_id,
+                            redirect_url=redirect_url, scope=scope, client_secret=client_secret,
+                            authorize_url=authorize_url, token_url=token_url, api_base_url=api_base_url))
+    elif request.method == 'POST':
+        client_id = request.form.get('client-id', type=str)
+        redirect_url = request.form.get('redirect-url', type=str)
+        scope = request.form.get('scope', type=str)
+        client_secret = request.form.get('client-secret', type=str)
+        authorize_url = request.form.get('authorize-url', type=str)
+        token_url = request.form.get('token-url', type=str)
+        api_base_url = request.form.get('api-base-url', type=str)
+        OAuth2Meta.set('client_id', client_id)
+        OAuth2Meta.set('redirect_url', redirect_url)
+        OAuth2Meta.set('scope', scope)
+        OAuth2Meta.set('client_secret', client_secret)
+        OAuth2Meta.set('authorize_url', authorize_url)
+        OAuth2Meta.set('token_url', token_url)
+        OAuth2Meta.set('api_base_url', api_base_url)
 
 
 @comment_to_mail.route('admin', '/login', None)
 def login(meta, templates, **kwargs):
+    authorize_url = OAuth2Meta.get('authorize_url')
+    client_id = OAuth2Meta.get('client_id')
+    scope = OAuth2Meta.get('scope')
+    redirect_url = OAuth2Meta.get('redirect_url')
+
     meta['override_render'] = True
     templates.append(redirect(
-        'https://login.microsoftonline.com/common/oauth2/v2.0/authorize' + '?' + urllib.parse.urlencode(
-            {'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b', 'response_type': 'code',
-             'redirect_uri': url_for('main.index', _external=True) + comment_to_mail.url_for('/authorize')[
-                                                                     1:], 'response_mode': 'query',
-             'scope': 'User.Read'})))
+        authorize_url + '?' + urllib.parse.urlencode(
+            {'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query',
+             'scope': scope})))
 
 
 @comment_to_mail.route('admin', '/authorize')
 def authorize(request, meta, templates, **kwargs):
+    token_url = OAuth2Meta.get('token_url')
+    client_id = OAuth2Meta.get('client_id')
+    scope = OAuth2Meta.get('scope')
+    redirect_url = OAuth2Meta.get('redirect_url')
+    client_secret = OAuth2Meta.get('client_secret')
+
     code = request.args['code']
-    with urllib.request.urlopen('https://login.microsoftonline.com/common/oauth2/v2.0/token',
-                                data=urllib.parse.urlencode({'client_id': '4859a905-c6f4-4b9f-8e65-69f8b02eb26b',
-                                                             'grant_type': 'authorization_code', 'scope': 'User.Read',
-                                                             'code': code, 'redirect_uri': url_for('main.index',
-                                                                                                   _external=True) + comment_to_mail.url_for(
-                                        '/authorize')[1:],
-                                                             'client_secret': 'llhHLBNK2(_inmnZV1561]}'}).encode()) as f:
+    with urllib.request.urlopen(token_url,
+                                data=urllib.parse.urlencode({'client_id': client_id,
+                                                             'grant_type': 'authorization_code', 'scope': scope,
+                                                             'code': code, 'redirect_uri': redirect_url,
+                                                             'client_secret': client_secret}).encode()) as f:
         result = json.loads(f.read().decode())
-        token = OAuth2Token.query.filter_by(name='microsoft').first()
-        if token is None:
-            token = OAuth2Token(name='microsoft')
-            db.session.add(token)
-            db.session.flush()
-        token.token_type = result['token_type']
-        token.access_token = result['access_token']
-        token.expires_at = int(time.time()) + result['expires_in']
-        db.session.commit()
-        opener.addheaders = [('Authorization', token.token_type + ' ' + token.access_token)]
+        OAuth2Meta.set('access_token', result['access_token'])
+        OAuth2Meta.set('token_type', result['token_type'])
+        OAuth2Meta.set('expires_at', str(int(time.time()) + result['expires_in']))
+        OAuth2Meta.set('refresh_token', result['refresh_token'])
+        opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
     meta['override_render'] = True
     templates.append(redirect(comment_to_mail.url_for('/me')))
 
 
 @comment_to_mail.route('admin', '/me', '我')
 def me(templates, **kwargs):
-    try:
-        f = opener.open('https://graph.microsoft.com/v1.0/me')
-        me = json.loads(f.read().decode())
-    except urllib.error.HTTPError as e:
+    if is_authorized():
+        api_base_url = OAuth2Meta.get('api_base_url')
+        try:
+            f = opener.open(api_base_url + '/me')
+            me = json.loads(f.read().decode())
+        except urllib.error.HTTPError as e:
+            me = None
+    else:
         me = None
     templates.append(render_template(os.path.join('comment_to_mail', 'templates', 'me.html'), me=me,
                                      login_url=comment_to_mail.url_for('/login')))
