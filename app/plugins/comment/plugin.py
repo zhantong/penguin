@@ -140,12 +140,12 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         comments = pagination.items
         templates.append(
-            render_template(os.path.join('category', 'templates', 'list.html'), comment_instance=comment_instance,
+            render_template(os.path.join('comment', 'templates', 'list.html'), comment_instance=comment_instance,
                             comments=comments,
-                            article_instance=article_instance,
+                            get_comment_show_info=get_comment_show_info,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': comment_instance.url_for}))
-        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html'), meta=meta))
+        scripts.append(render_template(os.path.join('comment', 'templates', 'list.js.html'), meta=meta))
 
 
 @signals.get_rendered_comments.connect

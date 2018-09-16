@@ -91,4 +91,4 @@ def restore(sender, data, directory, **kwargs):
 def get_comment_show_info(sender, comment, anchor, info, **kwargs):
     if comment.page is not None:
         info['title'] = comment.page.title
-        info['url'] = url_for('.show_page', slug=comment.page.slug, _anchor=anchor)
+        info['url'] = url_for('main.show_page', slug=comment.page.slug, _anchor=anchor)

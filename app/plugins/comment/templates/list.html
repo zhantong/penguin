@@ -1,0 +1,31 @@
+{% import "_macros.html" as macros %}
+<table class="table">
+    <thead>
+    <tr>
+        <th>标题</th>
+        <th>作者</th>
+        <th>时间</th>
+        <th>内容</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for comment in comments %}
+        {% set comment_info=get_comment_show_info(comment) %}
+        <tr>
+            <td><a href="{{ comment_info['url'] }}">{{ comment_info['title'] }}</a></td>
+            <td>{{ comment.author.name }}</td>
+            <td>{{ moment(comment.timestamp).format('L') }}</td>
+            <td>{{ comment.body_html|safe }}</td>
+            <td>
+                <button type="button" class="btn btn-danger comment-item" data-id="{{ comment.id }}">删除</button>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if pagination %}
+    <div class="text-center">
+        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+    </div>
+{% endif %}

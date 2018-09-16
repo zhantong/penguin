@@ -145,7 +145,7 @@ def restore(sender, data, directory, **kwargs):
 def get_comment_show_info(sender, comment, anchor, info, **kwargs):
     if comment.article is not None:
         info['title'] = comment.article.title
-        info['url'] = url_for('.show_article', slug=comment.article.slug, _anchor=anchor)
+        info['url'] = url_for('main.show_article', slug=comment.article.slug, _anchor=anchor)
 
 
 @signals.article_list_url.connect
