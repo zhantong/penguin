@@ -8,6 +8,7 @@ from email.header import Header
 import tempfile
 import smtplib
 import sys
+from . import signals
 
 send_mail = Plugin('发送邮件', 'send_mail')
 send_mail_instance = send_mail
@@ -40,10 +41,18 @@ def test_send_mail(request, meta, templates, scripts, **kwargs):
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')
         body = request.form.get('body')
-        is_success, error_log = send_email(recipient, subject, body)
+        result = {}
+        signals.send_mail.send(recipient=recipient, subject=subject, body=body, result=result)
 
         meta['override_render'] = True
-        templates.append(jsonify({'status': is_success, 'log': error_log}))
+        templates.append(jsonify(result))
+
+
+@signals.send_mail.connect
+def send_mail(sender, recipient, subject, body, result, **kwargs):
+    is_success, error_log = send_email(recipient, subject, body)
+    result['status'] = is_success
+    result['log'] = error_log
 
 
 def _format_address(s):
