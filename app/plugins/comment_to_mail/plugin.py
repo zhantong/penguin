@@ -44,7 +44,7 @@ def is_authorized():
             return False
         with urllib.request.urlopen(token_url,
                                     data=urllib.parse.urlencode({'client_id': client_id,
-                                                                 'grant_type': 'authorization_code',
+                                                                 'grant_type': 'refresh_token',
                                                                  'scope': scope,
                                                                  'refresh_token': refresh_token,
                                                                  'redirect_uri': redirect_url,
