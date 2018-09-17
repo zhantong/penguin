@@ -20,7 +20,9 @@ import time
 import urllib.parse
 import json
 import urllib.error
-from .models import OAuth2Meta
+from .models import OAuth2Meta, Message
+from ..comment.plugin import get_comment_show_info
+from ..comment.models import Comment
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -207,15 +209,52 @@ def submit(sender, args, form, **kwargs):
 
 @comment_submitted.connect
 def comment_submitted(sender, comment, **kwargs):
-    if comment.author.email:
-        app = current_app._get_current_object()
+    message = Message(comment=comment, status='未发送')
+    db.session.add(message)
+    db.session.commit()
 
-        def async_function(app):
-            with app.app_context():
-                is_sent, log = send_email(app, comment.author.email, '新的评论', comment.body)
-                comment_to_mail = CommentToMail(is_sent=is_sent, log=log, comment=comment)
-                db.session.add(comment_to_mail)
-                db.session.commit()
+    comment_info = get_comment_show_info(comment)
+    if comment.parent == 0:
+        recipient = 'zhantong1994@163.com'
+        body = render_template(os.path.join('comment_to_mail', 'templates', 'message_to_author.html'),
+                               comment_info=comment_info, author_name=comment.author.name,
+                               author_body=comment.body_html)
+    else:
+        parent_comment = Comment.get(comment.parent).first()
+        recipient = parent_comment.author.email
+        if recipient is None or recipient == '':
+            return
+        body = render_template(os.path.join('comment_to_mail', 'templates', 'message_to_recipient.html'),
+                               comment_info=comment_info, recipient_name=parent_comment.author.name,
+                               author_name=comment.author.name, author_body=comment.body_html,
+                               recipient_body=parent_comment.body_html)
+    subject = '[' + comment_info['title'] + '] ' + '一文有新的评论'
 
-        thread = Thread(target=async_function, args=[app])
-        thread.start()
+    api_base_url = OAuth2Meta.get('api_base_url')
+    if not is_authorized():
+        return
+    token_type = OAuth2Meta.get('token_type')
+    access_token = OAuth2Meta.get('access_token')
+    request = urllib.request.Request(api_base_url + 'me/messages', data=json.dumps(
+        {'subject': subject, 'body': {'contentType': 'HTML', 'content': body},
+         'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
+    request.add_header('Authorization', token_type + ' ' + access_token)
+    request.add_header('Content-Type', 'application/json')
+    with urllib.request.urlopen(request) as f:
+        result = json.loads(f.read().decode())
+        message_id = result['id']
+        web_link = result['webLink']
+        message.message_id = message_id
+        message.status = '草稿'
+        message.web_link = web_link
+        db.session.commit()
+    if not is_authorized():
+        return
+    request = urllib.request.Request(api_base_url + 'me/messages/' + message_id + '/send', method='POST')
+    request.add_header('Authorization', token_type + ' ' + access_token)
+    request.add_header('Content-Length', '0')
+    with urllib.request.urlopen(request) as f:
+        code = f.code
+        if code == 202:
+            message.status = '已发送'
+            db.session.commit()

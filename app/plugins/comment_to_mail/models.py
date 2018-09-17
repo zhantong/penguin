@@ -35,3 +35,16 @@ class OAuth2Meta(db.Model):
             db.session.flush()
         item.value = value
         db.session.commit()
+
+
+class Message(db.Model):
+    __tablename__ = 'comment_to_mail_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
+    status = db.Column(db.Text)
+    message_id = db.Column(db.Text)
+    sent_date_time = db.Column(db.DateTime)
+    recipient = db.Column(db.Text)
+    web_link = db.Column(db.Text)
+
+    comment = db.relationship('Comment', backref='message')
