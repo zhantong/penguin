@@ -8,7 +8,7 @@ import sys
 from flask import current_app, url_for, redirect, render_template
 from ..comment.signals import comment_submitted
 from .models import CommentToMail
-from ...models import db
+from ...extensions import db
 from threading import Thread
 from ...admin.signals import sidebar, edit, submit
 from ...plugins import add_template_file
@@ -23,6 +23,8 @@ import urllib.error
 from .models import OAuth2Meta, Message
 from ..comment.plugin import get_comment_show_info
 from ..comment.models import Comment
+import redis
+from rq import Queue, Connection
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -230,6 +232,14 @@ def comment_submitted(sender, comment, **kwargs):
                                recipient_body=parent_comment.body_html)
     subject = '[' + comment_info['title'] + '] ' + '一文有新的评论'
 
+    redis_url = current_app.config['REDIS_URL']
+    with Connection(redis.from_url(redis_url)):
+        q = Queue()
+        q.enqueue(send_mail, recipient, subject, body, message.id)
+
+
+def send_mail(recipient, subject, body, message_id):
+    message = Message.query.get(message_id)
     api_base_url = OAuth2Meta.get('api_base_url')
     if not is_authorized():
         return

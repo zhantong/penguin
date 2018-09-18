@@ -5,7 +5,8 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
-from app import create_app, db
+from app import create_app
+from app.extensions import db
 from app.plugins.post.models import PostStatus
 from app.models import Role
 import click
@@ -13,6 +14,8 @@ import json
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
+import redis
+from rq import Connection, Worker
 
 app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
 
@@ -70,6 +73,15 @@ def show_signals():
                 func = func()
             print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ',
                   inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
+
+
+@app.cli.command()
+def run_worker():
+    redis_url = app.config['REDIS_URL']
+    redis_connection = redis.from_url(redis_url)
+    with Connection(redis_connection):
+        worker = Worker(app.config['QUEUES'])
+        worker.work()
 
 
 if __name__ == '__main__':
