@@ -1,21 +1,9 @@
 from flask import Flask
-from flask_bootstrap import Bootstrap
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
 from config import config
-from flask_wtf.csrf import CSRFProtect
-from flask_moment import Moment
 import flask_whooshalchemyplus
 from flask_whooshalchemyplus import index_all
 from . import signals
-
-bootstrap = Bootstrap()
-db = SQLAlchemy()
-csrf = CSRFProtect()
-moment = Moment()
-
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
+from .extensions import bootstrap, db, login_manager, csrf, moment
 
 
 def create_app(config_name):
