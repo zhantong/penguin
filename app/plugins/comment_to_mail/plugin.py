@@ -25,6 +25,7 @@ from ..comment.plugin import get_comment_show_info
 from ..comment.models import Comment
 import redis
 from rq import Queue, Connection
+from datetime import datetime
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -268,3 +269,17 @@ def send_mail(recipient, subject, body, message_id):
         if code == 202:
             message.status = '已发送'
             db.session.commit()
+    if not is_authorized():
+        return
+    request = urllib.request.Request(api_base_url + 'me/messages/' + message_id)
+    request.add_header('Authorization', token_type + ' ' + access_token)
+    request.add_header('Prefer', 'outlook.body-content-type="html"')
+    with urllib.request.urlopen(request) as f:
+        result = json.loads(f.read().decode())
+        sent_date_time = result['sentDateTime']
+        recipient = result['toRecipients'][0]['emailAddress']['address']
+        web_link = result['webLink']
+        message.sent_date_time = datetime.strptime(sent_date_time, '%Y-%m-%dT%H:%M:%SZ')
+        message.recipient = recipient
+        message.web_link = web_link
+        db.session.commit()
