@@ -33,6 +33,11 @@
                 <button type="button" class="btn btn-default resend-item" data-comment-id="{{ message.comment_id }}">
                     重新发送
                 </button>
+                {% if job is not none and job.is_failed %}
+                    <button type="button" class="btn btn-default rerun-item" data-job-id="{{ job.id }}">
+                        重新运行Job
+                    </button>
+                {% endif %}
             </td>
         </tr>
     {% endfor %}

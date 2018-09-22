@@ -24,7 +24,7 @@ from .models import OAuth2Meta, Message
 from ..comment.plugin import get_comment_show_info
 from ..comment.models import Comment
 import redis
-from rq import Queue, Connection
+from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
@@ -293,6 +293,12 @@ def list_messages(request, templates, scripts, meta, **kwargs):
         if request.form['action'] == 'resend':
             comment_id = request.form['comment_id']
             comment_submitted(sender=None, comment=Comment.query.get(comment_id))
+        elif request.form['action'] == 'rerun':
+            job_id = request.form['job_id']
+            redis_url = current_app.config['REDIS_URL']
+            with Connection(redis.from_url(redis_url)):
+                fq = get_failed_queue()
+                fq.requeue(job_id)
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Message.query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
