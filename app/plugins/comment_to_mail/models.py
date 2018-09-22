@@ -42,6 +42,7 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
     status = db.Column(db.Text)
+    job_id = db.Column(db.String)
     message_id = db.Column(db.Text)
     sent_date_time = db.Column(db.DateTime)
     recipient = db.Column(db.Text)

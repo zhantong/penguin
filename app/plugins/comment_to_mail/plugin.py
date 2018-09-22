@@ -236,7 +236,9 @@ def comment_submitted(sender, comment, **kwargs):
     redis_url = current_app.config['REDIS_URL']
     with Connection(redis.from_url(redis_url)):
         q = Queue()
-        q.enqueue(send_mail, recipient, subject, body, message.id)
+        job = q.enqueue(send_mail, recipient, subject, body, message.id)
+        message.job_id = job.id
+        db.session.commit()
 
 
 def send_mail(recipient, subject, body, message_id):
