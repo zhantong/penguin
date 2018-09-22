@@ -285,3 +285,21 @@ def send_mail(recipient, subject, body, message_id):
         message.recipient = recipient
         message.web_link = web_link
         db.session.commit()
+
+
+@comment_to_mail.route('admin', '/list', '管理提醒')
+def list_messages(request, templates, scripts, meta, **kwargs):
+    if request.method == 'POST':
+        pass
+    else:
+        page = request.args.get('page', 1, type=int)
+        pagination = Message.query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
+                                            error_out=False)
+        messages = pagination.items
+        with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+            queue = Queue()
+        templates.append(
+            render_template(os.path.join('comment_to_mail', 'templates', 'list.html'), messages=messages,
+                            queue=queue,
+                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                        'url_for': comment_to_mail_instance.url_for}))
