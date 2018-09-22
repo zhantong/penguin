@@ -290,7 +290,9 @@ def send_mail(recipient, subject, body, message_id):
 @comment_to_mail.route('admin', '/list', '管理提醒')
 def list_messages(request, templates, scripts, meta, **kwargs):
     if request.method == 'POST':
-        pass
+        if request.form['action'] == 'resend':
+            comment_id = request.form['comment_id']
+            comment_submitted(sender=None, comment=Comment.query.get(comment_id))
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Message.query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
@@ -303,3 +305,4 @@ def list_messages(request, templates, scripts, meta, **kwargs):
                             queue=queue,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': comment_to_mail_instance.url_for}))
+        scripts.append(render_template(os.path.join('comment_to_mail', 'templates', 'list.js.html')))

@@ -9,6 +9,7 @@
         <th>RQ Job ID</th>
         <th>Job状态</th>
         <th>状态</th>
+        <th>操作</th>
     </tr>
     </thead>
     <tbody>
@@ -28,6 +29,11 @@
                 {% endif %}
             </td>
             <td>{{ message.status }}</td>
+            <td>
+                <button type="button" class="btn btn-default resend-item" data-comment-id="{{ message.comment_id }}">
+                    重新发送
+                </button>
+            </td>
         </tr>
     {% endfor %}
     </tbody>
