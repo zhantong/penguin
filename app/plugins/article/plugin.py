@@ -6,7 +6,7 @@ article_instance = article
 from . import signals, meta
 from ..post.models import Post, PostStatus
 from ...main import main
-from flask import render_template, request, make_response, redirect, url_for, current_app
+from flask import render_template, request, make_response, redirect, url_for, current_app, session
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
 from ...admin.signals import sidebar
@@ -38,7 +38,8 @@ def show_article(slug):
     styles = []
     cookies_to_set = {}
     rendered_comments = {}
-    comment_signals.get_rendered_comments.send(comments=article.comments, rendered_comments=rendered_comments,
+    comment_signals.get_rendered_comments.send(session=session, comments=article.comments,
+                                               rendered_comments=rendered_comments,
                                                scripts=scripts, styles=styles,
                                                meta={'type': 'article', 'article_id': article.id})
     rendered_comments = rendered_comments['rendered_comments']

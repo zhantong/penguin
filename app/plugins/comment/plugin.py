@@ -1,7 +1,7 @@
 from ...models import db, User, Role
 from ..comment.models import Comment
 from ..post.models import Post
-from flask import current_app, url_for, flash, request, jsonify, render_template
+from flask import current_app, url_for, flash, request, jsonify, render_template, session
 from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
 from ...main import main
 from flask_login import current_user
@@ -22,6 +22,7 @@ from ..article.plugin import article as article_instance
 import json
 import urllib.request
 import urllib.parse
+from .js_captcha import confuse_string
 
 comment = Plugin('评论', 'comment')
 comment_instance = comment
@@ -31,6 +32,14 @@ ENABLE_TENCENT_CAPTCHA = True
 
 @main.route('/comment', methods=['POST'])
 def submit_comment():
+    js_captcha = request.form.get('js_captcha', type=str)
+    print(js_captcha)
+    print(session['js_captcha'])
+    if js_captcha != session['js_captcha']:
+        return jsonify({
+            'code': 1,
+            'message': '发表失败'
+        })
     if request.headers.getlist('X-Forwarded-For'):
         ip = request.headers.getlist('X-Forwarded-For')[0]
     else:
@@ -170,13 +179,15 @@ def list_tags(request, templates, scripts, meta, **kwargs):
 
 
 @signals.get_rendered_comments.connect
-def get_rendered_comments(sender, comments, rendered_comments, scripts, meta, **kwargs):
+def get_rendered_comments(sender, session, comments, rendered_comments, scripts, meta, **kwargs):
     comments = format_comments(comments)
     rendered_comments['rendered_comments'] = render_template(os.path.join('comment', 'templates', 'comment.html'),
                                                              comments=comments, meta=meta,
                                                              ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA)
+    js_str, true_str = confuse_string()
+    session['js_captcha'] = true_str
     scripts.append(render_template(os.path.join('comment', 'templates', 'comment.js.html'), meta=meta,
-                                   ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA))
+                                   ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str))
 
 
 @page.connect

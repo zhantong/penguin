@@ -10,6 +10,8 @@
         $('#comment-parent').val($(event.target).data('parent'));
     });
 
+    {{ js_captcha_str|safe }}
+
     function submit_comment(button, extra_data) {
         button.prop('disabled', true);
         var data = {
@@ -17,7 +19,8 @@
             parent: $('#comment-parent').val(),
             name: $('#comment-name').val(),
             email: $('#comment-email').val(),
-            body: $('#comment-body').val()
+            body: $('#comment-body').val(),
+            js_captcha: js_captcha_check()
         };
         data = $.extend(data, extra_data);
         $.ajax({
