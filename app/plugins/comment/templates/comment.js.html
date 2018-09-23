@@ -1,3 +1,6 @@
+{% if ENABLE_TENCENT_CAPTCHA %}
+    <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+{% endif %}
 <script>
     $('a.reply-comment').click(function (event) {
         console.log('test');
@@ -7,28 +10,43 @@
         $('#comment-parent').val($(event.target).data('parent'));
     });
 
-    function submit_comment(button) {
+    function submit_comment(button, extra_data) {
         button.prop('disabled', true);
+        var data = {
+            meta: JSON.stringify({{ meta|tojson }}),
+            parent: $('#comment-parent').val(),
+            name: $('#comment-name').val(),
+            email: $('#comment-email').val(),
+            body: $('#comment-body').val()
+        };
+        data = $.extend(data, extra_data);
         $.ajax({
             beforeSend: function (xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
             },
             type: 'POST',
             url: '{{ url_for('.submit_comment') }}',
-            data: {
-                meta: JSON.stringify({{ meta|tojson }}),
-                parent: $('#comment-parent').val(),
-                name: $('#comment-name').val(),
-                email: $('#comment-email').val(),
-                body: $('#comment-body').val()
-            },
+            data: data,
             success: function (msg) {
                 location.reload();
             }
         });
     }
 
-    $('#comment-submit').click(function (event) {
-        submit_comment($(this))
-    })
+    {% if ENABLE_TENCENT_CAPTCHA %}
+        new TencentCaptcha(document.getElementById('comment-submit'), '2006905249', function (res) {
+            if (res.ret === 0) {
+                submit_comment($('#comment-submit'), {
+                    tencent_captcha: JSON.stringify({
+                        ticket: res.ticket,
+                        randstr: res.randstr
+                    })
+                })
+            }
+        });
+    {% else %}
+        $('#comment-submit').click(function (event) {
+            submit_comment($(this), {})
+        });
+    {% endif %}
 </script>

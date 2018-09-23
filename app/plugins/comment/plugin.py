@@ -20,13 +20,38 @@ from ..models import Plugin
 import os.path
 from ..article.plugin import article as article_instance
 import json
+import urllib.request
+import urllib.parse
 
 comment = Plugin('评论', 'comment')
 comment_instance = comment
 
+ENABLE_TENCENT_CAPTCHA = True
+
 
 @main.route('/comment', methods=['POST'])
 def submit_comment():
+    if request.headers.getlist('X-Forwarded-For'):
+        ip = request.headers.getlist('X-Forwarded-For')[0]
+    else:
+        ip = request.remote_addr
+    if ENABLE_TENCENT_CAPTCHA:
+        tencent_captcha = json.loads(request.form.get('tencent_captcha', type=str))
+        params = {
+            'aid': '2006905249',
+            'AppSecretKey': '0L5LG6K3Qe09PGS3P6-6YMQ**',
+            'Ticket': tencent_captcha['ticket'],
+            'Randstr': tencent_captcha['randstr'],
+            'UserIP': ip
+        }
+        with urllib.request.urlopen(
+                'https://ssl.captcha.qq.com/ticket/verify' + '?' + urllib.parse.urlencode(params)) as f:
+            result = json.loads(f.read().decode())
+            if result['response'] != '1':
+                return jsonify({
+                    'code': 1,
+                    'message': '发表失败'
+                })
     meta = json.loads(request.form.get('meta', type=str))
     parent = request.form.get('parent', type=int)
     name = request.form.get('name', type=str)
@@ -38,10 +63,6 @@ def submit_comment():
         author = User.create(role=Role.guest(), name=name, email=email)
         db.session.add(author)
         db.session.flush()
-    if request.headers.getlist('X-Forwarded-For'):
-        ip = request.headers.getlist('X-Forwarded-For')[0]
-    else:
-        ip = request.remote_addr
     agent = request.user_agent.string
     comment = Comment(body=body, parent=parent, author=author, ip=ip, agent=agent)
     db.session.add(comment)
@@ -152,8 +173,10 @@ def list_tags(request, templates, scripts, meta, **kwargs):
 def get_rendered_comments(sender, comments, rendered_comments, scripts, meta, **kwargs):
     comments = format_comments(comments)
     rendered_comments['rendered_comments'] = render_template(os.path.join('comment', 'templates', 'comment.html'),
-                                                             comments=comments, meta=meta)
-    scripts.append(render_template(os.path.join('comment', 'templates', 'comment.js.html'), meta=meta))
+                                                             comments=comments, meta=meta,
+                                                             ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA)
+    scripts.append(render_template(os.path.join('comment', 'templates', 'comment.js.html'), meta=meta,
+                                   ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA))
 
 
 @page.connect
