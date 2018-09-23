@@ -6,9 +6,9 @@
         console.log($(event.target));
         $('#comment-parent').val($(event.target).data('parent'));
     });
-    $('#comment-submit').click(function (event) {
-        event.preventDefault();
-        $(this).prop('disabled', true);
+
+    function submit_comment(button) {
+        button.prop('disabled', true);
         $.ajax({
             beforeSend: function (xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
@@ -25,7 +25,10 @@
             success: function (msg) {
                 location.reload();
             }
-
         });
+    }
+
+    $('#comment-submit').click(function (event) {
+        submit_comment($(this))
     })
 </script>
