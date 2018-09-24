@@ -204,6 +204,10 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                 categories = []
                 category_signals.set_widget.send(js_data=js_data, categories=categories)
                 article.categories = categories
+            if slug == 'tag':
+                tags = []
+                tag_signals.set_widget.send(js_data=js_data, tags=tags)
+                article.tags = tags
         db.session.commit()
     else:
         if 'id' in request.args:

@@ -169,3 +169,19 @@ def get_widget(sender, tags, widget, **kwargs):
         'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
                               tag_names=tag_names)
     }
+
+
+@signals.set_widget.connect
+def set_widget(sender, js_data, tags, **kwargs):
+    tag_names = []
+    for item in js_data:
+        if item['name'] == 'tag_name':
+            tag_names.append(item['value'])
+    tag_names = set(tag_names)
+    for tag_name in tag_names:
+        tag = Tag.query.filter_by(name=tag_name).first()
+        if tag is None:
+            tag = Tag(name=tag_name, slug=slugify(tag_name))
+            db.session.add(tag)
+            db.session.flush()
+        tags.append(tag)
