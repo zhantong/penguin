@@ -4,15 +4,15 @@
         <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="type" value="post"/>
-            <input name="id" type="hidden" value="{{ post.id }}">
+            <input name="id" type="hidden" value="{{ article.id }}">
             <div class="col-md-8">
                 <div class="form-group">
-                    <input name="title" type="text" class="form-control" placeholder="标题" value="{{ post.title }}">
+                    <input name="title" type="text" class="form-control" placeholder="标题" value="{{ article.title }}">
                 </div>
                 <div class="form-group">
                     <div class="input-group">
                         <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
-                        <input name="slug" type="text" class="form-control" value="{{ post.slug }}">
+                        <input name="slug" type="text" class="form-control" value="{{ article.slug }}">
                         <span class="input-group-addon">.html</span>
                         <span class="input-group-btn">
                             <button id="trans-slug" class="btn btn-default" type="button">转换链接</button>
@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div id="markdown-editor">
-                    <textarea name="body" style="display:none;">{{ post.body }}</textarea>
+                    <textarea name="body" style="display:none;">{{ article.body }}</textarea>
                 </div>
             </div>
             <div class="col-md-4">

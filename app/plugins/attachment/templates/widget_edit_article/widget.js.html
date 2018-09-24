@@ -8,7 +8,7 @@
         },
         url: "{{ url_for('.upload') }}",
         formData: {
-            'post_id': {{ post.id }}
+            meta: JSON.stringify({{ meta|tojson }})
         },
         dropZone: $('#option-attachment-collapse'),
         add: function (e, data) {

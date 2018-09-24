@@ -21,7 +21,7 @@
         path: "{{ url_for('plugin.post_static', filename='editor.md-1.5.0/lib/') }}"
     });
 
-    var postDate = new Date('{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
+    var postDate = new Date('{{ article.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
     updateHideTimestamp(postDate);
     laydate.render({
         elem: '#submit-datetime',

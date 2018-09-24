@@ -193,15 +193,21 @@ def article_list(request, templates, meta, scripts, **kwargs):
 @article.route('admin', '/edit', '撰写文章')
 def edit_article(request, templates, scripts, csss, **kwargs):
     if 'id' in request.args:
-        post = Post.query.get(int(request.args['id']))
+        article = Article.query.get(int(request.args['id']))
     else:
-        post = Post.create(request.args)
-        db.session.add(post)
+        article = Article()
+        db.session.add(article)
         db.session.commit()
     widgets = []
-    signals.show_edit_article_widget.send(request=request, post=post, widgets=widgets)
-    templates.append(render_template(os.path.join('article', 'templates', 'edit.html'), post=post, widgets=widgets))
-    scripts.append(render_template(os.path.join('article', 'templates', 'edit.js.html'), post=post, widgets=widgets))
+    # signals.show_edit_article_widget.send(request=request, article=article, widgets=widgets)
+    widget = {'widget': None}
+    attachment_signals.get_widget.send(attachments=article.attachments,
+                                       meta={'type': 'article', 'article_id': article.id}, widget=widget)
+    widgets.append(widget['widget'])
+    templates.append(
+        render_template(os.path.join('article', 'templates', 'edit.html'), article=article, widgets=widgets))
+    scripts.append(
+        render_template(os.path.join('article', 'templates', 'edit.js.html'), article=article, widgets=widgets))
     csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))
 
 

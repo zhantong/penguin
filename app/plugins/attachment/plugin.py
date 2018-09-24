@@ -126,3 +126,15 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
         'js': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.js.html'),
                               post=post)
     })
+
+
+@signals.get_widget.connect
+def get_widget(sender, attachments, meta, widget, **kwargs):
+    widget['widget'] = {
+        'slug': 'attachment',
+        'name': '附件',
+        'html': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.html'),
+                                attachments=attachments),
+        'js': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.js.html'),
+                              meta=meta)
+    }
