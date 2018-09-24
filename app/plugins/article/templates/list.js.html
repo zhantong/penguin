@@ -1,0 +1,18 @@
+<script>
+    $('.article-item').click(function (event) {
+        var article_id = $(this).data('id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'delete',
+                id: article_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    })
+</script>

@@ -6,7 +6,7 @@ article_instance = article
 from . import signals, meta
 from ..post.models import Post, PostStatus
 from ...main import main
-from flask import render_template, request, make_response, redirect, url_for, current_app, session
+from flask import render_template, request, make_response, redirect, url_for, current_app, session, flash, jsonify
 from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
     post_search_select
 from ...admin.signals import sidebar
@@ -154,21 +154,40 @@ def article_list_url(sender, params, **kwargs):
     return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)
 
 
+def delete(article_id):
+    article = Article.query.get(article_id)
+    article_title = article.title
+    db.session.delete(article)
+    db.session.commit()
+    message = '已删除文章"' + article_title + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
+
+
 @article.route('admin', '/list', '管理文章')
-def article_list(request, templates, **kwargs):
-    page = request.args.get('page', 1, type=int)
-    search = request.args.get('search', '', type=str)
-    query = Article.query
-    query = query.filter(Article.title.contains(search))
-    query = query.order_by(Article.timestamp.desc())
-    query_wrap = {'query': query}
-    signals.custom_list.send(request=request, query_wrap=query_wrap)
-    query = query_wrap['query']
-    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    articles = pagination.items
-    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), articles=articles,
-                                     pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                 'url_for': article_instance.url_for}))
+def article_list(request, templates, meta, scripts, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+    else:
+        page = request.args.get('page', 1, type=int)
+        search = request.args.get('search', '', type=str)
+        query = Article.query
+        query = query.filter(Article.title.contains(search))
+        query = query.order_by(Article.timestamp.desc())
+        query_wrap = {'query': query}
+        signals.custom_list.send(request=request, query_wrap=query_wrap)
+        query = query_wrap['query']
+        pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        articles = pagination.items
+        templates.append(render_template(os.path.join('article', 'templates', 'list.html'), articles=articles,
+                                         pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                                     'url_for': article_instance.url_for}))
+        scripts.append(render_template(os.path.join('article', 'templates', 'list.js.html')))
 
 
 @article.route('admin', '/edit', '撰写文章')

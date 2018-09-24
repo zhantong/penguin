@@ -7,6 +7,7 @@
         <th>时间</th>
         <th>分类</th>
         <th>标签</th>
+        <th>操作</th>
     </tr>
     </thead>
     <tbody>
@@ -32,6 +33,9 @@
                         ,
                     {% endif %}
                 {% endfor %}
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger article-item" data-id="{{ article.id }}">删除</button>
             </td>
         </tr>
     {% endfor %}
