@@ -186,7 +186,8 @@ def article_list(request, templates, meta, scripts, **kwargs):
         articles = pagination.items
         templates.append(render_template(os.path.join('article', 'templates', 'list.html'), articles=articles,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                     'url_for': article_instance.url_for}))
+                                                     'url_for': article_instance.url_for},
+                                         url_for=article_instance.url_for))
         scripts.append(render_template(os.path.join('article', 'templates', 'list.js.html')))
 
 

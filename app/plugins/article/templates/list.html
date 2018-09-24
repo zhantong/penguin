@@ -13,7 +13,7 @@
     <tbody>
     {% for article in articles %}
         <tr>
-            <td>{{ article.title }}</td>
+            <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }}</a></td>
             <td>{{ article.author.name }}</td>
             <td>{{ moment(article.timestamp).format('L') }}</td>
             <td>
