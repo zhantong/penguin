@@ -158,25 +158,15 @@ def article_list_url(sender, params, **kwargs):
 def article_list(request, templates, **kwargs):
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '', type=str)
-    query = Post.query.filter(Post.post_type == 'article')
-    query = query.filter(Post.title.contains(search))
-    query = query.order_by(Post.timestamp.desc())
+    query = Article.query
+    query = query.filter(Article.title.contains(search))
+    query = query.order_by(Article.timestamp.desc())
     query_wrap = {'query': query}
     signals.custom_list.send(request=request, query_wrap=query_wrap)
     query = query_wrap['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     articles = pagination.items
-    head = ['标题', '作者', '时间']
-    signals.list_column_head.send(request=request, head=head)
-    rows = []
-    for article in articles:
-        row = [Hyperlink('Hyperlink', article.title if article.title else '（无标题）',
-                         url_for('.edit', type='post', id=article.id))
-            , Plain('Plain', article.author.name)
-            , Datetime('Datetime', article.timestamp)]
-        signals.list_column.send(request=request, article=article, row=row)
-        rows.append(row)
-    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), head=head, rows=rows,
+    templates.append(render_template(os.path.join('article', 'templates', 'list.html'), articles=articles,
                                      pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                  'url_for': article_instance.url_for}))
 

@@ -30,18 +30,6 @@ def custom_list(sender, request, query_wrap, **kwargs):
             Category.slug == request.args['category'])
 
 
-@article_signals.list_column_head.connect
-def article_list_column_head(sender, head, **kwargs):
-    head.append('分类')
-
-
-@article_signals.list_column.connect
-def article_list_column(sender, article, row, **kwargs):
-    row.append(
-        [Hyperlink('Hyperlink', category.name, article_instance.url_for('/list', category=category.slug)) for category
-         in article.categories])
-
-
 @article_search_select.connect
 def article_search_select(sender, selects):
     select = Select('Select', 'category', [Option('Option', '全部分类', '')])

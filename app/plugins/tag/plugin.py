@@ -24,17 +24,6 @@ def custom_list(sender, request, query_wrap, **kwargs):
         query_wrap['query'] = query_wrap['query'].join(Post.tags).filter(Tag.slug == request.args['tag'])
 
 
-@article_signals.list_column_head.connect
-def article_list_column_head(sender, head, **kwargs):
-    head.append('标签')
-
-
-@article_signals.list_column.connect
-def article_list_column(sender, article, row, **kwargs):
-    row.append([Hyperlink('Hyperlink', tag.name, article_instance.url_for('/list', tag=tag.slug)) for tag in
-                article.tags])
-
-
 @edit_article.connect
 def edit_article(sender, context, widgets, scripts, **kwargs):
     context['all_tag_name'] = [tag.name for tag in Tag.query.all()]

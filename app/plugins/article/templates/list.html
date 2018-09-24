@@ -1,23 +1,38 @@
-{% import "_macros.html" as macros with context %}
-
+{% import "_macros.html" as macros %}
 <table class="table">
     <thead>
     <tr>
-        {% for h in head %}
-            <th>
-                {{ h }}
-            </th>
-        {% endfor %}
+        <th>标题</th>
+        <th>作者</th>
+        <th>时间</th>
+        <th>分类</th>
+        <th>标签</th>
     </tr>
     </thead>
     <tbody>
-    {% for row in rows %}
+    {% for article in articles %}
         <tr>
-            {% for r in row %}
-                <td>
-                    {{ macros.convert(r) }}
-                </td>
-            {% endfor %}
+            <td>{{ article.title }}</td>
+            <td>{{ article.author.name }}</td>
+            <td>{{ moment(article.timestamp).format('L') }}</td>
+            <td>
+                {% for category in article.categories %}
+                    {% set category_info=category.get_info() %}
+                    <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                    {% if not loop.last %}
+                        ,
+                    {% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                {% for tag in article.tags %}
+                    {% set tag_info=tag.get_info() %}
+                    <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
+                    {% if not loop.last %}
+                        ,
+                    {% endif %}
+                {% endfor %}
+            </td>
         </tr>
     {% endfor %}
     </tbody>
