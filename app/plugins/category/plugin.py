@@ -18,6 +18,7 @@ from ..article import signals as article_signals
 import os.path
 from ..models import Plugin
 from ..article.plugin import article as article_instance
+from . import signals
 
 category = Plugin('分类', 'category')
 category_instance = category
@@ -95,6 +96,18 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
         'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
                                 all_category=all_category, category_ids=category_ids)
     })
+
+
+@signals.get_widget.connect
+def get_widget(sender, categories, widget, **kwargs):
+    all_category = Category.query.all()
+    category_ids = [category.id for category in categories]
+    widget['widget'] = {
+        'slug': 'category',
+        'name': '分类',
+        'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
+                                all_category=all_category, category_ids=category_ids)
+    }
 
 
 def delete(category_id):
