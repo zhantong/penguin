@@ -23,6 +23,7 @@ from .models import Article, Status
 from ..comment import signals as comment_signals
 from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
+from ..tag import signals as tag_signals
 
 
 @main.route('/archives/')
@@ -207,6 +208,8 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                                        meta={'type': 'article', 'article_id': article.id}, widget=widget)
     widgets.append(widget['widget'])
     category_signals.get_widget.send(categories=article.categories, widget=widget)
+    widgets.append(widget['widget'])
+    tag_signals.get_widget.send(tags=article.tags, widget=widget)
     widgets.append(widget['widget'])
     templates.append(
         render_template(os.path.join('article', 'templates', 'edit.html'), article=article, widgets=widgets))

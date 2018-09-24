@@ -13,6 +13,7 @@ import os.path
 from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
+from . import signals
 
 tag = Plugin('标签', 'tag')
 tag_instance = tag
@@ -154,3 +155,17 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
         'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
                               tag_names=tag_names)
     })
+
+
+@signals.get_widget.connect
+def get_widget(sender, tags, widget, **kwargs):
+    all_tag_name = [tag.name for tag in Tag.query.all()]
+    tag_names = [tag.name for tag in tags]
+    widget['widget'] = {
+        'slug': 'tag',
+        'name': '标签',
+        'html': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.html'),
+                                all_tag_name=all_tag_name),
+        'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
+                              tag_names=tag_names)
+    }
