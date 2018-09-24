@@ -24,6 +24,7 @@ from ..comment import signals as comment_signals
 from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
 from ..tag import signals as tag_signals
+import json
 
 
 @main.route('/archives/')
@@ -195,27 +196,37 @@ def article_list(request, templates, meta, scripts, **kwargs):
 
 @article.route('admin', '/edit', '撰写文章')
 def edit_article(request, templates, scripts, csss, **kwargs):
-    if 'id' in request.args:
-        article = Article.query.get(int(request.args['id']))
-    else:
-        article = Article()
-        db.session.add(article)
+    if request.method == 'POST':
+        article = Article.query.get(int(request.form['id']))
+        widgets_dict = json.loads(request.form['widgets'])
+        for slug, js_data in widgets_dict.items():
+            if slug == 'category':
+                categories = []
+                category_signals.set_widget.send(js_data=js_data, categories=categories)
+                article.categories = categories
         db.session.commit()
-    widgets = []
-    # signals.show_edit_article_widget.send(request=request, article=article, widgets=widgets)
-    widget = {'widget': None}
-    attachment_signals.get_widget.send(attachments=article.attachments,
-                                       meta={'type': 'article', 'article_id': article.id}, widget=widget)
-    widgets.append(widget['widget'])
-    category_signals.get_widget.send(categories=article.categories, widget=widget)
-    widgets.append(widget['widget'])
-    tag_signals.get_widget.send(tags=article.tags, widget=widget)
-    widgets.append(widget['widget'])
-    templates.append(
-        render_template(os.path.join('article', 'templates', 'edit.html'), article=article, widgets=widgets))
-    scripts.append(
-        render_template(os.path.join('article', 'templates', 'edit.js.html'), article=article, widgets=widgets))
-    csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))
+    else:
+        if 'id' in request.args:
+            article = Article.query.get(int(request.args['id']))
+        else:
+            article = Article()
+            db.session.add(article)
+            db.session.commit()
+        widgets = []
+        # signals.show_edit_article_widget.send(request=request, article=article, widgets=widgets)
+        widget = {'widget': None}
+        attachment_signals.get_widget.send(attachments=article.attachments,
+                                           meta={'type': 'article', 'article_id': article.id}, widget=widget)
+        widgets.append(widget['widget'])
+        category_signals.get_widget.send(categories=article.categories, widget=widget)
+        widgets.append(widget['widget'])
+        tag_signals.get_widget.send(tags=article.tags, widget=widget)
+        widgets.append(widget['widget'])
+        templates.append(
+            render_template(os.path.join('article', 'templates', 'edit.html'), article=article, widgets=widgets))
+        scripts.append(
+            render_template(os.path.join('article', 'templates', 'edit.js.html'), article=article, widgets=widgets))
+        csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))
 
 
 @comment_signals.on_new_comment.connect

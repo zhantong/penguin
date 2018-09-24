@@ -36,6 +36,31 @@
     function updateHideTimestamp(date) {
         $('#submit-datetime').next().val(Math.floor(date.getTime() / 1000))
     }
+
+    $('#btn-submit').click(function (event) {
+        var data = {
+            id:{{ article.id }},
+            title: $('#article-title').val(),
+            slug: $('#article-slug').val(),
+            body: $('#article-body').val(),
+            timestamp: $('#article-timestamp').val()
+        };
+        var widgets = {};
+        $('.panel[data-widget-slug]').each(function (i, panel) {
+            widgets[$(this).data('widget-slug')] = $(this).find('select, textarea, input').serializeArray();
+        });
+        data['widgets'] = JSON.stringify(widgets);
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            type: 'POST',
+            data: data,
+            success: function (msg) {
+                location.reload();
+            }
+        });
+    })
 </script>
 
 {% for widget in widgets %}

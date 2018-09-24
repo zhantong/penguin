@@ -110,6 +110,15 @@ def get_widget(sender, categories, widget, **kwargs):
     }
 
 
+@signals.set_widget.connect
+def set_widget(sender, js_data, categories, **kwargs):
+    category_ids = []
+    for item in js_data:
+        if item['name'] == 'category-id':
+            category_ids.append(int(item['value']))
+    categories.extend(Category.query.get(category_id) for category_id in category_ids)
+
+
 def delete(category_id):
     category = Category.query.get(category_id)
     category_name = category.name
