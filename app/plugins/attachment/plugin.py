@@ -16,6 +16,7 @@ from ...plugins import add_template_file
 from pathlib import Path
 from ..article import signals as article_signals
 from . import signals
+import json
 
 
 @plugin.route('/attachment/static/<path:filename>')
@@ -51,16 +52,17 @@ def upload():
             'code': 3,
             'message': '禁止上传的文件类型'
         })
-    post = Post.query.get_or_404(request.form['post_id'])
     extension = filename.rsplit('.', 1)[1].lower()
     random_filename = uuid.uuid4().hex + '.' + extension
     abs_file_path = os.path.join(current_app.config['TEMP_FOLDER'], random_filename)
     os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
     file.save(abs_file_path)
     attachment = Attachment.create(abs_file_path, original_filename=filename, file_extension=extension,
-                                   mime=file.mimetype, post=post)
+                                   mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
+    meta = json.loads(request.form.get('meta', type=str))
+    signals.on_new_attachment.send(attachment=attachment, meta=meta)
     return jsonify({
         'code': 0,
         'message': '上传成功',

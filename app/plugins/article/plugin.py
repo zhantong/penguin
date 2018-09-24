@@ -218,3 +218,12 @@ def on_new_comment(sender, comment, meta, **kwargs):
         article = Article.query.get(article_id)
         article.comments.append(comment)
         db.session.commit()
+
+
+@attachment_signals.on_new_attachment.connect
+def on_new_attachment(sender, attachment, meta, **kwargs):
+    if 'type' in meta and meta['type'] == 'article':
+        article_id = int(meta['article_id'])
+        article = Article.query.get(article_id)
+        article.attachments.append(attachment)
+        db.session.commit()
