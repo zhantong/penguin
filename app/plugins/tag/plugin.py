@@ -1,4 +1,5 @@
 from ...models import db
+from ...models import db
 from .models import Tag
 from ..post.models import Post
 from flask import current_app, url_for, flash, render_template, jsonify, redirect
@@ -94,11 +95,11 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         pagination = Tag.query.order_by(Tag.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
-        templates.append(render_template(os.path.join('tag', 'templates', 'list.html'), tag_instance=tag, tags=tags,
+        templates.append(render_template(tag.template_path('list.html'), tag_instance=tag, tags=tags,
                                          article_instance=article_instance,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                      'url_for': tag_instance.url_for}))
-        scripts.append(render_template(os.path.join('tag', 'templates', 'list.js.html')))
+        scripts.append(render_template(tag.template_path('list.js.html')))
 
 
 @tag.route('admin', '/edit', None)
@@ -108,7 +109,7 @@ def edit_tag(request, templates, meta, **kwargs):
         tag = None
         if id is not None:
             tag = Tag.query.get(id)
-        templates.append(render_template(os.path.join('tag', 'templates', 'edit.html'), tag=tag))
+        templates.append(render_template(tag_instance.template_path('edit.html'), tag=tag))
     else:
         id = request.form.get('id', type=int)
         if id is None:
@@ -150,9 +151,9 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     widgets.append({
         'slug': 'tag',
         'name': '标签',
-        'html': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(tag_instance.template_path('widget_edit_article', 'widget.html'),
                                 all_tag_name=all_tag_name),
-        'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
+        'js': render_template(tag_instance.template_path('widget_edit_article', 'widget.js.html'),
                               tag_names=tag_names)
     })
 
@@ -164,9 +165,9 @@ def get_widget(sender, tags, widget, **kwargs):
     widget['widget'] = {
         'slug': 'tag',
         'name': '标签',
-        'html': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(tag_instance.template_path('widget_edit_article', 'widget.html'),
                                 all_tag_name=all_tag_name),
-        'js': render_template(os.path.join('tag', 'templates', 'widget_edit_article', 'widget.js.html'),
+        'js': render_template(tag_instance.template_path('widget_edit_article', 'widget.js.html'),
                               tag_names=tag_names)
     }
 

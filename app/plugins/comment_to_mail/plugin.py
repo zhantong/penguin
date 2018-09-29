@@ -76,7 +76,7 @@ def account(request, templates, **kwargs):
         token_url = OAuth2Meta.get('token_url')
         api_base_url = OAuth2Meta.get('api_base_url')
         templates.append(
-            render_template(os.path.join('comment_to_mail', 'templates', 'account.html'), client_id=client_id,
+            render_template(comment_to_mail_instance.template_path('account.html'), client_id=client_id,
                             redirect_url=redirect_url, scope=scope, client_secret=client_secret,
                             authorize_url=authorize_url, token_url=token_url, api_base_url=api_base_url))
     elif request.method == 'POST':
@@ -145,7 +145,7 @@ def me(templates, **kwargs):
             me = None
     else:
         me = None
-    templates.append(render_template(os.path.join('comment_to_mail', 'templates', 'me.html'), me=me,
+    templates.append(render_template(comment_to_mail_instance.template_path('me.html'), me=me,
                                      login_url=comment_to_mail.url_for('/login')))
 
 
@@ -219,7 +219,7 @@ def comment_submitted(sender, comment, **kwargs):
     comment_info = get_comment_show_info(comment)
     if comment.parent == 0:
         recipient = 'zhantong1994@163.com'
-        body = render_template(os.path.join('comment_to_mail', 'templates', 'message_to_author.html'),
+        body = render_template(comment_to_mail_instance.template_path('message_to_author.html'),
                                comment_info=comment_info, author_name=comment.author.name,
                                author_body=comment.body_html)
     else:
@@ -227,7 +227,7 @@ def comment_submitted(sender, comment, **kwargs):
         recipient = parent_comment.author.email
         if recipient is None or recipient == '':
             return
-        body = render_template(os.path.join('comment_to_mail', 'templates', 'message_to_recipient.html'),
+        body = render_template(comment_to_mail_instance.template_path('message_to_recipient.html'),
                                comment_info=comment_info, recipient_name=parent_comment.author.name,
                                author_name=comment.author.name, author_body=comment.body_html,
                                recipient_body=parent_comment.body_html)
@@ -307,8 +307,8 @@ def list_messages(request, templates, scripts, meta, **kwargs):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()
         templates.append(
-            render_template(os.path.join('comment_to_mail', 'templates', 'list.html'), messages=messages,
+            render_template(comment_to_mail_instance.template_path('list.html'), messages=messages,
                             queue=queue,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': comment_to_mail_instance.url_for}))
-        scripts.append(render_template(os.path.join('comment_to_mail', 'templates', 'list.js.html')))
+        scripts.append(render_template(comment_to_mail_instance.template_path('list.js.html')))

@@ -170,23 +170,23 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         comments = pagination.items
         templates.append(
-            render_template(os.path.join('comment', 'templates', 'list.html'), comment_instance=comment_instance,
+            render_template(comment_instance.template_path('list.html'), comment_instance=comment_instance,
                             comments=comments,
                             get_comment_show_info=get_comment_show_info,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': comment_instance.url_for}))
-        scripts.append(render_template(os.path.join('comment', 'templates', 'list.js.html'), meta=meta))
+        scripts.append(render_template(comment_instance.template_path('list.js.html'), meta=meta))
 
 
 @signals.get_rendered_comments.connect
 def get_rendered_comments(sender, session, comments, rendered_comments, scripts, meta, **kwargs):
     comments = format_comments(comments)
-    rendered_comments['rendered_comments'] = render_template(os.path.join('comment', 'templates', 'comment.html'),
+    rendered_comments['rendered_comments'] = render_template(comment_instance.template_path('comment.html'),
                                                              comments=comments, meta=meta,
                                                              ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA)
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
-    scripts.append(render_template(os.path.join('comment', 'templates', 'comment.js.html'), meta=meta,
+    scripts.append(render_template(comment_instance.template_path('comment.js.html'), meta=meta,
                                    ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str))
 
 
@@ -201,7 +201,7 @@ def page(sender, post, context, page_content, contents, scripts):
 def index(sender, right_widgets, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     right_widgets.append(
-        render_template(os.path.join('comment', 'templates', 'main', 'widget_content.html'), comments=comments,
+        render_template(comment.template_path('main', 'widget_content.html'), comments=comments,
                         get_comment_show_info=get_comment_show_info))
 
 

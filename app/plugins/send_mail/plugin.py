@@ -21,7 +21,7 @@ def account(request, templates, **kwargs):
         password = Meta.get('password')
         smtp_address = Meta.get('smtp_address')
         templates.append(
-            render_template(os.path.join('send_mail', 'templates', 'account.html'), email=email, password=password,
+            render_template(send_mail_instance.template_path('account.html'), email=email, password=password,
                             smtp_address=smtp_address))
     elif request.method == 'POST':
         email = request.form.get('email', type=str)
@@ -35,8 +35,8 @@ def account(request, templates, **kwargs):
 @send_mail.route('admin', '/test-send-mail', '测试发送邮件')
 def test_send_mail(request, meta, templates, scripts, **kwargs):
     if request.method == 'GET':
-        templates.append(render_template(os.path.join('send_mail', 'templates', 'test_send_mail.html')))
-        scripts.append(render_template(os.path.join('send_mail', 'templates', 'test_send_mail.js.html')))
+        templates.append(render_template(send_mail_instance.template_path('test_send_mail.html')))
+        scripts.append(render_template(send_mail_instance.template_path('test_send_mail.js.html')))
     elif request.method == 'POST':
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')

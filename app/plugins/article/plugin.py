@@ -187,11 +187,11 @@ def article_list(request, templates, meta, scripts, **kwargs):
         query = query_wrap['query']
         pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         articles = pagination.items
-        templates.append(render_template(os.path.join('article', 'templates', 'list.html'), articles=articles,
+        templates.append(render_template(article.template_path('list.html'), articles=articles,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                      'url_for': article_instance.url_for},
                                          url_for=article_instance.url_for))
-        scripts.append(render_template(os.path.join('article', 'templates', 'list.js.html')))
+        scripts.append(render_template(article.template_path('list.js.html')))
 
 
 @article.route('admin', '/edit', '撰写文章')
@@ -227,10 +227,10 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         tag_signals.get_widget.send(tags=article.tags, widget=widget)
         widgets.append(widget['widget'])
         templates.append(
-            render_template(os.path.join('article', 'templates', 'edit.html'), article=article, widgets=widgets))
+            render_template(article_instance.template_path('edit.html'), article=article, widgets=widgets))
         scripts.append(
-            render_template(os.path.join('article', 'templates', 'edit.js.html'), article=article, widgets=widgets))
-        csss.append(render_template(os.path.join('article', 'templates', 'edit.css.html'), widgets=widgets))
+            render_template(article_instance.template_path('edit.js.html'), article=article, widgets=widgets))
+        csss.append(render_template(article_instance.template_path('edit.css.html'), widgets=widgets))
 
 
 @comment_signals.on_new_comment.connect

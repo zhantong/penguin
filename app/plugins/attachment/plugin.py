@@ -18,6 +18,11 @@ from ..article import signals as article_signals
 from . import signals
 import json
 
+from ..models import Plugin
+
+attachment = Plugin('附件', 'attachment')
+attachment_instance = attachment
+
 
 @plugin.route('/attachment/static/<path:filename>')
 def attachment_static(filename):
@@ -123,9 +128,9 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     widgets.append({
         'slug': 'attachment',
         'name': '附件',
-        'html': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(attachment_instance.template_path('widget_edit_article', 'widget.html'),
                                 post=post),
-        'js': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.js.html'),
+        'js': render_template(attachment_instance.template_path('widget_edit_article', 'widget.js.html'),
                               post=post)
     })
 
@@ -135,8 +140,8 @@ def get_widget(sender, attachments, meta, widget, **kwargs):
     widget['widget'] = {
         'slug': 'attachment',
         'name': '附件',
-        'html': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(attachment_instance.template_path('widget_edit_article', 'widget.html'),
                                 attachments=attachments),
-        'js': render_template(os.path.join('attachment', 'templates', 'widget_edit_article', 'widget.js.html'),
+        'js': render_template(attachment_instance.template_path('widget_edit_article', 'widget.js.html'),
                               meta=meta)
     }

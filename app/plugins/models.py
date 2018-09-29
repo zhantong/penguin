@@ -1,5 +1,6 @@
 from flask import url_for
 from urllib.parse import urlencode
+from pathlib import Path
 
 
 class Plugin:
@@ -30,6 +31,9 @@ class Plugin:
         if len(values) == 0:
             return self.routes[rule].path()
         return self.routes[rule].path() + '?' + urlencode(values)
+
+    def template_path(self, *args):
+        return Path(self.slug, 'templates', *args).as_posix()
 
 
 class Route:

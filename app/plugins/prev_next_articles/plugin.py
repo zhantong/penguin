@@ -7,6 +7,11 @@ from flask import render_template
 import os.path
 from ..article import signals as article_signals
 
+from ..models import Plugin
+
+prev_next_article = Plugin('上一篇/下一篇文章', 'prev_next_article')
+prev_next_article_instance = prev_next_article
+
 
 @article_signals.show.connect
 def article_show(sender, article, left_widgets, **kwargs):
@@ -20,5 +25,5 @@ def article_show(sender, article, left_widgets, **kwargs):
     if next_article is not None:
         prev_next_articles.append(next_article)
     left_widgets.append(
-        render_template(os.path.join('prev_next_articles', 'templates', 'widget_content.html'), article=article,
+        render_template(prev_next_article.template_path('widget_content.html'), article=article,
                         prev_next_articles=prev_next_articles))

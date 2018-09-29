@@ -48,7 +48,7 @@ def submit_article(sender, form, post):
 @index.connect
 def index(sender, left_widgets, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
-    left_widgets.append(render_template(os.path.join('category', 'templates', 'main', 'widget_content.html'),
+    left_widgets.append(render_template(category.template_path('main', 'widget_content.html'),
                                         all_category=all_category))
 
 
@@ -93,7 +93,7 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     widgets.append({
         'slug': 'category',
         'name': '分类',
-        'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(category_instance.template_path('widget_edit_article', 'widget.html'),
                                 all_category=all_category, category_ids=category_ids)
     })
 
@@ -105,7 +105,7 @@ def get_widget(sender, categories, widget, **kwargs):
     widget['widget'] = {
         'slug': 'category',
         'name': '分类',
-        'html': render_template(os.path.join('category', 'templates', 'widget_edit_article', 'widget.html'),
+        'html': render_template(category_instance.template_path('widget_edit_article', 'widget.html'),
                                 all_category=all_category, category_ids=category_ids)
     }
 
@@ -144,12 +144,12 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         categories = pagination.items
         templates.append(
-            render_template(os.path.join('category', 'templates', 'list.html'), category_instance=category_instance,
+            render_template(category_instance.template_path('list.html'), category_instance=category_instance,
                             categories=categories,
                             article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': category_instance.url_for}))
-        scripts.append(render_template(os.path.join('category', 'templates', 'list.js.html')))
+        scripts.append(render_template(category_instance.template_path('list.js.html')))
 
 
 @category.route('admin', '/edit', None)
@@ -159,7 +159,7 @@ def edit_tag(request, templates, meta, **kwargs):
         category = None
         if id is not None:
             category = Category.query.get(id)
-        templates.append(render_template(os.path.join('category', 'templates', 'edit.html'), category=category))
+        templates.append(render_template(category_instance.template_path('edit.html'), category=category))
     else:
         id = request.form.get('id', type=int)
         if id is None:
