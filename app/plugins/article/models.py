@@ -51,6 +51,15 @@ class Status(db.Model):
         return Status.query.filter_by(key='draft').first()
 
 
+article_category_association_table = Table('article_category_association', db.Model.metadata,
+                                           Column('article_id', Integer, ForeignKey('articles.id')),
+                                           Column('category_id', Integer, ForeignKey('categories.id'))
+                                           )
+article_tag_association_table = Table('article_tag_association', db.Model.metadata,
+                                      Column('article_id', Integer, ForeignKey('articles.id')),
+                                      Column('tag_id', Integer, ForeignKey('tags.id'))
+                                      )
+
 article_comment_association_table = Table('article_comment_association', db.Model.metadata,
                                           Column('article_id', Integer, ForeignKey('articles.id')),
                                           Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
@@ -78,6 +87,8 @@ class Article(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.relationship(Status, back_populates='articles')
     author = db.relationship('User', backref='articles')
+    categories = db.relationship('Category', secondary=article_category_association_table, backref='articles')
+    tags = db.relationship("Tag", secondary=article_tag_association_table, backref='articles')
     comments = db.relationship('Comment', secondary=article_comment_association_table,
                                backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
