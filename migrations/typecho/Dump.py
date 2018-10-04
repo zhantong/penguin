@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from models import User, Content, Comment, Meta, Relationship
 import json
 import phpserialize
+import uuid
 
 
 class Dump:
@@ -124,6 +125,11 @@ class Dump:
             article['article_counts'] = {}
             article['article_counts']['view_count'] = post.viewsNum
 
+            article['version'] = {
+                'repository_id': str(uuid.uuid4()),
+                'status': 'published'
+            }
+
             self.data['article'].append(article)
 
     def dump_page(self):
@@ -149,11 +155,11 @@ class Dump:
 
 
 if __name__ == '__main__':
-    dump = Dump("mysql+pymysql://root:123456@localhost/typecho?charset=utf8")
+    dump = Dump("mysql+pymysql://root:123456@localhost/typecho?charset=utf8mb4")
     dump.dump_admin()
     dump.dump_category()
     dump.dump_tag()
     dump.dump_article()
     dump.dump_page()
     with open('dump.json', 'w') as f:
-        f.write(json.dumps(dump.data))
+        f.write(json.dumps(dump.data, ensure_ascii=False))
