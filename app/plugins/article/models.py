@@ -72,6 +72,10 @@ class Article(db.Model):
         self._slug = slugify(slug)
 
     @staticmethod
+    def query_published():
+        return Article.query.join(VersionedArticle).filter(VersionedArticle.status == 'published')
+
+    @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         markdown_html = markdown2.markdown(value)
         target.body_html = markdown_html

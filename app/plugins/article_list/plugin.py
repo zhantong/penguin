@@ -15,7 +15,7 @@ article_list = Plugin('文章列表', 'article_list')
 def index(sender, request, contents, **kwargs):
     page = request.args.get('page', 1, type=int)
     query = {
-        'query': Article.query.order_by(Article.timestamp.desc())
+        'query': Article.query_published().order_by(Article.timestamp.desc())
     }
     signals.custom_article_list.send(request=request, query=query)
     pagination = query['query'].paginate(

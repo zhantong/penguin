@@ -9,7 +9,7 @@ from ..article.models import Article
 
 @main.route('/list.html')
 def article_contents():
-    articles = Article.query.order_by(Article.timestamp.desc()).all()
+    articles = Article.query_published().order_by(Article.timestamp.desc()).all()
     return render_template(Path('article_contents', 'templates', 'article_contents.html').as_posix(), articles=articles)
 
 
