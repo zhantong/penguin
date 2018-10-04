@@ -19,7 +19,8 @@ from pathlib import Path
 import os.path
 from ...element_models import Hyperlink, Plain, Datetime
 
-from .models import Article, VersionedArticle
+from .models import Article
+from ..article_version.models import ArticleVersion
 from ..comment import signals as comment_signals
 from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
@@ -126,8 +127,8 @@ def restore(sender, data, directory, **kwargs):
                         author=User.query.filter_by(username=article['author']).one())
             db.session.add(a)
             db.session.flush()
-            va = VersionedArticle(repository_id=article['version']['repository_id'],
-                                  status=article['version']['status'], article=a)
+            va = ArticleVersion(repository_id=article['version']['repository_id'], status=article['version']['status'],
+                                article=a)
             db.session.add(va)
             db.session.flush()
             if 'comments' in article:

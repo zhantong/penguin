@@ -8,6 +8,7 @@ import markdown2
 import re
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
+from ..article_version.models import ArticleVersion
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -61,7 +62,7 @@ class Article(db.Model):
     comments = db.relationship('Comment', secondary=article_comment_association_table,
                                backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
-    versioned_article = db.relationship('VersionedArticle', uselist=False, back_populates='article')
+    article_version = db.relationship('ArticleVersion', uselist=False, back_populates='article')
 
     @hybrid_property
     def slug(self):
@@ -73,7 +74,7 @@ class Article(db.Model):
 
     @staticmethod
     def query_published():
-        return Article.query.join(VersionedArticle).filter(VersionedArticle.status == 'published')
+        return Article.query.join(ArticleVersion).filter(ArticleVersion.status == 'published')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -83,15 +84,3 @@ class Article(db.Model):
 
 
 db.event.listen(Article.body, 'set', Article.on_changed_body)
-
-
-class VersionedArticle(db.Model):
-    __tablename__ = 'versioned_articles'
-    id = db.Column(db.Integer, primary_key=True)
-    repository_id = db.Column(db.String, nullable=False)
-    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
-    status = db.Column(db.String(200), default='')
-    remark = db.Column(db.String(), default='')
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-
-    article = db.relationship('Article', back_populates='versioned_article')
