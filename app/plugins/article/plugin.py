@@ -26,6 +26,7 @@ from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
 from ..tag import signals as tag_signals
 import json
+from ..article_version import signals as article_version_signals
 
 
 @main.route('/archives/')
@@ -202,17 +203,26 @@ def article_list(request, templates, meta, scripts, **kwargs):
 @article.route('admin', '/edit', '撰写文章')
 def edit_article(request, templates, scripts, csss, **kwargs):
     if request.method == 'POST':
+        title = request.form['title']
+        slug = request.form['slug']
+        body = request.form['body']
+        timestamp = datetime.utcfromtimestamp(int(request.form['timestamp']))
         article = Article.query.get(int(request.form['id']))
+        new_article = Article(title=title, slug=slug, body=body, timestamp=timestamp, author=article.author,
+                              comments=article.comments, attachments=article.attachments,
+                              article_version=article.article_version)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'category':
                 categories = []
                 category_signals.set_widget.send(js_data=js_data, categories=categories)
-                article.categories = categories
+                new_article.categories = categories
             if slug == 'tag':
                 tags = []
                 tag_signals.set_widget.send(js_data=js_data, tags=tags)
-                article.tags = tags
+                new_article.tags = tags
+        article_version_signals.on_new_article.send(article=new_article)
+        db.session.add(new_article)
         db.session.commit()
     else:
         if 'id' in request.args:
