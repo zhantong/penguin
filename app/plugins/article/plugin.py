@@ -27,6 +27,7 @@ from ..category import signals as category_signals
 from ..tag import signals as tag_signals
 import json
 from ..article_version import signals as article_version_signals
+from ..article_count.models import ArticleCount
 
 
 @main.route('/archives/')
@@ -209,8 +210,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         timestamp = datetime.utcfromtimestamp(int(request.form['timestamp']))
         article = Article.query.get(int(request.form['id']))
         new_article = Article(title=title, slug=slug, body=body, timestamp=timestamp, author=article.author,
-                              comments=article.comments, attachments=article.attachments,
-                              article_version=article.article_version)
+                              comments=article.comments, attachments=article.attachments)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'category':
@@ -221,7 +221,8 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                 tags = []
                 tag_signals.set_widget.send(js_data=js_data, tags=tags)
                 new_article.tags = tags
-        article_version_signals.on_new_article.send(article=new_article)
+        article_version_signals.on_new_article.send(new_article=new_article, old_count=article)
+        new_article.article_count = ArticleCount(view_count=article.article_count.view_count)
         db.session.add(new_article)
         db.session.commit()
     else:
