@@ -5,15 +5,12 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 import sys
-from flask import current_app, url_for, redirect, render_template
+from flask import current_app, redirect, render_template
 from ..comment.signals import comment_submitted
-from .models import CommentToMail
 from ...extensions import db
-from threading import Thread
 from ...admin.signals import sidebar, edit, submit
 from ...plugins import add_template_file
 from pathlib import Path
-from ... import signals as app_signals
 from ..models import Plugin
 import urllib.request
 import time

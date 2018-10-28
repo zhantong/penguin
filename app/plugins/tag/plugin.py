@@ -1,16 +1,11 @@
 from ...models import db
-from ...models import db
 from .models import Tag
-from ..post.models import Post
-from flask import current_app, url_for, flash, render_template, jsonify, redirect
-from ...element_models import Hyperlink
+from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
-from ..post.signals import post_keywords
-from ..article.signals import submit_article, edit_article, article
+from ..article.signals import submit_article, edit_article
 from ...signals import restore
 from ...plugins import add_template_file
 from pathlib import Path
-import os.path
 from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
@@ -47,11 +42,6 @@ def submit_article(sender, form, post):
             db.session.flush()
         tags.append(tag)
     post.tags = tags
-
-
-@post_keywords.connect
-def post_keywords(sender, post, keywords, **kwargs):
-    keywords.extend(category.name for category in post.categories)
 
 
 @article_signals.restore.connect

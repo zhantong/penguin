@@ -1,10 +1,5 @@
-from ..post.models import Post
-from ..article.signals import article
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article.models import Article
 from flask import render_template
-import os.path
 from ..article import signals as article_signals
 
 from ..models import Plugin

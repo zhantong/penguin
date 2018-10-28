@@ -7,7 +7,6 @@ if os.path.exists(dotenv_path):
 
 from app import create_app
 from app.extensions import db
-from app.plugins.post.models import PostStatus
 from app.models import Role
 import click
 import json
@@ -25,7 +24,6 @@ def deploy():
     db.create_all()
 
     Role.insert_roles()
-    PostStatus.insert_post_statuses()
 
     from app.plugins.page.models import Status as PageStatus
     PageStatus.insert_statuses()

@@ -3,8 +3,6 @@ from datetime import datetime
 from flask import current_app
 import os.path
 from ...utils import md5
-from ..post.models import Post
-from sqlalchemy.orm import backref
 import uuid
 import shutil
 

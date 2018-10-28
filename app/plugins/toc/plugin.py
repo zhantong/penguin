@@ -1,9 +1,5 @@
-from ..article.signals import article
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article import signals as article_signals
 from flask import render_template
-import os.path
 from ..models import Plugin
 
 toc = Plugin('文章目录', 'toc')

@@ -4,11 +4,8 @@ article = Plugin('文章', 'article')
 article_instance = article
 
 from . import signals, meta
-from ..post.models import Post, PostStatus
 from ...main import main
 from flask import render_template, request, make_response, redirect, url_for, current_app, session, flash, jsonify
-from ..post.signals import update_post, custom_list, edit_post, create_post, post_list_column_head, post_list_column, \
-    post_search_select
 from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
@@ -16,8 +13,6 @@ from ...models import User
 from ...models import db
 from ...plugins import add_template_file
 from pathlib import Path
-import os.path
-from ...element_models import Hyperlink, Plain, Datetime
 
 from .models import Article
 from ..article_version.models import ArticleVersion
@@ -61,62 +56,13 @@ def show_article(slug):
 
 @main.route('/a/<int:number>')
 def show_article_by_number(number):
-    slug = Post.query.filter_by(number=number).first_or_404().slug
+    slug = Article.query.filter_by(number=number).first_or_404().slug
     return redirect(url_for('.show_article', slug=slug))
 
 
 @sidebar.connect
 def sidebar(sender, sidebars):
     add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
-
-
-@custom_list.connect
-def custom_list(sender, args, query):
-    if 'sub_type' not in args or args['sub_type'] == 'article':
-        query['query'] = query['query'].filter(Post.post_type == 'article')
-    return query
-
-
-@post_list_column_head.connect
-def post_list_column_head(sender, args, head):
-    if 'sub_type' not in args or args['sub_type'] == 'article':
-        signals.article_list_column_head.send(head=head)
-
-
-@post_list_column.connect
-def post_list_column(sender, args, post, row):
-    if 'sub_type' not in args or args['sub_type'] == 'article':
-        signals.article_list_column.send(post=post, row=row)
-
-
-@post_search_select.connect
-def post_search_select(sender, args, selects):
-    if 'sub_type' not in args or args['sub_type'] == 'article':
-        signals.article_search_select.send(selects=selects)
-
-
-@create_post.connect
-def create_post(sender, post, args):
-    if args is not None and 'sub_type' in args and args['sub_type'] == 'article':
-        post.post_type = 'article'
-
-
-@edit_post.connect
-def edit_post(sender, post, args, context, styles, hiddens, contents, widgets, scripts):
-    if post.post_type == 'article':
-        signals.edit_article.send(args=args, context=context, styles=styles, hiddens=hiddens, contents=contents,
-                                  widgets=widgets, scripts=scripts)
-
-
-@update_post.connect
-def update_post(sender, post, **kwargs):
-    if post.post_type == 'article':
-        if 'action' in kwargs:
-            action = kwargs['action']
-            if action in ['save-draft', 'publish']:
-                signals.submit_article.send(form=kwargs['form'], post=post)
-            else:
-                signals.submit_article_with_action.send(kwargs['form']['action'], form=kwargs['form'], post=post)
 
 
 @restore.connect

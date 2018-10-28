@@ -6,8 +6,6 @@ from flask import request, jsonify, current_app, url_for, send_from_directory, r
 import os.path
 import uuid
 from .. import plugin
-from ..post.models import Post
-from ..post.signals import update_post
 import re
 from ..page.signals import edit_page
 from ..article.signals import edit_article
@@ -94,18 +92,6 @@ def edit_article(sender, args, context, styles, hiddens, contents, widgets, scri
     context['attachments'] = Attachment.query.filter_by(post_id=context['post'].id).all()
     add_template_file(widgets, Path(__file__), 'templates', 'widget_content_attachment.html')
     add_template_file(scripts, Path(__file__), 'templates', 'widget_script_attachment.html')
-
-
-@update_post.connect
-def update_post(sender, post, **kwargs):
-    def repl(match):
-        src = match.group(1)
-        if not src.startswith('http') and not src.startswith('/attachments'):
-            src = 'src="/attachments/' + str(post.id) + '/' + src + '"'
-        return src
-
-    post.body_html = re.sub(r'src="(.*?)"', repl, post.body_html)
-    db.session.commit()
 
 
 @signals.restore.connect

@@ -1,5 +1,4 @@
 from ... import db
-from ..post.models import Post
 import markdown2
 from ..article.models import Article
 

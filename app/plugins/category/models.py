@@ -1,5 +1,3 @@
-from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
 from ... import db
 from flask import url_for
 

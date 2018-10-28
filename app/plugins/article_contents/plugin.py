@@ -1,8 +1,6 @@
 from flask import url_for, render_template
 from ...main import main
-from ..post.models import Post
 from ...signals import navbar
-from . import signals
 from pathlib import Path
 from ..article.models import Article
 

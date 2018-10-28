@@ -1,24 +1,16 @@
 from ...models import db
 from .models import Category
-from ..post.models import Post
-from flask import current_app, url_for, flash, render_template, jsonify, redirect
-from ...element_models import Hyperlink, Plain, Table, Pagination, Select, Option
-from sqlalchemy.orm import load_only
+from flask import current_app, flash, render_template, jsonify, redirect
+from ...element_models import Select, Option
 from ...main.signals import index
-from ..post.signals import post_keywords, custom_list
-from ...admin.signals import sidebar, show_list, manage, edit, submit
-from ..article.signals import article_list_column_head, article_list_column, submit_article, edit_article, \
-    article_search_select, article
+from ..article.signals import submit_article, article_search_select
 from ...utils import slugify
 from ...signals import restore
-from ..article_list.signals import article_list_meta
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article import signals as article_signals
-import os.path
 from ..models import Plugin
 from ..article.plugin import article as article_instance
 from . import signals
+from ..article.models import Article
 
 category = Plugin('分类', 'category')
 category_instance = category
@@ -27,7 +19,7 @@ category_instance = category
 @article_signals.custom_list.connect
 def custom_list(sender, request, query_wrap, **kwargs):
     if 'category' in request.args and request.args['category'] != '':
-        query_wrap['query'] = query_wrap['query'].join(Post.categories).filter(
+        query_wrap['query'] = query_wrap['query'].join(Article.categories).filter(
             Category.slug == request.args['category'])
 
 
@@ -50,11 +42,6 @@ def index(sender, left_widgets, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
     left_widgets.append(render_template(category.template_path('main', 'widget_content.html'),
                                         all_category=all_category))
-
-
-@post_keywords.connect
-def post_keywords(sender, post, keywords, **kwargs):
-    keywords.extend(category.name for category in post.categories)
 
 
 @article_signals.restore.connect

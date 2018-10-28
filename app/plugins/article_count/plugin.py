@@ -1,10 +1,6 @@
-from ..article.signals import article
 from .models import ArticleCount
 from ...models import db
 import json
-from ..article_list.signals import article_list_meta
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article import signals as article_signals
 
 
