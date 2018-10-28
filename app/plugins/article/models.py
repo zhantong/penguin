@@ -63,6 +63,8 @@ class Article(db.Model):
                                backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
     article_version = db.relationship('ArticleVersion', uselist=False, back_populates='article')
+    template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
+    template = db.relationship('Template', backref='articles')
 
     @hybrid_property
     def slug(self):

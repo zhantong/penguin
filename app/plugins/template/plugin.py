@@ -1,12 +1,10 @@
 from ...models import db
-from ..post.models import Post
-from .models import Template, TemplateField
+from .models import Template
 from flask import current_app, url_for, flash
 from ...element_models import Hyperlink, Table, Pagination
 from jinja2 import Template as Jinja2Tempalte
 from ...admin.signals import sidebar, show_list, manage, edit, submit
-from ..post.signals import custom_list
-from ..article.signals import submit_article, submit_article_with_action, article, edit_article
+from ..article.signals import submit_article, submit_article_with_action, edit_article
 from ..page.signals import edit_page, page, submit_page, submit_page_with_action
 from ...plugins import add_template_file
 from pathlib import Path
@@ -44,13 +42,6 @@ def show_list(sender, args):
     }
 
 
-@custom_list.connect
-def custom_list(sender, args, query):
-    if 'template' in args and args['template'] != '':
-        query['query'] = query['query'].join(Post.template).filter(Template.slug == args['template'])
-    return query
-
-
 @manage.connect_via('tag')
 def manage(sender, form):
     action = form.get('action', '', type=str)
@@ -83,11 +74,11 @@ def submit_article(sender, form, post):
     field_keys = form.getlist('template-field-key')
     field_values = form.getlist('template-field-value')
     post.template_fields = []
-    for key, value in zip(field_keys, field_values):
-        template_field = TemplateField(post=post, key=key, value=value)
-        db.session.add(template_field)
-        db.session.flush()
-        post.template_fields.append(template_field)
+    # for key, value in zip(field_keys, field_values):
+    #     template_field = TemplateField(post=post, key=key, value=value)
+    #     db.session.add(template_field)
+    #     db.session.flush()
+    #     post.template_fields.append(template_field)
 
 
 @submit_page_with_action.connect_via('enable-template')
