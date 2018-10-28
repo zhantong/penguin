@@ -1,5 +1,5 @@
-<script src="{{ url_for('plugin.post_static', filename='editor.md-1.5.0/editormd.min.js') }}"></script>
-<script src="{{ url_for('plugin.post_static', filename='laydate-5.0.9/dist/laydate.js') }}"></script>
+<script src="{{ url_for('plugin.article_static', filename='editor.md-1.5.0/editormd.min.js') }}"></script>
+<script src="{{ url_for('plugin.article_static', filename='laydate-5.0.9/dist/laydate.js') }}"></script>
 <script>
     $('#trans-slug').click(function () {
         $input = $(this).parent().siblings('input');
@@ -18,7 +18,7 @@
         id: "markdown-editor",
         width: "100%",
         height: 640,
-        path: "{{ url_for('plugin.post_static', filename='editor.md-1.5.0/lib/') }}"
+        path: "{{ url_for('plugin.article_static', filename='editor.md-1.5.0/lib/') }}"
     });
 
     var postDate = new Date('{{ article.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');

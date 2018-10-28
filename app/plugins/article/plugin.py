@@ -5,7 +5,8 @@ article_instance = article
 
 from . import signals, meta
 from ...main import main
-from flask import render_template, request, make_response, redirect, url_for, current_app, session, flash, jsonify
+from flask import render_template, request, make_response, redirect, url_for, current_app, session, flash, jsonify, \
+    send_from_directory
 from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
@@ -23,6 +24,13 @@ from ..tag import signals as tag_signals
 import json
 from ..article_version import signals as article_version_signals
 from ..article_count.models import ArticleCount
+from .. import plugin
+import os.path
+
+
+@plugin.route('/article/static/<path:filename>')
+def article_static(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
 @main.route('/archives/')
