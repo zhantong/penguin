@@ -8,7 +8,6 @@ import markdown2
 import re
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
-from ..article_version.models import ArticleVersion
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -62,7 +61,6 @@ class Article(db.Model):
     comments = db.relationship('Comment', secondary=article_comment_association_table,
                                backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
-    article_version = db.relationship('ArticleVersion', uselist=False, back_populates='article')
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
     template = db.relationship('Template', backref='articles')
     repository_id = db.Column(db.String)
@@ -80,7 +78,7 @@ class Article(db.Model):
 
     @staticmethod
     def query_published():
-        return Article.query.join(ArticleVersion).filter(ArticleVersion.status == 'published')
+        return Article.query.filter_by(status='published')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):

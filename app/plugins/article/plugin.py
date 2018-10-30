@@ -135,7 +135,6 @@ def article_list(request, templates, meta, scripts, **kwargs):
             templates.append(jsonify(result))
     else:
         def get_articles(repository_id):
-            print(repository_id)
             return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
 
         page = request.args.get('page', 1, type=int)
