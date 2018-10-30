@@ -129,10 +129,22 @@ def delete(article_id):
 @article.route('admin', '/list', '管理文章')
 def article_list(request, templates, meta, scripts, **kwargs):
     if request.method == 'POST':
-        if request.form['action'] == 'delete':
-            meta['override_render'] = True
-            result = delete(request.form['id'])
-            templates.append(jsonify(result))
+        meta['override_render'] = True
+
+        article_id = request.form['id']
+        action = request.form['action']
+        article = Article.query.get(article_id)
+        if action == 'publish':
+            article.status = 'published'
+        elif action == 'archive':
+            article.status = 'archived'
+        elif action == 'draft':
+            article.status = 'draft'
+        elif action == 'hide':
+            article.status = 'hidden'
+        db.session.commit()
+
+        templates.append(jsonify({'result': 'OK'}))
     else:
         def get_articles(repository_id):
             return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
@@ -151,12 +163,12 @@ def article_list(request, templates, meta, scripts, **kwargs):
             Article.version_timestamp.desc()).paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
                                                        error_out=False)
         repository_ids = [item[0] for item in pagination.items]
-        templates.append(render_template(article.template_path('list.html'), repository_ids=repository_ids,
+        templates.append(render_template(article_instance.template_path('list.html'), repository_ids=repository_ids,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                      'url_for': article_instance.url_for},
                                          get_articles=get_articles,
                                          url_for=article_instance.url_for))
-        scripts.append(render_template(article.template_path('list.js.html')))
+        scripts.append(render_template(article_instance.template_path('list.js.html')))
 
 
 @article.route('admin', '/edit', '撰写文章')

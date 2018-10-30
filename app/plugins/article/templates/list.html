@@ -51,7 +51,24 @@
                                 {% endif %}
                             {% endfor %}
                         </td>
-                        <td>{{ article.status }}</td>
+                        <td>
+
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button"
+                                        id="dropdown-{{ repository_id }}" data-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="true">
+                                    {{ article.status }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu version-dropdown"
+                                    aria-labelledby="dropdown-{{ repository_id }}">
+                                    <li><a href="#" data-action="publish" data-id="{{ article.id }}">设为发布</a></li>
+                                    <li><a href="#" data-action="archive" data-id="{{ article.id }}">设为存档</a></li>
+                                    <li><a href="#" data-action="draft" data-id="{{ article.id }}">设为草稿</a></li>
+                                    <li><a href="#" data-action="hide" data-id="{{ article.id }}">设为隐藏</a></li>
+                                </ul>
+                            </div>
+                        </td>
                         <td>{{ moment(article.version_timestamp).format('YYYY/MM/DD HH:mm:ss') }}
                     </tr>
                 {% endfor %}

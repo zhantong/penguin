@@ -1,5 +1,7 @@
 <script>
-    $('.article-item').click(function (event) {
+    $('.version-dropdown li a').click(function (event) {
+        event.preventDefault();
+        var action = $(this).data('action');
         var article_id = $(this).data('id');
         $.ajax({
             beforeSend: function (xhr, settings) {
@@ -7,12 +9,11 @@
             },
             method: 'POST',
             data: {
-                action: 'delete',
+                action: action,
                 id: article_id
             }
+        }).done(function (msg) {
+            location.reload();
         })
-            .done(function (msg) {
-                location.reload();
-            })
     })
 </script>
