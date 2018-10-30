@@ -16,16 +16,15 @@ from ...plugins import add_template_file
 from pathlib import Path
 
 from .models import Article
-from ..article_version.models import ArticleVersion
 from ..comment import signals as comment_signals
 from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
 from ..tag import signals as tag_signals
 import json
-from ..article_version import signals as article_version_signals
 from ..article_count.models import ArticleCount
 from .. import plugin
 import os.path
+from uuid import uuid4
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -80,12 +79,9 @@ def restore(sender, data, directory, **kwargs):
         for article in articles:
             a = Article(title=article['title'], slug=article['slug'], body=article['body'],
                         timestamp=datetime.utcfromtimestamp(article['timestamp']),
-                        author=User.query.filter_by(username=article['author']).one())
+                        author=User.query.filter_by(username=article['author']).one(),
+                        repository_id=article['version']['repository_id'], status=article['version']['status'])
             db.session.add(a)
-            db.session.flush()
-            va = ArticleVersion(repository_id=article['version']['repository_id'], status=article['version']['status'],
-                                article=a)
-            db.session.add(va)
             db.session.flush()
             if 'comments' in article:
                 restored_comments = []
@@ -138,19 +134,28 @@ def article_list(request, templates, meta, scripts, **kwargs):
             result = delete(request.form['id'])
             templates.append(jsonify(result))
     else:
+        def get_articles(repository_id):
+            print(repository_id)
+            return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
+
         page = request.args.get('page', 1, type=int)
         search = request.args.get('search', '', type=str)
         query = Article.query
         query = query.filter(Article.title.contains(search))
-        query = query.order_by(Article.timestamp.desc())
+        query = query.group_by(Article.repository_id).order_by(Article.version_timestamp.desc())
         query_wrap = {'query': query}
         signals.custom_list.send(request=request, query_wrap=query_wrap)
         query = query_wrap['query']
         pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         articles = pagination.items
-        templates.append(render_template(article.template_path('list.html'), articles=articles,
+        pagination = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(
+            Article.version_timestamp.desc()).paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
+                                                       error_out=False)
+        repository_ids = [item[0] for item in pagination.items]
+        templates.append(render_template(article.template_path('list.html'), repository_ids=repository_ids,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                      'url_for': article_instance.url_for},
+                                         get_articles=get_articles,
                                          url_for=article_instance.url_for))
         scripts.append(render_template(article.template_path('list.js.html')))
 
@@ -163,8 +168,13 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         body = request.form['body']
         timestamp = datetime.utcfromtimestamp(int(request.form['timestamp']))
         article = Article.query.get(int(request.form['id']))
+        if article.repository_id is None:
+            repository_id = str(uuid4())
+        else:
+            repository_id = article.repository_id
         new_article = Article(title=title, slug=slug, body=body, timestamp=timestamp, author=article.author,
-                              comments=article.comments, attachments=article.attachments)
+                              comments=article.comments, attachments=article.attachments, repository_id=repository_id,
+                              status='published')
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'category':
@@ -175,7 +185,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                 tags = []
                 tag_signals.set_widget.send(js_data=js_data, tags=tags)
                 new_article.tags = tags
-        article_version_signals.on_new_article.send(new_article=new_article, old_count=article)
         new_article.article_count = ArticleCount(view_count=article.article_count.view_count)
         db.session.add(new_article)
         db.session.commit()

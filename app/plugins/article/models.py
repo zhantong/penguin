@@ -65,6 +65,10 @@ class Article(db.Model):
     article_version = db.relationship('ArticleVersion', uselist=False, back_populates='article')
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
     template = db.relationship('Template', backref='articles')
+    repository_id = db.Column(db.String)
+    status = db.Column(db.String(200), default='')
+    version_remark = db.Column(db.String(), default='')
+    version_timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @hybrid_property
     def slug(self):

@@ -11,32 +11,80 @@
     </tr>
     </thead>
     <tbody>
-    {% for article in articles %}
+    {% for repository_id in repository_ids %}
+        {% set articles=get_articles(repository_id) %}
+
         <tr>
-            <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }}</a></td>
-            <td>{{ article.author.name }}</td>
-            <td>{{ moment(article.timestamp).format('L') }}</td>
-            <td>
-                {% for category in article.categories %}
-                    {% set category_info=category.get_info() %}
-                    <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
-                    {% if not loop.last %}
-                        ,
-                    {% endif %}
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>标题</th>
+                    <th>作者</th>
+                    <th>时间</th>
+                    <th>分类</th>
+                    <th>标签</th>
+                    <th>状态</th>
+                    <th>版本时间</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for article in articles %}
+                    <tr>
+                        <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }}</a></td>
+                        <td>{{ article.author.name }}</td>
+                        <td>{{ moment(article.timestamp).format('L') }}
+                        <td>
+                            {% for category in article.categories %}
+                                {% set category_info=category.get_info() %}
+                                <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                                {% if not loop.last %}
+                                    ,
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for tag in article.tags %}
+                                {% set tag_info=tag.get_info() %}
+                                <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
+                                {% if not loop.last %}
+                                    ,
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ article.status }}</td>
+                        <td>{{ moment(article.version_timestamp).format('YYYY/MM/DD HH:mm:ss') }}
+                    </tr>
                 {% endfor %}
-            </td>
-            <td>
-                {% for tag in article.tags %}
-                    {% set tag_info=tag.get_info() %}
-                    <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
-                    {% if not loop.last %}
-                        ,
-                    {% endif %}
-                {% endfor %}
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger article-item" data-id="{{ article.id }}">删除</button>
-            </td>
+                </tbody>
+            </table>
+            {#                    {% else %}#}
+            {#                    <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }} {% if loop.previtem %}#}
+            {#                        {{ loop.previtem.repository_id }}#}
+            {#                        {{ article.repository_id }}{% endif %}</a></td>#}
+            {#                    <td>{{ article.author.name }}</td>#}
+            {#                    <td>{{ moment(article.timestamp).format('L') }}</td>#}
+            {#                    <td>#}
+            {#                        {% for category in article.categories %}#}
+            {#                            {% set category_info=category.get_info() %}#}
+            {#                            <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>#}
+            {#                            {% if not loop.last %}#}
+            {#                                ,#}
+            {#                            {% endif %}#}
+            {#                        {% endfor %}#}
+            {#                    </td>#}
+            {#                    <td>#}
+            {#                        {% for tag in article.tags %}#}
+            {#                            {% set tag_info=tag.get_info() %}#}
+            {#                            <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>#}
+            {#                            {% if not loop.last %}#}
+            {#                                ,#}
+            {#                            {% endif %}#}
+            {#                        {% endfor %}#}
+            {#                    </td>#}
+            {#                    <td>#}
+            {#                        <button type="button" class="btn btn-danger article-item" data-id="{{ article.id }}">删除</button>#}
+            {#                    </td>#}
+            {#                    {% endif %}#}
         </tr>
     {% endfor %}
     </tbody>
