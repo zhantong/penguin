@@ -39,7 +39,13 @@ def show_none_post():
 
 @main.route('/archives/<string:slug>.html')
 def show_article(slug):
-    article = Article.query.filter_by(slug=slug).first_or_404()
+    def get_articles(repository_id):
+        return Article.query.filter_by(repository_id=repository_id).order_by(Article.timestamp.desc()).all()
+
+    article = Article.query.filter_by(slug=slug)
+    if 'version' in request.args:
+        article = article.filter_by(number=request.args['version'])
+    article = article.first_or_404()
     left_widgets = []
     right_widgets = []
     scripts = []
@@ -55,7 +61,8 @@ def show_article(slug):
                       right_widgets=right_widgets, scripts=scripts, styles=styles)
     resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), article=article,
                                          rendered_comments=rendered_comments, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, scripts=scripts, styles=styles))
+                                         right_widgets=right_widgets, scripts=scripts, styles=styles,
+                                         get_articles=get_articles))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
@@ -64,7 +71,7 @@ def show_article(slug):
 @main.route('/a/<int:number>')
 def show_article_by_number(number):
     slug = Article.query.filter_by(number=number).first_or_404().slug
-    return redirect(url_for('.show_article', slug=slug))
+    return redirect(url_for('.show_article', slug=slug, version=number))
 
 
 @sidebar.connect
