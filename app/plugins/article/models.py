@@ -11,8 +11,8 @@ RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
 def random_number():
-    the_min = 1
-    the_max = 10000
+    the_min = 100000
+    the_max = 999999
     rand = randint(the_min, the_max)
 
     while Article.query.filter_by(number=rand).first() is not None:
