@@ -49,10 +49,6 @@
             {{ moment(article.timestamp).format('L') }}
         </li>
         <li>
-            <i class="fa fa-share-alt fa-fw" title="短链接"></i>
-            {{ url_for('.show_article', number=article.number, _external=True) }}
-        </li>
-        <li>
             <i class="fa fa-bookmark fa-fw" title="分类"></i>
             {% for category in article.categories %}
                 {% set category_info=category.get_info() %}
