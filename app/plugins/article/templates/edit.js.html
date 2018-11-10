@@ -1,19 +1,6 @@
 <script src="{{ url_for('plugin.article_static', filename='editor.md-1.5.0/editormd.min.js') }}"></script>
 <script src="{{ url_for('plugin.article_static', filename='laydate-5.0.9/dist/laydate.js') }}"></script>
 <script>
-    $('#trans-slug').click(function () {
-        $input = $(this).parent().siblings('input');
-        $.ajax({
-            type: 'GET',
-            url: '{{ url_for('.trans_slug') }}',
-            data: {
-                string: $input.val()
-            },
-            success: function (msg) {
-                $input.val(msg['slug']);
-            }
-        })
-    });
     editormd({
         id: "markdown-editor",
         width: "100%",
@@ -41,7 +28,6 @@
         var data = {
             id:{{ article.id }},
             title: $('#article-title').val(),
-            slug: $('#article-slug').val(),
             body: $('#article-body').val(),
             timestamp: $('#article-timestamp').val()
         };

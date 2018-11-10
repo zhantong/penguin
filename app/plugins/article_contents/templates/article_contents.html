@@ -20,7 +20,7 @@
                         <span class="small" title="发表时间">{{ moment(article.timestamp).format('L') }}</span>
                     </td>
                     <td>
-                        <a href="{{ url_for('main.show_article', slug=article.slug) }}">{{ article.title }}</a>
+                        <a href="{{ url_for('main.show_article', number=article.number) }}">{{ article.title }}</a>
                     </td>
                     <td>
                         <span class="badge" title="评论量">{{ article.comments|length }}</span>

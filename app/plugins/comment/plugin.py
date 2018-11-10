@@ -94,9 +94,9 @@ def sidebar(sender, sidebars):
 def show_list(sender, args):
     def get_comment_url(comment):
         if comment.post.post_type == 'article':
-            return url_for('main.show_article', slug=comment.post.slug, _anchor='comment-' + str(comment.id))
+            return url_for('main.show_article', number=comment.post.number, _anchor='comment-' + str(comment.id))
         elif comment.post.post_type == 'page':
-            return url_for('main.show_page', slug=comment.post.slug, _anchor='comment-' + str(comment.id))
+            return url_for('main.show_page', number=comment.post.number, _anchor='comment-' + str(comment.id))
 
     page = args.get('page', 1, type=int)
     pagination = Comment.query.order_by(desc(Comment.timestamp)) \

@@ -2,8 +2,6 @@ from ... import db
 from jieba.analyse.analyzer import ChineseAnalyzer
 from random import randint
 from datetime import datetime
-from sqlalchemy.ext.hybrid import hybrid_property
-from ...utils import slugify
 import markdown2
 import re
 from sqlalchemy import Table, Column, Integer, ForeignKey
@@ -49,7 +47,6 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     number = db.Column(db.Integer, default=random_number, unique=True)
     title = db.Column(db.String(200), default='')
-    _slug = db.Column('slug', db.String(200), default='')
     body = db.Column(db.Text, default='')
     body_html = db.Column(db.Text)
     body_abstract = db.Column(db.Text)
@@ -67,14 +64,6 @@ class Article(db.Model):
     status = db.Column(db.String(200), default='')
     version_remark = db.Column(db.String(), default='')
     version_timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-
-    @hybrid_property
-    def slug(self):
-        return self._slug
-
-    @slug.setter
-    def slug(self, slug):
-        self._slug = slugify(slug)
 
     @staticmethod
     def query_published():

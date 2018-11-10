@@ -37,12 +37,12 @@ def show_none_post():
     pass
 
 
-@main.route('/archives/<string:slug>.html')
-def show_article(slug):
+@main.route('/archives/<int:number>.html')
+def show_article(number):
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.timestamp.desc()).all()
 
-    article = Article.query.filter_by(slug=slug)
+    article = Article.query.filter_by(number=number)
     if 'version' in request.args:
         article = article.filter_by(number=request.args['version'])
     article = article.first_or_404()
@@ -68,12 +68,6 @@ def show_article(slug):
     return resp
 
 
-@main.route('/a/<int:number>')
-def show_article_by_number(number):
-    slug = Article.query.filter_by(number=number).first_or_404().slug
-    return redirect(url_for('.show_article', slug=slug, version=number))
-
-
 @sidebar.connect
 def sidebar(sender, sidebars):
     add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
@@ -84,7 +78,7 @@ def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']
         for article in articles:
-            a = Article(title=article['title'], slug=article['slug'], body=article['body'],
+            a = Article(title=article['title'], body=article['body'],
                         timestamp=datetime.utcfromtimestamp(article['timestamp']),
                         author=User.query.filter_by(username=article['author']).one(),
                         repository_id=article['version']['repository_id'], status=article['version']['status'])
@@ -113,7 +107,7 @@ def restore(sender, data, directory, **kwargs):
 def get_comment_show_info(sender, comment, anchor, info, **kwargs):
     if comment.article is not None:
         info['title'] = comment.article.title
-        info['url'] = url_for('main.show_article', slug=comment.article.slug, _anchor=anchor)
+        info['url'] = url_for('main.show_article', number=comment.article.number, _anchor=anchor)
 
 
 @signals.article_list_url.connect
@@ -182,7 +176,6 @@ def article_list(request, templates, meta, scripts, **kwargs):
 def edit_article(request, templates, scripts, csss, **kwargs):
     if request.method == 'POST':
         title = request.form['title']
-        slug = request.form['slug']
         body = request.form['body']
         timestamp = datetime.utcfromtimestamp(int(request.form['timestamp']))
         article = Article.query.get(int(request.form['id']))
@@ -190,7 +183,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = article.repository_id
-        new_article = Article(title=title, slug=slug, body=body, timestamp=timestamp, author=article.author,
+        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author,
                               comments=article.comments, attachments=article.attachments, repository_id=repository_id,
                               status='published')
         widgets_dict = json.loads(request.form['widgets'])

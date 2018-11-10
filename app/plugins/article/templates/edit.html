@@ -9,16 +9,6 @@
                 <input id="article-title" name="title" type="text" class="form-control" placeholder="标题"
                        value="{{ article.title }}">
             </div>
-            <div class="form-group">
-                <div class="input-group">
-                    <span class="input-group-addon">{{ url_for('main.show_none_post',_external=True) }}</span>
-                    <input id="article-slug" name="slug" type="text" class="form-control" value="{{ article.slug }}">
-                    <span class="input-group-addon">.html</span>
-                    <span class="input-group-btn">
-                            <button id="trans-slug" class="btn btn-default" type="button">转换链接</button>
-                        </span>
-                </div>
-            </div>
             <div id="markdown-editor">
                 <textarea id="article-body" name="body" style="display:none;">{{ article.body }}</textarea>
             </div>

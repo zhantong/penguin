@@ -50,7 +50,7 @@
         </li>
         <li>
             <i class="fa fa-share-alt fa-fw" title="短链接"></i>
-            {{ url_for('.show_article_by_number', number=article.number, _external=True) }}
+            {{ url_for('.show_article', number=article.number, _external=True) }}
         </li>
         <li>
             <i class="fa fa-bookmark fa-fw" title="分类"></i>
@@ -100,7 +100,7 @@
             {% for versioned_article in articles %}
                 <tr>
                     <th>
-                        <a href="{{ url_for('main.show_article_by_number', number=versioned_article.number) }}">
+                        <a href="{{ url_for('main.show_article', number=versioned_article.number) }}">
                             {{ versioned_article.title }}
                         </a>
                     </th>
