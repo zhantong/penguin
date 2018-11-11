@@ -150,6 +150,7 @@ def article_list(request, templates, meta, scripts, **kwargs):
         def get_articles(repository_id):
             return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
 
+        cleanup_temp_article()
         page = request.args.get('page', 1, type=int)
         search = request.args.get('search', '', type=str)
         query = Article.query
@@ -200,10 +201,11 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         db.session.add(new_article)
         db.session.commit()
     else:
+        cleanup_temp_article()
         if 'id' in request.args:
             article = Article.query.get(int(request.args['id']))
         else:
-            article = Article()
+            article = Article(status='temp')
             db.session.add(article)
             db.session.commit()
         widgets = []
@@ -221,6 +223,11 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         scripts.append(
             render_template(article_instance.template_path('edit.js.html'), article=article, widgets=widgets))
         csss.append(render_template(article_instance.template_path('edit.css.html'), widgets=widgets))
+
+
+def cleanup_temp_article():
+    Article.query.filter_by(status='temp').delete()
+    db.session.commit()
 
 
 @comment_signals.on_new_comment.connect
