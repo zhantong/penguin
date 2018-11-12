@@ -25,6 +25,7 @@
                     <th>标签</th>
                     <th>状态</th>
                     <th>版本时间</th>
+                    <th>操作</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -70,38 +71,14 @@
                             </div>
                         </td>
                         <td>{{ moment(article.version_timestamp).format('YYYY/MM/DD HH:mm:ss') }}
+                        <td>
+                            <button type="button" class="btn btn-danger article-item" data-id="{{ article.id }}">删除
+                            </button>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-            {#                    {% else %}#}
-            {#                    <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }} {% if loop.previtem %}#}
-            {#                        {{ loop.previtem.repository_id }}#}
-            {#                        {{ article.repository_id }}{% endif %}</a></td>#}
-            {#                    <td>{{ article.author.name }}</td>#}
-            {#                    <td>{{ moment(article.timestamp).format('L') }}</td>#}
-            {#                    <td>#}
-            {#                        {% for category in article.categories %}#}
-            {#                            {% set category_info=category.get_info() %}#}
-            {#                            <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>#}
-            {#                            {% if not loop.last %}#}
-            {#                                ,#}
-            {#                            {% endif %}#}
-            {#                        {% endfor %}#}
-            {#                    </td>#}
-            {#                    <td>#}
-            {#                        {% for tag in article.tags %}#}
-            {#                            {% set tag_info=tag.get_info() %}#}
-            {#                            <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>#}
-            {#                            {% if not loop.last %}#}
-            {#                                ,#}
-            {#                            {% endif %}#}
-            {#                        {% endfor %}#}
-            {#                    </td>#}
-            {#                    <td>#}
-            {#                        <button type="button" class="btn btn-danger article-item" data-id="{{ article.id }}">删除</button>#}
-            {#                    </td>#}
-            {#                    {% endif %}#}
         </tr>
     {% endfor %}
     </tbody>

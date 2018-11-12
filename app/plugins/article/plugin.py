@@ -129,22 +129,27 @@ def delete(article_id):
 @article.route('admin', '/list', '管理文章')
 def article_list(request, templates, meta, scripts, **kwargs):
     if request.method == 'POST':
-        meta['override_render'] = True
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+        else:
+            meta['override_render'] = True
 
-        article_id = request.form['id']
-        action = request.form['action']
-        article = Article.query.get(article_id)
-        if action == 'publish':
-            article.status = 'published'
-        elif action == 'archive':
-            article.status = 'archived'
-        elif action == 'draft':
-            article.status = 'draft'
-        elif action == 'hide':
-            article.status = 'hidden'
-        db.session.commit()
+            article_id = request.form['id']
+            action = request.form['action']
+            article = Article.query.get(article_id)
+            if action == 'publish':
+                article.status = 'published'
+            elif action == 'archive':
+                article.status = 'archived'
+            elif action == 'draft':
+                article.status = 'draft'
+            elif action == 'hide':
+                article.status = 'hidden'
+            db.session.commit()
 
-        templates.append(jsonify({'result': 'OK'}))
+            templates.append(jsonify({'result': 'OK'}))
     else:
         def get_articles(repository_id):
             return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
