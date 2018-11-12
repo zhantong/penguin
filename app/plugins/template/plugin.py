@@ -1,138 +1,103 @@
 from ...models import db
 from .models import Template
-from flask import current_app, url_for, flash
-from ...element_models import Hyperlink, Table, Pagination
+from flask import current_app, flash, render_template, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
-from ...admin.signals import sidebar, show_list, manage, edit, submit
-from ..article.signals import submit_article, submit_article_with_action, edit_article
-from ..page.signals import edit_page, page, submit_page, submit_page_with_action
-from ...plugins import add_template_file
-from pathlib import Path
+from ..models import Plugin
+from . import signals
+from ..article.plugin import article as article_instance
+
+template = Plugin('模板', 'template')
+template_instance = template
 
 
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
-
-
-@show_list.connect_via('template')
-def show_list(sender, args):
-    page = args.get('page', 1, type=int)
-    pagination = Template.query.order_by(Template.name) \
-        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    templates = pagination.items
-    head = ('', '名称', '文章数')
-    rows = []
-    for template in templates:
-        rows.append((template.id
-                     , Hyperlink('Hyperlink', template.name,
-                                 url_for('.edit', type='template', id=template.id))
-                     , Hyperlink('Hyperlink', len(template.posts),
-                                 url_for('.show_list', type='post', sub_type='article', template=template.slug))))
-    table = Table('Table', head, rows)
-    args = args.to_dict()
-    if 'page' in args:
-        del args['page']
-    return {
-        **args,
-        'title': '模板',
-        'table': table,
-        'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, '.show_list', args)
+@signals.get_widget.connect
+def get_widget(sender, current_template_id, widget, **kwargs):
+    all_templates = Template.query.all()
+    current_template = Template.query.filter_by(id=current_template_id).first()
+    widget['widget'] = {
+        'slug': 'template',
+        'name': '模板',
+        'html': render_template(template_instance.template_path('widget_edit_article', 'widget.html'),
+                                all_templates=all_templates, current_template=current_template),
+        'js': render_template(template_instance.template_path('widget_edit_article', 'widget.js.html'))
     }
 
 
-@manage.connect_via('tag')
-def manage(sender, form):
-    action = form.get('action', '', type=str)
-    if action == 'delete':
-        ids = form.getlist('id')
-        ids = [int(id) for id in ids]
-        if ids:
-            first_template_name = Template.query.get(ids[0]).name
-            for template in Template.query.filter(Template.id.in_(ids)):
-                db.session.delete(template)
-            db.session.commit()
-            message = '已删除模板"' + first_template_name + '"'
-            if len(ids) > 1:
-                message += '以及剩下的' + str(len(ids) - 1) + '个模板'
-            flash(message)
+@signals.set_widget.connect
+def set_widget(sender, js_data, template, **kwargs):
+    template['template'] = None
+    for item in js_data:
+        if item['name'] == 'template-id':
+            if item['value'] != '':
+                template['template'] = Template.query.get(int(item['value']))
 
 
-@edit_page.connect
-@edit_article.connect
-def edit_article(sender, context, contents, widgets, scripts, **kwargs):
-    context['all_template'] = Template.query.all()
-    add_template_file(contents, Path(__file__), 'templates', 'content_template.html')
-    add_template_file(scripts, Path(__file__), 'templates', 'script_template.html')
-    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_template.html')
-
-
-@submit_page.connect
-@submit_article.connect
-def submit_article(sender, form, post):
-    field_keys = form.getlist('template-field-key')
-    field_values = form.getlist('template-field-value')
-    post.template_fields = []
-    # for key, value in zip(field_keys, field_values):
-    #     template_field = TemplateField(post=post, key=key, value=value)
-    #     db.session.add(template_field)
-    #     db.session.flush()
-    #     post.template_fields.append(template_field)
-
-
-@submit_page_with_action.connect_via('enable-template')
-@submit_article_with_action.connect_via('enable-template')
-def submit_article_with_action_enable_template(sender, form, post):
-    template_id = form['template-id']
-    post.template = Template.query.get(int(template_id))
+def delete(template_id):
+    template = Template.query.get(template_id)
+    template_name = template.name
+    db.session.delete(template)
     db.session.commit()
+    message = '已删除模板"' + template_name + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
 
 
-@submit_page_with_action.connect_via('disable-template')
-@submit_article_with_action.connect_via('disable-template')
-def submit_article_with_action_enable_template(sender, form, post):
-    post.template = None
-    db.session.commit()
-
-
-@edit.connect_via('template')
-def edit(sender, args, context, contents, **kwargs):
-    id = args.get('id', type=int)
-    template = None
-    if id is not None:
-        template = Template.query.get(id)
-    context['template'] = template
-    add_template_file(contents, Path(__file__), 'templates', 'content.html')
-
-
-@submit.connect_via('template')
-def submit(sender, args, form, **kwargs):
-    id = form.get('id', type=int)
-    if id is None:
-        template = Template()
+@template.route('admin', '/list', '管理模板')
+def list_tags(request, templates, scripts, meta, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
     else:
-        template = Template.query.get(id)
-    template.name = form['name']
-    template.slug = form['slug']
-    template.description = form['description']
-    template.body = form['body']
-    if template.id is None:
-        db.session.add(template)
-    db.session.commit()
+        page = request.args.get('page', 1, type=int)
+        pagination = Template.query.order_by(Template.name) \
+            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        the_templates = pagination.items
+        templates.append(
+            render_template(template_instance.template_path('list.html'), template_instance=template_instance,
+                            templates=the_templates,
+                            article_instance=article_instance,
+                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                        'url_for': template_instance.url_for}))
+        scripts.append(render_template(template_instance.template_path('list.js.html')))
 
 
-# @article.connect
-# def article(sender, post, context, article_content, **kwargs):
-#     if post.template is not None:
-#         template = Jinja2Tempalte(post.template.body)
-#         article_content['article_content'] = template
-#         context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})
+@template.route('admin', '/edit', None)
+def edit_template(request, templates, meta, **kwargs):
+    if request.method == 'GET':
+        id = request.args.get('id', type=int)
+        template = None
+        if id is not None:
+            template = Template.query.get(id)
+        templates.append(render_template(template_instance.template_path('edit.html'), template=template))
+    else:
+        id = request.form.get('id', type=int)
+        if id is None:
+            template = Template()
+        else:
+            template = Template.query.get(id)
+        template.name = request.form['name']
+        template.slug = request.form['slug']
+        template.description = request.form['description']
+        template.body = request.form['body']
+        if template.id is None:
+            db.session.add(template)
+        db.session.commit()
+        meta['override_render'] = True
+        templates.append(redirect(template_instance.url_for('/list')))
 
 
-@page.connect
-def page(sender, post, context, page_content, contents, scripts):
-    if post.template is not None:
-        template = Jinja2Tempalte(post.template.body)
-        page_content['page_content'] = template
-        context.update({template_field.key: eval(template_field.value) for template_field in post.template_fields})
+@template.route('admin', '/new', '新建模板')
+def new_tag(templates, meta, **kwargs):
+    meta['override_render'] = True
+    templates.append(redirect(template_instance.url_for('/edit')))
+
+
+@signals.render_template.connect
+def render(sender, template, json_params, html, **kwargs):
+    template = Jinja2Tempalte(template.body)
+    params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}
+    html['html'] = template.render(**params)

@@ -71,9 +71,10 @@ class Article(db.Model):
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
-        markdown_html = markdown2.markdown(value)
-        target.body_html = markdown_html
-        target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+        if target.template is None:
+            markdown_html = markdown2.markdown(value)
+            target.body_html = markdown_html
+            target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
 
 
 db.event.listen(Article.body, 'set', Article.on_changed_body)

@@ -1,0 +1,6 @@
+<script>
+    $('#dropdown-template ~ ul li > a').click(function (e) {
+        $('#dropdown-template-input').val($(this).data('id'));
+        $('#dropdown-template').html($(this).text() + ' <span class="caret"></span>')
+    });
+</script>

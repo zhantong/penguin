@@ -1,0 +1,14 @@
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdown-template" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="true" data-id="">
+        {{ current_template.name }}
+        <span class="caret"></span>
+    </button>
+    <input type="hidden" name="template-id" id="dropdown-template-input" value="">
+    <ul class="dropdown-menu" aria-labelledby="dropdown-template">
+        <li><a href="#" data-id=""></a></li>
+        {% for template in all_templates %}
+            <li><a href="#" data-id="{{ template.id }}">{{ template.name }}</a></li>
+        {% endfor %}
+    </ul>
+</div>

@@ -25,6 +25,7 @@ from ..article_count.models import ArticleCount
 from .. import plugin
 import os.path
 from uuid import uuid4
+from ..template import signals as template_signals
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -59,6 +60,11 @@ def show_article(number):
     rendered_comments = rendered_comments['rendered_comments']
     signals.show.send(request=request, article=article, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
                       right_widgets=right_widgets, scripts=scripts, styles=styles)
+    if article.template is not None:
+        html = {}
+        template_signals.render_template.send(template=article.template, json_params=json.loads(article.body),
+                                              html=html)
+        article.body_html = html['html']
     resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), article=article,
                                          rendered_comments=rendered_comments, left_widgets=left_widgets,
                                          right_widgets=right_widgets, scripts=scripts, styles=styles,
@@ -197,6 +203,10 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                 tags = []
                 tag_signals.set_widget.send(js_data=js_data, tags=tags)
                 new_article.tags = tags
+            if slug == 'template':
+                template = {}
+                template_signals.set_widget.send(js_data=js_data, template=template)
+                new_article.template = template['template']
         new_article.article_count = ArticleCount(view_count=article.article_count.view_count)
         db.session.add(new_article)
         db.session.commit()
@@ -211,6 +221,8 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets = []
         # signals.show_edit_article_widget.send(request=request, article=article, widgets=widgets)
         widget = {'widget': None}
+        template_signals.get_widget.send(current_template_id=article.template_id, widget=widget)
+        widgets.append(widget['widget'])
         attachment_signals.get_widget.send(attachments=article.attachments,
                                            meta={'type': 'article', 'article_id': article.id}, widget=widget)
         widgets.append(widget['widget'])
