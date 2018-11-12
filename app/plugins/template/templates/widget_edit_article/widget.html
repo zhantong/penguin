@@ -6,7 +6,7 @@
     </button>
     <input type="hidden" name="template-id" id="dropdown-template-input" value="">
     <ul class="dropdown-menu" aria-labelledby="dropdown-template">
-        <li><a href="#" data-id=""></a></li>
+        <li><a href="#" data-id="">不使用模板</a></li>
         {% for template in all_templates %}
             <li><a href="#" data-id="{{ template.id }}">{{ template.name }}</a></li>
         {% endfor %}
