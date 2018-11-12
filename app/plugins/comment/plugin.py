@@ -8,7 +8,7 @@ from sqlalchemy import desc
 from ...utils import format_comments
 from . import signals
 from ...main.signals import index
-from ...admin.signals import sidebar, show_list, manage
+from ...admin.signals import show_list, manage
 from ..page.signals import page
 from datetime import datetime
 from ...plugins import add_template_file
@@ -83,11 +83,6 @@ def get_comment_show_info(comment):
     info = {}
     signals.get_comment_show_info.send(comment=comment, anchor='comment-' + str(comment.id), info=info)
     return info
-
-
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @show_list.connect_via('comment')

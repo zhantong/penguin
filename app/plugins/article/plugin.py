@@ -5,14 +5,12 @@ article_instance = article
 
 from . import signals, meta
 from ...main import main
-from flask import render_template, request, make_response, redirect, url_for, current_app, session, flash, jsonify, \
+from flask import render_template, request, make_response, url_for, current_app, session, flash, jsonify, \
     send_from_directory
-from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
 from ...models import User
 from ...models import db
-from ...plugins import add_template_file
 from pathlib import Path
 
 from .models import Article
@@ -72,11 +70,6 @@ def show_article(number):
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
-
-
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @restore.connect

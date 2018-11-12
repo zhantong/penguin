@@ -2,11 +2,9 @@ from . import signals
 from ...main import main
 from flask import render_template, url_for
 from ...signals import navbar
-from ...admin.signals import sidebar
 from ...signals import restore
 from datetime import datetime
 from ...models import db, User
-from ...plugins import add_template_file
 from pathlib import Path
 from .models import Page, Status
 from ..comment import signals as comment_signals
@@ -28,11 +26,6 @@ def show_page(slug):
 def navbar(sender, content):
     pages = Page.query.all()
     content['items'].extend((page.title, url_for('main.show_page', slug=page.slug)) for page in pages)
-
-
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @restore.connect

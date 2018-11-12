@@ -8,7 +8,7 @@ import sys
 from flask import current_app, redirect, render_template
 from ..comment.signals import comment_submitted
 from ...extensions import db
-from ...admin.signals import sidebar, edit, submit
+from ...admin.signals import edit, submit
 from ...plugins import add_template_file
 from pathlib import Path
 from ..models import Plugin
@@ -188,11 +188,6 @@ def send_email(app, to_address, subject, content):
     os.close(available_fd)
 
     return is_success, stderr_bytes.decode()
-
-
-@sidebar.connect
-def sidebar(sender, sidebars):
-    add_template_file(sidebars, Path(__file__), 'templates', 'sidebar.html')
 
 
 @edit.connect_via('comment_to_mail')

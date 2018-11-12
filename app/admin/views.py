@@ -14,9 +14,7 @@ def before_request():
 
 @admin.route('/')
 def index():
-    sidebars = []
-    signals.sidebar.send(sidebars=sidebars)
-    return render_template('admin/index.html', sidebars=sidebars, plugins=Plugin.plugins)
+    return render_template('admin/index.html', plugins=Plugin.plugins)
 
 
 @admin.route('/edit')
@@ -31,10 +29,7 @@ def edit():
     result = signals.edit.send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
                                contents=contents, widgets=widgets,
                                scripts=scripts)
-    sidebars = []
-    signals.sidebar.send(sidebars=sidebars)
-    return render_template('admin/edit.html', **request.args.to_dict(), **context, sidebars=sidebars, styles=styles,
-                           hiddens=hiddens,
+    return render_template('admin/edit.html', **request.args.to_dict(), **context, styles=styles, hiddens=hiddens,
                            contents=contents, widgets=widgets,
                            scripts=scripts, plugins=Plugin.plugins, templates=[])
 
@@ -54,9 +49,7 @@ def show_list():
     if len(result) == 0:
         return redirect(url_for('.edit', type=type))
     context = result[0][1]
-    sidebars = []
-    signals.sidebar.send(sidebars=sidebars)
-    return render_template('admin/manage.html', **context, sidebars=sidebars, plugins=Plugin.plugins, templates=[],
+    return render_template('admin/manage.html', **context, plugins=Plugin.plugins, templates=[],
                            scripts=[], csss=[])
 
 
@@ -69,10 +62,6 @@ def manage():
 
 @admin.route('/<path:path>', methods=['GET', 'POST'])
 def dispatch(path):
-    sidebars = []
-    signals.sidebar.send(sidebars=sidebars)
-    new_sidebars = []
-    signals.new_sidebar.send(new_sidebars=new_sidebars)
     plugin_slug = path.split('/')[0]
     templates = []
     scripts = []
@@ -87,8 +76,8 @@ def dispatch(path):
             abort(404)
         else:
             return templates[0]
-    return render_template('admin/framework.html', sidebars=sidebars, plugins=Plugin.plugins, templates=templates,
-                           scripts=scripts, csss=csss)
+    return render_template('admin/framework.html', plugins=Plugin.plugins, templates=templates, scripts=scripts,
+                           csss=csss)
 
 
 @admin.route('/trans-slug')
