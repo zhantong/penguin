@@ -7,58 +7,53 @@ import re
 from ...models import User
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
+from random import randint
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
-class Status(db.Model):
-    __tablename__ = 'page_statuses'
-    id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(64), unique=True)
-    name = db.Column(db.String(64))
-    default = db.Column(db.Boolean, default=False, index=True)
-    pages = db.relationship('Page', back_populates='status', lazy='dynamic')
+def random_number():
+    the_min = 100000
+    the_max = 999999
+    rand = randint(the_min, the_max)
 
-    @staticmethod
-    def insert_statuses():
-        statuses = (('已发布', 'published'), ('草稿', 'draft'))
-        default_status_key = 'draft'
-        for name, key in statuses:
-            status = Status.query.filter_by(key=key).first()
-            if status is None:
-                status = Status(key=key, name=name)
-            status.default = (status.key == default_status_key)
-            db.session.add(status)
-        db.session.commit()
-
-    @staticmethod
-    def published():
-        return Status.query.filter_by(key='published').first()
-
-    @staticmethod
-    def draft():
-        return Status.query.filter_by(key='draft').first()
+    while Page.query.filter_by(number=rand).first() is not None:
+        rand = randint(the_min, the_max)
+    return rand
 
 
-association_table = Table('page_comment_association', db.Model.metadata,
-                          Column('page_id', Integer, ForeignKey('pages.id')),
-                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
-                          )
+page_comment_association_table = Table('page_comment_association', db.Model.metadata,
+                                       Column('page_id', Integer, ForeignKey('pages.id')),
+                                       Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
+                                       )
+
+page_attachment_association_table = Table('page_attachment_association', db.Model.metadata,
+                                          Column('page_id', Integer, ForeignKey('pages.id')),
+                                          Column('attachment_id', Integer, ForeignKey('attachments.id'))
+                                          )
 
 
 class Page(db.Model):
     __tablename__ = 'pages'
     id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer, default=random_number, unique=True)
     title = db.Column(db.String(200), default='')
     _slug = db.Column('slug', db.String(200), default='')
-    status_id = db.Column(db.Integer, db.ForeignKey('page_statuses.id'))
     body = db.Column(db.Text, default='')
     body_html = db.Column(db.Text)
+    body_abstract = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    status = db.relationship(Status, back_populates='pages')
     author = db.relationship(User, backref='pages')
-    comments = db.relationship('Comment', secondary=association_table, backref=backref('page', uselist=False))
+    comments = db.relationship('Comment', secondary=page_comment_association_table,
+                               backref=backref('page', uselist=False))
+    attachments = db.relationship('Attachment', secondary=page_attachment_association_table, backref='pages')
+    template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
+    template = db.relationship('Template', backref='pages')
+    repository_id = db.Column(db.String)
+    status = db.Column(db.String(200), default='')
+    version_remark = db.Column(db.String(), default='')
+    version_timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @hybrid_property
     def slug(self):
@@ -67,6 +62,10 @@ class Page(db.Model):
     @slug.setter
     def slug(self, slug):
         self._slug = slugify(slug)
+
+    @staticmethod
+    def query_published():
+        return Page.query.filter_by(status='published')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):

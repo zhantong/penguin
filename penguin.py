@@ -25,9 +25,6 @@ def deploy():
 
     Role.insert_roles()
 
-    from app.plugins.page.models import Status as PageStatus
-    PageStatus.insert_statuses()
-
 
 @app.cli.command()
 @click.option('--file-path', default=None, help='dumped file path')

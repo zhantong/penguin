@@ -151,6 +151,11 @@ class Dump:
             attachments = Dump.process_attachements(attachments)
             p['attachments'] = attachments
 
+            p['version'] = {
+                'repository_id': str(uuid.uuid4()),
+                'status': 'published'
+            }
+
             self.data['page'].append(p)
 
 
