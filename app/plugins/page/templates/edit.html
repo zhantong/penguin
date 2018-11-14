@@ -1,0 +1,75 @@
+<div class="container-fluid">
+    <div class="row">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="type" value="post"/>
+        <input name="id" type="hidden" value="{{ page.id }}">
+        <div class="col-md-8">
+            <div class="form-group">
+                <input id="page-title" name="title" type="text" class="form-control" placeholder="标题"
+                       value="{{ page.title }}">
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">{{ url_for('main.show_none_page',_external=True) }}</span>
+                    <input id="page-slug" name="slug" type="text" class="form-control" value="{{ page.slug }}">
+                    <span class="input-group-addon">.html</span>
+                    <span class="input-group-btn">
+                            <button id="trans-slug" class="btn btn-default" type="button">转换链接</button>
+                        </span>
+                </div>
+            </div>
+            <div id="markdown-editor">
+                <textarea id="page-body" name="body" style="display:none;">{{ page.body }}</textarea>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="option-submit-heading">
+                    <h4 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion"
+                           href="#option-submit-collapse"
+                           aria-expanded="true" aria-controls="option-submit-collapse">
+                            发布
+                        </a>
+                    </h4>
+                </div>
+                <div id="option-submit-collapse" class="panel-collapse collapse in" role="tabpanel"
+                     aria-labelledby="option-submit-heading">
+                    <div class="panel-body">
+                        <div class="form-group form-inline">
+                            <label for="submit-datetime">发布时间</label>
+                            <input id="submit-datetime" type="text" class="form-control"
+                                   placeholder="yyyy-MM-dd HH:mm:ss">
+                            <input id="page-timestamp" name="timestamp" type="hidden" value="">
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="submit" name="action" value="save-draft" class="btn btn-default">保存草稿</button>
+                        <button id="btn-submit" type="submit" name="action" value="publish"
+                                class="btn btn-primary pull-right">
+                            发布
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% for widget in widgets %}
+                <div class="panel panel-default" data-widget-slug="{{ widget['slug'] }}">
+                    <div class="panel-heading" role="tab" id="widget-{{ widget['slug'] }}-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion"
+                               href="#widget-{{ widget['slug'] }}-collapse"
+                               aria-expanded="true" aria-controls="widget-{{ widget['slug'] }}-collapse">
+                                {{ widget['name'] }}
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="widget-{{ widget['slug'] }}-collapse" class="panel-collapse collapse in"
+                         role="tabpanel"
+                         aria-labelledby="widget-{{ widget['slug'] }}-heading">
+                        {{ widget['html']|safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

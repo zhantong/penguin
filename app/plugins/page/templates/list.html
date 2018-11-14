@@ -1,0 +1,67 @@
+{% import "_macros.html" as macros %}
+<table class="table">
+    <thead>
+    <tr>
+        <th>标题</th>
+        <th>作者</th>
+        <th>时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for repository_id in repository_ids %}
+        {% set pages=get_pages(repository_id) %}
+
+        <tr>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>标题</th>
+                    <th>作者</th>
+                    <th>时间</th>
+                    <th>状态</th>
+                    <th>版本时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for page in pages %}
+                    <tr>
+                        <td><a href="{{ url_for('/edit', id=page.id) }}">{{ page.title }}</a></td>
+                        <td>{{ page.author.name }}</td>
+                        <td>{{ moment(page.timestamp).format('L') }}
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button"
+                                        id="dropdown-{{ repository_id }}" data-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="true">
+                                    {{ page.status }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu version-dropdown"
+                                    aria-labelledby="dropdown-{{ repository_id }}">
+                                    <li><a href="#" data-action="publish" data-id="{{ page.id }}">设为发布</a></li>
+                                    <li><a href="#" data-action="archive" data-id="{{ page.id }}">设为存档</a></li>
+                                    <li><a href="#" data-action="draft" data-id="{{ page.id }}">设为草稿</a></li>
+                                    <li><a href="#" data-action="hide" data-id="{{ page.id }}">设为隐藏</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td>{{ moment(page.version_timestamp).format('YYYY/MM/DD HH:mm:ss') }}
+                        <td>
+                            <button type="button" class="btn btn-danger page-item" data-id="{{ page.id }}">删除
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if pagination %}
+    <div class="text-center">
+        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+    </div>
+{% endif %}

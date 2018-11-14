@@ -5,7 +5,8 @@ page_instance = page
 
 from . import signals
 from ...main import main
-from flask import render_template, url_for, request, session, make_response
+from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
+    send_from_directory
 from ...signals import navbar
 from ...signals import restore
 from datetime import datetime
@@ -15,6 +16,20 @@ from .models import Page
 from ..comment import signals as comment_signals
 from ..template import signals as template_signals
 import json
+from uuid import uuid4
+from ..attachment import signals as attachment_signals
+from .. import plugin
+import os.path
+
+
+@plugin.route('/page/static/<path:filename>')
+def page_static(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
+
+
+@main.route('/')
+def show_none_page():
+    pass
 
 
 @main.route('/<string:slug>.html')
@@ -83,3 +98,135 @@ def get_comment_show_info(sender, comment, anchor, info, **kwargs):
     if comment.page is not None:
         info['title'] = comment.page.title
         info['url'] = url_for('main.show_page', slug=comment.page.slug, _anchor=anchor)
+
+
+def delete(page_id):
+    page = Page.query.get(page_id)
+    page_title = page.title
+    db.session.delete(page)
+    db.session.commit()
+    message = '已删除文章"' + page_title + '"'
+    flash(message)
+    return {
+        'result': 'OK'
+    }
+
+
+def cleanup_temp_page():
+    Page.query.filter_by(status='temp').delete()
+    db.session.commit()
+
+
+@page.route('admin', '/list', '管理页面')
+def page_list(request, templates, meta, scripts, **kwargs):
+    if request.method == 'POST':
+        if request.form['action'] == 'delete':
+            meta['override_render'] = True
+            result = delete(request.form['id'])
+            templates.append(jsonify(result))
+        else:
+            meta['override_render'] = True
+
+            page_id = request.form['id']
+            action = request.form['action']
+            page = Page.query.get(page_id)
+            if action == 'publish':
+                page.status = 'published'
+            elif action == 'archive':
+                page.status = 'archived'
+            elif action == 'draft':
+                page.status = 'draft'
+            elif action == 'hide':
+                page.status = 'hidden'
+            db.session.commit()
+
+            templates.append(jsonify({'result': 'OK'}))
+    else:
+        def get_pages(repository_id):
+            return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
+
+        cleanup_temp_page()
+        page = request.args.get('page', 1, type=int)
+        search = request.args.get('search', '', type=str)
+        query = Page.query
+        query = query.filter(Page.title.contains(search))
+        query = query.group_by(Page.repository_id).order_by(Page.version_timestamp.desc())
+        query_wrap = {'query': query}
+        signals.custom_list.send(request=request, query_wrap=query_wrap)
+        query = query_wrap['query']
+        pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+        pages = pagination.items
+        pagination = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(
+            Page.version_timestamp.desc()).paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
+                                                    error_out=False)
+        repository_ids = [item[0] for item in pagination.items]
+        templates.append(render_template(page_instance.template_path('list.html'), repository_ids=repository_ids,
+                                         pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                                     'url_for': page_instance.url_for},
+                                         get_pages=get_pages,
+                                         url_for=page_instance.url_for))
+        scripts.append(render_template(page_instance.template_path('list.js.html')))
+
+
+@page.route('admin', '/edit', '撰写页面')
+def edit_page(request, templates, scripts, csss, **kwargs):
+    if request.method == 'POST':
+        title = request.form['title']
+        slug = request.form['slug']
+        body = request.form['body']
+        timestamp = datetime.utcfromtimestamp(int(request.form['timestamp']))
+        page = Page.query.get(int(request.form['id']))
+        if page.repository_id is None:
+            repository_id = str(uuid4())
+        else:
+            repository_id = page.repository_id
+        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author,
+                        comments=page.comments, attachments=page.attachments, repository_id=repository_id,
+                        status='published')
+        widgets_dict = json.loads(request.form['widgets'])
+        for slug, js_data in widgets_dict.items():
+            if slug == 'template':
+                template = {}
+                template_signals.set_widget.send(js_data=js_data, template=template)
+                new_page.template = template['template']
+        # new_page.article_count = ArticleCount(view_count=article.article_count.view_count)
+        db.session.add(new_page)
+        db.session.commit()
+    else:
+        cleanup_temp_page()
+        if 'id' in request.args:
+            page = Page.query.get(int(request.args['id']))
+        else:
+            page = Page(status='temp')
+            db.session.add(page)
+            db.session.commit()
+        widgets = []
+        widget = {'widget': None}
+        template_signals.get_widget.send(current_template_id=page.template_id, widget=widget)
+        widgets.append(widget['widget'])
+        attachment_signals.get_widget.send(attachments=page.attachments,
+                                           meta={'type': 'page', 'page_id': page.id}, widget=widget)
+        widgets.append(widget['widget'])
+        templates.append(
+            render_template(page_instance.template_path('edit.html'), page=page, widgets=widgets))
+        scripts.append(
+            render_template(page_instance.template_path('edit.js.html'), page=page, widgets=widgets))
+        csss.append(render_template(page_instance.template_path('edit.css.html'), widgets=widgets))
+
+
+@comment_signals.on_new_comment.connect
+def on_new_comment(sender, comment, meta, **kwargs):
+    if 'type' in meta and meta['type'] == 'page':
+        page_id = int(meta['page_id'])
+        page = Page.query.get(page_id)
+        page.comments.append(comment)
+        db.session.commit()
+
+
+@attachment_signals.on_new_attachment.connect
+def on_new_attachment(sender, attachment, meta, **kwargs):
+    if 'type' in meta and meta['type'] == 'page':
+        page_id = int(meta['page_id'])
+        page = Page.query.get(page_id)
+        page.attachments.append(attachment)
+        db.session.commit()
