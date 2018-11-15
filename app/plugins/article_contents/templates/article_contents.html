@@ -26,7 +26,7 @@
                         <span class="badge" title="评论量">{{ article.comments|length }}</span>
                     </td>
                     <td>
-                        <span class="badge" title="阅读量">{{ article.article_count.get_view_count() }}</span>
+                        <span class="badge" title="阅读量">{{ article.get_view_count() }}</span>
                     </td>
                 </tr>
             {% endfor %}
