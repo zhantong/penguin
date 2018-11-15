@@ -6,6 +6,7 @@ import markdown2
 import re
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
+from ..view_count import signals as view_count_signals
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -75,6 +76,11 @@ class Article(db.Model):
             markdown_html = markdown2.markdown(value)
             target.body_html = markdown_html
             target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+
+    def get_view_count(self):
+        count = {}
+        view_count_signals.get_count.send(repository_id=self.repository_id, count=count)
+        return count['count']
 
 
 db.event.listen(Article.body, 'set', Article.on_changed_body)

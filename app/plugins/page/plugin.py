@@ -20,6 +20,7 @@ from uuid import uuid4
 from ..attachment import signals as attachment_signals
 from .. import plugin
 import os.path
+from ..view_count import signals as view_count_signals
 
 
 @plugin.route('/page/static/<path:filename>')
@@ -54,6 +55,7 @@ def show_page(slug):
     rendered_comments = rendered_comments['rendered_comments']
     signals.show.send(request=request, page=page, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
                       right_widgets=right_widgets, scripts=scripts, styles=styles)
+    view_count_signals.viewing.send(repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
     if page.template is not None:
         html = {}
         template_signals.render_template.send(template=page.template, json_params=json.loads(page.body),
@@ -90,6 +92,8 @@ def restore(sender, data, directory, **kwargs):
                 comment_signals.restore.send(comments=page['comments'], restored_comments=restored_comments)
                 p.comments = restored_comments
                 db.session.flush()
+            if 'view_count' in page:
+                view_count_signals.restore.send(repository_id=p.repository_id, count=page['view_count'])
             signals.restore.send(data=page, directory=directory, page=p)
 
 
@@ -189,7 +193,6 @@ def edit_page(request, templates, scripts, csss, **kwargs):
                 template = {}
                 template_signals.set_widget.send(js_data=js_data, template=template)
                 new_page.template = template['template']
-        # new_page.article_count = ArticleCount(view_count=article.article_count.view_count)
         db.session.add(new_page)
         db.session.commit()
     else:

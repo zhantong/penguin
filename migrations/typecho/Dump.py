@@ -122,8 +122,7 @@ class Dump:
             tags = Dump.process_tags(tags)
             article['tags'] = tags
 
-            article['article_counts'] = {}
-            article['article_counts']['view_count'] = post.viewsNum
+            article['view_count'] = post.viewsNum
 
             article['version'] = {
                 'repository_id': str(uuid.uuid4()),
@@ -150,6 +149,8 @@ class Dump:
             attachments = self.session.query(Content).filter_by(type='attachment', parent=page.cid).all()
             attachments = Dump.process_attachements(attachments)
             p['attachments'] = attachments
+
+            p['view_count'] = page.viewsNum
 
             p['version'] = {
                 'repository_id': str(uuid.uuid4()),

@@ -19,11 +19,11 @@ from ..attachment import signals as attachment_signals
 from ..category import signals as category_signals
 from ..tag import signals as tag_signals
 import json
-from ..article_count.models import ArticleCount
 from .. import plugin
 import os.path
 from uuid import uuid4
 from ..template import signals as template_signals
+from ..view_count import signals as view_count_signals
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -58,6 +58,7 @@ def show_article(number):
     rendered_comments = rendered_comments['rendered_comments']
     signals.show.send(request=request, article=article, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
                       right_widgets=right_widgets, scripts=scripts, styles=styles)
+    view_count_signals.viewing.send(repository_id=article.repository_id, request=request, cookies_to_set=cookies_to_set)
     if article.template is not None:
         html = {}
         template_signals.render_template.send(template=article.template, json_params=json.loads(article.body),
@@ -99,6 +100,8 @@ def restore(sender, data, directory, **kwargs):
                                                 attachment_restored=attachment_restored)
                 a.attachments = restored_attachments
                 db.session.flush()
+            if 'view_count' in article:
+                view_count_signals.restore.send(repository_id=a.repository_id, count=article['view_count'])
             signals.restore.send(data=article, directory=directory, article=a)
 
 
@@ -205,7 +208,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
                 template = {}
                 template_signals.set_widget.send(js_data=js_data, template=template)
                 new_article.template = template['template']
-        new_article.article_count = ArticleCount(view_count=article.article_count.view_count)
         db.session.add(new_article)
         db.session.commit()
     else:

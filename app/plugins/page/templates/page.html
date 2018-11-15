@@ -44,10 +44,10 @@
             <i class="fa fa-comment fa-fw" title="评论数"></i>
             <span class="badge">{{ page.comments|length }}</span>
         </li>
-        {#        <li>#}
-        {#            <i class="fa fa-heart fa-fw" title="阅读量"></i>#}
-        {#            <span class="badge">{{ article.article_count.get_view_count() }}</span>#}
-        {#        </li>#}
+        <li>
+            <i class="fa fa-heart fa-fw" title="阅读量"></i>
+            <span class="badge">{{ page.get_view_count() }}</span>
+        </li>
         <li>
             <i class="fa fa-archive fa-fw" title="历史版本"></i>
             <a role="button" data-toggle="collapse" href="#collapse-versions" aria-expanded="false"
