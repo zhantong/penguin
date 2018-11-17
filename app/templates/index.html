@@ -8,8 +8,10 @@
 {% endblock %}
 
 {% block main %}
-    {% for content in contents %}
-        {{ content|safe }}
+    {% for widget in main_widgets %}
+        <div id="widget-{{ widget['slug'] }}">
+            {{ widget['html']|safe }}
+        </div>
     {% endfor %}
 {% endblock %}
 
