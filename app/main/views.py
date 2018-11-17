@@ -1,6 +1,7 @@
 from . import main
 from flask import render_template
 from ..plugins.article import signals as article_signals
+from ..plugins.comment import signals as comment_signals
 
 
 @main.route('/')
@@ -12,6 +13,8 @@ def index():
     widget = {'widget': None}
     article_signals.get_widget_category_list.send(widget=widget)
     left_widgets.append(widget['widget'])
+    comment_signals.get_widget_latest_comments.send(widget=widget)
+    right_widgets.append(widget['widget'])
 
     scripts = []
     styles = []
