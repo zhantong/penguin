@@ -258,3 +258,11 @@ def on_new_attachment(sender, attachment, meta, **kwargs):
         article = Article.query.get(article_id)
         article.attachments.append(attachment)
         db.session.commit()
+
+
+@signals.get_widget_category_list.connect
+def get_widget_article_list(sender, widget, **kwargs):
+    def count_func(category):
+        return len(category.articles)
+
+    category_signals.get_widget_list.send(widget=widget, end_point='.index', count_func=count_func)
