@@ -18,12 +18,8 @@ def index():
     article_signals.get_widget_article_list.send(widget=widget, request=request)
     main_widgets.append(widget['widget'])
 
-    scripts = []
-    styles = []
-    # signals.index.send(request=request, contents=contents, left_widgets=left_widgets,
-    #                    right_widgets=right_widgets, scripts=scripts, styles=styles)
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets,
-                           right_widgets=right_widgets, scripts=scripts, styles=styles)
+                           right_widgets=right_widgets)
 
 
 @main.errorhandler(404)
