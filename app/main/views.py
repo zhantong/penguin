@@ -1,6 +1,6 @@
 from . import main
-from . import signals
-from flask import request, render_template
+from flask import render_template
+from ..plugins.article import signals as article_signals
 
 
 @main.route('/')
@@ -8,10 +8,15 @@ def index():
     contents = []
     left_widgets = []
     right_widgets = []
+
+    widget = {'widget': None}
+    article_signals.get_widget_category_list.send(widget=widget)
+    left_widgets.append(widget['widget'])
+
     scripts = []
     styles = []
-    signals.index.send(request=request, contents=contents, left_widgets=left_widgets,
-                       right_widgets=right_widgets, scripts=scripts, styles=styles)
+    # signals.index.send(request=request, contents=contents, left_widgets=left_widgets,
+    #                    right_widgets=right_widgets, scripts=scripts, styles=styles)
     return render_template('index.html', contents=contents, left_widgets=left_widgets, right_widgets=right_widgets,
                            scripts=scripts, styles=styles)
 
