@@ -2,7 +2,6 @@ from ...models import db
 from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...element_models import Select, Option
-from ...main.signals import index
 from ..article.signals import submit_article, article_search_select
 from ...utils import slugify
 from ...signals import restore
@@ -37,11 +36,15 @@ def submit_article(sender, form, post):
     post.categories = [Category.query.get(category_id) for category_id in category_ids]
 
 
-@index.connect
-def index(sender, left_widgets, **kwargs):
+@signals.get_widget_list.connect
+def get_widget_list(sender, widget, end_point, count_func, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
-    left_widgets.append(render_template(category.template_path('main', 'widget_content.html'),
-                                        all_category=all_category))
+    widget['widget'] = {
+        'slug': 'category',
+        'name': '分类',
+        'html': render_template(category_instance.template_path('widget_list', 'widget.html'),
+                                all_category=all_category, end_point=end_point, count_func=count_func)
+    }
 
 
 @article_signals.restore.connect

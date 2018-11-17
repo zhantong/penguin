@@ -1,0 +1,8 @@
+<ul class="list-group">
+    {% for category in all_category %}
+        <li class="list-group-item">
+            <a href="{{ url_for(end_point, category=category.slug) }}">{{ category.name }}</a>
+            <span class="badge">{{ count_func(category) }}</span>
+        </li>
+    {% endfor %}
+</ul>
