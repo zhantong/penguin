@@ -261,8 +261,23 @@ def on_new_attachment(sender, attachment, meta, **kwargs):
 
 
 @signals.get_widget_category_list.connect
-def get_widget_article_list(sender, widget, **kwargs):
+def get_widget_category_list(sender, widget, **kwargs):
     def count_func(category):
         return len(category.articles)
 
     category_signals.get_widget_list.send(widget=widget, end_point='.index', count_func=count_func)
+
+
+@signals.get_widget_article_list.connect
+def get_widget_article_list(sender, widget, request, **kwargs):
+    page = request.args.get('page', 1, type=int)
+    query = Article.query_published().order_by(Article.timestamp.desc())
+    pagination = query.paginate(
+        page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    articles = pagination.items
+    widget['widget'] = {
+        'slug': 'article_list',
+        'name': '文章列表',
+        'html': render_template(article_instance.template_path('widget_article_list', 'widget.html'),
+                                articles=articles, get_comment_show_info=get_comment_show_info)
+    }
