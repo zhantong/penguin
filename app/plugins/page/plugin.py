@@ -28,11 +28,6 @@ def page_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/')
-def show_none_page():
-    pass
-
-
 @main.route('/<string:slug>.html')
 def show_page(slug):
     def get_pages(repository_id):
