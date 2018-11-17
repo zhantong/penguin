@@ -1,0 +1,13 @@
+<ul class="list-group">
+    {% for comment in comments %}
+        <li class="list-group-item">
+            {% set comment_info=get_comment_show_info(comment) %}
+            <a href="{{ comment_info['url'] }}">
+                {{ comment.author.name }}
+                <small>（{{ comment_info['title'] }}）</small>
+                ：
+            </a>
+            {{ comment.body_html|safe }}
+        </li>
+    {% endfor %}
+</ul>

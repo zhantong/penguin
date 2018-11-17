@@ -187,14 +187,6 @@ def page(sender, post, context, page_content, contents, scripts):
     add_template_file(contents, Path(__file__), 'templates', 'comment.html')
 
 
-@index.connect
-def index(sender, right_widgets, **kwargs):
-    comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
-    right_widgets.append(
-        render_template(comment.template_path('main', 'widget_content.html'), comments=comments,
-                        get_comment_show_info=get_comment_show_info))
-
-
 @signals.restore.connect
 def restore(sender, comments, restored_comments, **kwargs):
     def process_comments(comments, parent=0):
@@ -215,3 +207,14 @@ def restore(sender, comments, restored_comments, **kwargs):
             process_comments(comment['children'], parent=c.id)
 
     process_comments(comments)
+
+
+@signals.get_widget_latest_comments.connect
+def get_widget_latest_comments(sender, widget, **kwargs):
+    comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
+    widget['widget'] = {
+        'slug': 'latest_comments',
+        'name': '最近回复',
+        'html': render_template(comment_instance.template_path('widget_latest_comments', 'widget.html'),
+                                comments=comments, get_comment_show_info=get_comment_show_info)
+    }
