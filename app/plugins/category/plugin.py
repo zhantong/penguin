@@ -9,17 +9,9 @@ from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
 from . import signals
-from ..article.models import Article
 
 category = Plugin('分类', 'category')
 category_instance = category
-
-
-@article_signals.custom_list.connect
-def custom_list(sender, request, query_wrap, **kwargs):
-    if 'category' in request.args and request.args['category'] != '':
-        query_wrap['query'] = query_wrap['query'].join(Article.categories).filter(
-            Category.slug == request.args['category'])
 
 
 @article_search_select.connect
@@ -170,3 +162,9 @@ def edit_tag(request, templates, meta, **kwargs):
 def new_tag(templates, meta, **kwargs):
     meta['override_render'] = True
     templates.append(redirect(category_instance.url_for('/edit')))
+
+
+@signals.filter.connect
+def filter(sender, query, params, **kwargs):
+    if 'category' in params and params['category'] != '':
+        query['query'] = query['query'].filter(Category.slug == params['category'])
