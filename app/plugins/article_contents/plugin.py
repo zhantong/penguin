@@ -1,8 +1,8 @@
 from flask import url_for, render_template
 from ...main import main
-from ...signals import navbar
 from pathlib import Path
 from ..article.models import Article
+from . import signals
 
 
 @main.route('/list.html')
@@ -11,6 +11,10 @@ def article_contents():
     return render_template(Path('article_contents', 'templates', 'article_contents.html').as_posix(), articles=articles)
 
 
-@navbar.connect
-def navbar(sender, content):
-    content['items'].append(('文章目录', url_for('main.article_contents')))
+@signals.get_navbar_item.connect
+def get_navbar_item(sender, item, **kwargs):
+    item['item'] = {
+        'type': 'item',
+        'name': '文章目录',
+        'link': url_for('main.article_contents')
+    }
