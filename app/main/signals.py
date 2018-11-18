@@ -1,3 +1,3 @@
 from blinker import signal
 
-index = signal('main.index')
+get_navbar_item = signal('main.get_navbar_item')

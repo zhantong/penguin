@@ -22,11 +22,11 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     {% for item in custom_navbar['items'] %}
-                        <li><a href="{{ item[1] }}">{{ item[0] }}</a></li>
+                        <li><a href="{{ item['link'] }}">{{ item['name'] }}</a></li>
                     {% endfor %}
                 </ul>
-                {% for other in custom_navbar['others'] %}
-                    {% include other %}
+                {% for template in custom_navbar['templates'] %}
+                    {{ template['template']|safe }}
                 {% endfor %}
             </div>
         </div>

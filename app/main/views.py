@@ -1,7 +1,8 @@
 from . import main
-from flask import render_template, request
+from flask import render_template, request, url_for
 from ..plugins.article import signals as article_signals
 from ..plugins.comment import signals as comment_signals
+from . import signals
 
 
 @main.route('/')
@@ -30,3 +31,18 @@ def page_not_found(e):
 @main.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
+
+
+@signals.get_navbar_item.connect
+def get_navbar_item(sender, item, **kwargs):
+    item['item'] = {
+        'type': 'brand',
+        'brand': 'Penguin',
+        'more': [
+            {
+                'type': 'item',
+                'name': '首页',
+                'link': url_for('main.index')
+            }
+        ]
+    }
