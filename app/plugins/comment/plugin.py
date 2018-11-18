@@ -7,7 +7,6 @@ from flask_login import current_user
 from sqlalchemy import desc
 from ...utils import format_comments
 from . import signals
-from ...main.signals import index
 from ...admin.signals import show_list, manage
 from ..page.signals import page
 from datetime import datetime
