@@ -287,5 +287,15 @@ def get_widget_article_list(sender, widget, request, **kwargs):
 
 @signals.filter.connect
 def filter(sender, query, params, **kwargs):
+    if 'search' in request.args and request.args['search'] != '':
+        query['query'] = query['query'].whoosh_search(request.args['search'])
     query['query'] = query['query'].join(Article.categories)
     category_signals.filter.send(query=query, params=params)
+
+
+@signals.get_navbar_item.connect
+def get_navbar_item(sender, item, **kwargs):
+    item['item'] = {
+        'type': 'template',
+        'template': render_template(article_instance.template_path('navbar_search', 'navbar.html')),
+    }
