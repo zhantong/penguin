@@ -65,12 +65,6 @@ def show_page(slug):
     return resp
 
 
-@navbar.connect
-def navbar(sender, content):
-    pages = Page.query.all()
-    content['items'].extend((page.title, url_for('main.show_page', slug=page.slug)) for page in pages)
-
-
 @restore.connect
 def restore(sender, data, directory, **kwargs):
     if 'page' in data:
@@ -228,3 +222,18 @@ def on_new_attachment(sender, attachment, meta, **kwargs):
         page = Page.query.get(page_id)
         page.attachments.append(attachment)
         db.session.commit()
+
+
+@signals.get_navbar_item.connect
+def get_navbar_item(sender, item, **kwargs):
+    pages = Page.query.all()
+    more = []
+    for page in pages:
+        more.append({
+            'type': 'item',
+            'name': page.title,
+            'link': url_for('main.show_page', slug=page.slug)
+        })
+    item['item'] = {
+        'more': more
+    }
