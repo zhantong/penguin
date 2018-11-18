@@ -275,7 +275,8 @@ def get_widget_article_list(sender, widget, request, **kwargs):
         'slug': 'article_list',
         'name': '文章列表',
         'html': render_template(article_instance.template_path('widget_article_list', 'widget.html'),
-                                articles=articles, get_comment_show_info=get_comment_show_info)
+                                articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
+                                request_params=request.args)
     }
 
 

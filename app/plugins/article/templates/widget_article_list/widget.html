@@ -50,6 +50,6 @@
 </div>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget(pagination, '.index') }}
+        {{ macros.pagination_widget(pagination, '.index', **request_params) }}
     </div>
 {% endif %}
