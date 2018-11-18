@@ -7,7 +7,6 @@ from . import signals, meta
 from ...main import main
 from flask import render_template, request, make_response, url_for, current_app, session, flash, jsonify, \
     send_from_directory
-from ...signals import restore
 from datetime import datetime
 from ...models import User
 from ...models import db
@@ -29,11 +28,6 @@ from ..view_count import signals as view_count_signals
 @plugin.route('/article/static/<path:filename>')
 def article_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
-
-
-@main.route('/archives/')
-def show_none_post():
-    pass
 
 
 @main.route('/archives/<int:number>.html')
@@ -73,7 +67,7 @@ def show_article(number):
     return resp
 
 
-@restore.connect
+@signals.restore.connect
 def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']

@@ -1,8 +1,6 @@
 from ...models import db
 from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
-from ...element_models import Select, Option
-from ..article.signals import submit_article, article_search_select
 from ...utils import slugify
 from ...signals import restore
 from ..article import signals as article_signals
@@ -12,20 +10,6 @@ from . import signals
 
 category = Plugin('分类', 'category')
 category_instance = category
-
-
-@article_search_select.connect
-def article_search_select(sender, selects):
-    select = Select('Select', 'category', [Option('Option', '全部分类', '')])
-    select.options.extend(Option('Option', category.name, category.slug) for category in
-                          Category.query.order_by(Category.name).all())
-    selects.append(select)
-
-
-@submit_article.connect
-def submit_article(sender, form, post):
-    category_ids = form.getlist('category-id')
-    post.categories = [Category.query.get(category_id) for category_id in category_ids]
 
 
 @signals.get_widget_list.connect

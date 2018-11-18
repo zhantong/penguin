@@ -6,12 +6,7 @@ from flask import request, jsonify, current_app, url_for, send_from_directory, r
 import os.path
 import uuid
 from .. import plugin
-import re
-from ..page.signals import edit_page
-from ..article.signals import edit_article
 from datetime import datetime
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article import signals as article_signals
 from . import signals
 import json
@@ -84,14 +79,6 @@ def delete_upload(id):
         'code': 0,
         'message': '删除成功'
     })
-
-
-@edit_page.connect
-@edit_article.connect
-def edit_article(sender, args, context, styles, hiddens, contents, widgets, scripts):
-    context['attachments'] = Attachment.query.filter_by(post_id=context['post'].id).all()
-    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_attachment.html')
-    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_attachment.html')
 
 
 @signals.restore.connect

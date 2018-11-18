@@ -2,10 +2,7 @@ from ...models import db
 from .models import Tag
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
-from ..article.signals import submit_article, edit_article
 from ...signals import restore
-from ...plugins import add_template_file
-from pathlib import Path
 from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
@@ -19,29 +16,6 @@ tag_instance = tag
 def custom_list(sender, request, query_wrap, **kwargs):
     if 'tag' in request.args and request.args['tag'] != '':
         query_wrap['query'] = query_wrap['query'].join(Post.tags).filter(Tag.slug == request.args['tag'])
-
-
-@edit_article.connect
-def edit_article(sender, context, widgets, scripts, **kwargs):
-    context['all_tag_name'] = [tag.name for tag in Tag.query.all()]
-    context['tag_names'] = [tag.name for tag in context['post'].tags]
-    add_template_file(widgets, Path(__file__), 'templates', 'widget_content_tag.html')
-    add_template_file(scripts, Path(__file__), 'templates', 'widget_script_tag.html')
-
-
-@submit_article.connect
-def submit_article(sender, form, post):
-    tag_names = form.getlist('tag-name')
-    tag_names = set(tag_names)
-    tags = []
-    for tag_name in tag_names:
-        tag = Tag.query.filter_by(name=tag_name).first()
-        if tag is None:
-            tag = Tag(name=tag_name, slug=slugify(tag_name))
-            db.session.add(tag)
-            db.session.flush()
-        tags.append(tag)
-    post.tags = tags
 
 
 @article_signals.restore.connect

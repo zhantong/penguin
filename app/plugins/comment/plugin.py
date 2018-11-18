@@ -8,10 +8,7 @@ from sqlalchemy import desc
 from ...utils import format_comments
 from . import signals
 from ...admin.signals import show_list, manage
-from ..page.signals import page
 from datetime import datetime
-from ...plugins import add_template_file
-from pathlib import Path
 from ..models import Plugin
 import json
 import urllib.request
@@ -177,13 +174,6 @@ def get_rendered_comments(sender, session, comments, rendered_comments, scripts,
     session['js_captcha'] = true_str
     scripts.append(render_template(comment_instance.template_path('comment.js.html'), meta=meta,
                                    ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str))
-
-
-@page.connect
-def page(sender, post, context, page_content, contents, scripts):
-    comments = Comment.query.filter_by(post=post).order_by(Comment.timestamp.desc()).all()
-    context['comments'] = format_comments(comments)
-    add_template_file(contents, Path(__file__), 'templates', 'comment.html')
 
 
 @signals.restore.connect

@@ -7,7 +7,6 @@ from . import signals
 from ...main import main
 from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
     send_from_directory
-from ...signals import navbar
 from ...signals import restore
 from datetime import datetime
 from ...models import db, User
