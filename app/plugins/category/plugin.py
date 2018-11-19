@@ -149,6 +149,6 @@ def new_tag(templates, meta, **kwargs):
 
 
 @signals.filter.connect
-def filter(sender, query, params, **kwargs):
+def filter(sender, query, params, join_db=Category, **kwargs):
     if 'category' in params and params['category'] != '':
-        query['query'] = query['query'].filter(Category.slug == params['category'])
+        query['query'] = query['query'].join(join_db).filter(Category.slug == params['category'])

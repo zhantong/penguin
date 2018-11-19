@@ -290,8 +290,7 @@ def get_widget_article_list(sender, widget, request, **kwargs):
 def filter(sender, query, params, **kwargs):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
-    query['query'] = query['query'].join(Article.categories)
-    category_signals.filter.send(query=query, params=params)
+    category_signals.filter.send(query=query, params=params, join_db=Article.categories)
 
 
 @signals.get_navbar_item.connect
