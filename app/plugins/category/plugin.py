@@ -109,12 +109,16 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Category.query.order_by(Category.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         categories = pagination.items
+        custom_columns = []
+        column = {}
+        signals.custom_list_column.send(column=column)
+        custom_columns.append(column['column'])
         templates.append(
             render_template(category_instance.template_path('list.html'), category_instance=category_instance,
                             categories=categories,
                             article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': category_instance.url_for}))
+                                        'url_for': category_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(category_instance.template_path('list.js.html')))
 
 

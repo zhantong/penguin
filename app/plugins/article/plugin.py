@@ -300,3 +300,20 @@ def get_navbar_item(sender, item, **kwargs):
         'type': 'template',
         'template': render_template(article_instance.template_path('navbar_search', 'navbar.html')),
     }
+
+
+@category_signals.custom_list_column.connect
+def category_custom_list_column(sender, column, **kwargs):
+    def name_func(category):
+        return len(category.articles)
+
+    def link_func(category):
+        return article_instance.url_for('/list', **category.get_info()['url_params'])
+
+    column['column'] = {
+        'title': '文章数',
+        'item': {
+            'name': name_func,
+            'link': link_func
+        }
+    }
