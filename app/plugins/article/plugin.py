@@ -148,30 +148,36 @@ def article_list(request, templates, meta, scripts, **kwargs):
 
             templates.append(jsonify({'result': 'OK'}))
     else:
-        def get_articles(repository_id):
-            return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
+        widget = {}
+        signals.get_admin_article_list.send(widget=widget, params=request.args)
+        widget = widget['widget']
+        templates.append(widget['html'])
+        scripts.append(widget['js'])
 
-        cleanup_temp_article()
-        page = request.args.get('page', 1, type=int)
-        search = request.args.get('search', '', type=str)
-        query = Article.query
-        query = query.filter(Article.title.contains(search))
-        query = query.group_by(Article.repository_id).order_by(Article.version_timestamp.desc())
-        query_wrap = {'query': query}
-        signals.custom_list.send(request=request, query_wrap=query_wrap)
-        query = query_wrap['query']
-        pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-        articles = pagination.items
-        pagination = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(
-            Article.version_timestamp.desc()).paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
-                                                       error_out=False)
-        repository_ids = [item[0] for item in pagination.items]
-        templates.append(render_template(article_instance.template_path('list.html'), repository_ids=repository_ids,
-                                         pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                     'url_for': article_instance.url_for},
-                                         get_articles=get_articles,
-                                         url_for=article_instance.url_for))
-        scripts.append(render_template(article_instance.template_path('list.js.html')))
+
+@signals.get_admin_article_list.connect
+def get_admin_widget_article_list(sender, widget, params, **kwargs):
+    def get_articles(repository_id):
+        return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
+
+    page = 1
+    if 'page' in params:
+        page = int(params['page'])
+    query = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(
+        Article.version_timestamp.desc())
+    query = {'query': query}
+    signals.filter.send(query=query, params=request.args)
+    query = query['query']
+    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    repository_ids = [item[0] for item in pagination.items]
+    widget['widget'] = {
+        'html': render_template(article_instance.template_path('list.html'), repository_ids=repository_ids,
+                                pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                            'url_for': article_instance.url_for},
+                                get_articles=get_articles,
+                                url_for=article_instance.url_for),
+        'js': render_template(article_instance.template_path('list.js.html'))
+    }
 
 
 @article.route('admin', '/edit', '撰写文章')
