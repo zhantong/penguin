@@ -317,3 +317,20 @@ def category_custom_list_column(sender, column, **kwargs):
             'link': link_func
         }
     }
+
+
+@tag_signals.custom_list_column.connect
+def tag_custom_list_column(sender, column, **kwargs):
+    def name_func(tag):
+        return len(tag.articles)
+
+    def link_func(tag):
+        return article_instance.url_for('/list', **tag.get_info()['url_params'])
+
+    column['column'] = {
+        'title': '文章数',
+        'item': {
+            'name': name_func,
+            'link': link_func
+        }
+    }

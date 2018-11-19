@@ -53,10 +53,14 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         pagination = Tag.query.order_by(Tag.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
+        custom_columns = []
+        column = {}
+        signals.custom_list_column.send(column=column)
+        custom_columns.append(column['column'])
         templates.append(render_template(tag.template_path('list.html'), tag_instance=tag, tags=tags,
                                          article_instance=article_instance,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                     'url_for': tag_instance.url_for}))
+                                                     'url_for': tag_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(tag.template_path('list.js.html')))
 
 
