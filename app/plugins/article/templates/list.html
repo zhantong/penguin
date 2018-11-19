@@ -23,7 +23,7 @@
                 <td>
                     {% for category in article.categories %}
                         {% set category_info=category.get_info() %}
-                        <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                        <a href="{{ url_for('/list', **category_info['url_params']) }}">{{ category_info['name'] }}</a>
                         {% if not loop.last %}
                             ,
                         {% endif %}

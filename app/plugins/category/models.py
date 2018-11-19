@@ -20,5 +20,8 @@ class Category(db.Model):
     def get_info(self):
         return {
             'name': self.name,
-            'url': url_for('.index', category=self.slug)
+            'url': url_for('.index', category=self.slug),
+            'url_params': {
+                'category': self.slug
+            }
         }
