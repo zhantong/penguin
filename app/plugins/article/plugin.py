@@ -292,6 +292,7 @@ def filter(sender, query, params, **kwargs):
         query['query'] = query['query'].whoosh_search(request.args['search'])
     category_signals.filter.send(query=query, params=params, join_db=Article.categories)
     tag_signals.filter.send(query=query, params=params, join_db=Article.tags)
+    template_signals.filter.send(query=query, params=params, join_db=Article.template)
 
 
 @signals.get_navbar_item.connect
@@ -326,6 +327,23 @@ def tag_custom_list_column(sender, column, **kwargs):
 
     def link_func(tag):
         return article_instance.url_for('/list', **tag.get_info()['url_params'])
+
+    column['column'] = {
+        'title': '文章数',
+        'item': {
+            'name': name_func,
+            'link': link_func
+        }
+    }
+
+
+@template_signals.custom_list_column.connect
+def template_custom_list_column(sender, column, **kwargs):
+    def name_func(template):
+        return len(template.articles)
+
+    def link_func(template):
+        return article_instance.url_for('/list', **template.get_info()['url_params'])
 
     column['column'] = {
         'title': '文章数',

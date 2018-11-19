@@ -56,12 +56,16 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Template.query.order_by(Template.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         the_templates = pagination.items
+        custom_columns = []
+        column = {}
+        signals.custom_list_column.send(column=column)
+        custom_columns.append(column['column'])
         templates.append(
             render_template(template_instance.template_path('list.html'), template_instance=template_instance,
                             templates=the_templates,
                             article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': template_instance.url_for}))
+                                        'url_for': template_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(template_instance.template_path('list.js.html')))
 
 
@@ -101,3 +105,9 @@ def render(sender, template, json_params, html, **kwargs):
     template = Jinja2Tempalte(template.body)
     params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}
     html['html'] = template.render(**params)
+
+
+@signals.filter.connect
+def filter(sender, query, params, join_db=Template, **kwargs):
+    if 'template' in params and params['template'] != '':
+        query['query'] = query['query'].join(join_db).filter(Template.slug == params['template'])
