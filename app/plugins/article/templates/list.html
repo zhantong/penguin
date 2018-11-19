@@ -32,7 +32,7 @@
                 <td>
                     {% for tag in article.tags %}
                         {% set tag_info=tag.get_info() %}
-                        <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
+                        <a href="{{ url_for('/list', **tag_info['url_params']) }}">{{ tag_info['name'] }}</a>
                         {% if not loop.last %}
                             ,
                         {% endif %}

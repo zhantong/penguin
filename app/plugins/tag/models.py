@@ -1,9 +1,5 @@
-from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
 from ... import db
 from flask import url_for
-
-
 
 
 class Tag(db.Model):
@@ -12,7 +8,6 @@ class Tag(db.Model):
     name = db.Column(db.String(200))
     slug = db.Column(db.String(200))
     description = db.Column(db.Text)
-
 
     @staticmethod
     def create(id=None, name=None, slug=None, description=None):
@@ -25,5 +20,8 @@ class Tag(db.Model):
     def get_info(self):
         return {
             'name': self.name,
-            'url': url_for('.index', category=self.slug)
+            'url': url_for('.index', tag=self.slug),
+            'url_params': {
+                'tag': self.slug
+            }
         }

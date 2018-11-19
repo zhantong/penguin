@@ -291,6 +291,7 @@ def filter(sender, query, params, **kwargs):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
     category_signals.filter.send(query=query, params=params, join_db=Article.categories)
+    tag_signals.filter.send(query=query, params=params, join_db=Article.tags)
 
 
 @signals.get_navbar_item.connect

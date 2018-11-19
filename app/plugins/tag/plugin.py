@@ -12,12 +12,6 @@ tag = Plugin('标签', 'tag')
 tag_instance = tag
 
 
-@article_signals.custom_list.connect
-def custom_list(sender, request, query_wrap, **kwargs):
-    if 'tag' in request.args and request.args['tag'] != '':
-        query_wrap['query'] = query_wrap['query'].join(Post.tags).filter(Tag.slug == request.args['tag'])
-
-
 @article_signals.restore.connect
 def restore_article(sender, data, article, **kwargs):
     if 'tags' in data:
@@ -150,3 +144,9 @@ def set_widget(sender, js_data, tags, **kwargs):
             db.session.add(tag)
             db.session.flush()
         tags.append(tag)
+
+
+@signals.filter.connect
+def filter(sender, query, params, join_db=Tag, **kwargs):
+    if 'tag' in params and params['tag'] != '':
+        query['query'] = query['query'].join(join_db).filter(Tag.slug == params['tag'])
