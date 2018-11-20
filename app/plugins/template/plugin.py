@@ -57,9 +57,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         the_templates = pagination.items
         custom_columns = []
-        column = {}
-        signals.custom_list_column.send(column=column)
-        custom_columns.append(column['column'])
+        signals.custom_list_column.send(custom_columns=custom_columns)
         templates.append(
             render_template(template_instance.template_path('list.html'), template_instance=template_instance,
                             templates=the_templates,

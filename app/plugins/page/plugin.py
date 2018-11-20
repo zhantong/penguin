@@ -248,3 +248,20 @@ def get_navbar_item(sender, item, **kwargs):
 @signals.filter.connect
 def filter(sender, query, params, **kwargs):
     template_signals.filter.send(query=query, params=params, join_db=Page.template)
+
+
+@template_signals.custom_list_column.connect
+def template_custom_list_column(sender, custom_columns, **kwargs):
+    def name_func(template):
+        return len(template.pages)
+
+    def link_func(template):
+        return page_instance.url_for('/list', **template.get_info()['url_params'])
+
+    custom_columns.append({
+        'title': '页面数',
+        'item': {
+            'name': name_func,
+            'link': link_func
+        }
+    })
