@@ -134,30 +134,37 @@ def page_list(request, templates, meta, scripts, **kwargs):
 
             templates.append(jsonify({'result': 'OK'}))
     else:
-        def get_pages(repository_id):
-            return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
-
         cleanup_temp_page()
-        page = request.args.get('page', 1, type=int)
-        search = request.args.get('search', '', type=str)
-        query = Page.query
-        query = query.filter(Page.title.contains(search))
-        query = query.group_by(Page.repository_id).order_by(Page.version_timestamp.desc())
-        query_wrap = {'query': query}
-        signals.custom_list.send(request=request, query_wrap=query_wrap)
-        query = query_wrap['query']
-        pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-        pages = pagination.items
-        pagination = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(
-            Page.version_timestamp.desc()).paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
-                                                    error_out=False)
-        repository_ids = [item[0] for item in pagination.items]
-        templates.append(render_template(page_instance.template_path('list.html'), repository_ids=repository_ids,
-                                         pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                     'url_for': page_instance.url_for},
-                                         get_pages=get_pages,
-                                         url_for=page_instance.url_for))
-        scripts.append(render_template(page_instance.template_path('list.js.html')))
+        widget = {}
+        signals.get_admin_page_list.send(widget=widget, params=request.args)
+        widget = widget['widget']
+        templates.append(widget['html'])
+        scripts.append(widget['js'])
+
+
+@signals.get_admin_page_list.connect
+def get_admin_page_list(sender, widget, params, **kwargs):
+    def get_pages(repository_id):
+        return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
+
+    page = 1
+    if 'page' in params:
+        page = int(params['page'])
+    query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(
+        Page.version_timestamp.desc())
+    query = {'query': query}
+    signals.filter.send(query=query, params=request.args)
+    query = query['query']
+    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    repository_ids = [item[0] for item in pagination.items]
+    widget['widget'] = {
+        'html': render_template(page_instance.template_path('list.html'), repository_ids=repository_ids,
+                                pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                            'url_for': page_instance.url_for},
+                                get_pages=get_pages,
+                                url_for=page_instance.url_for),
+        'js': render_template(page_instance.template_path('list.js.html'))
+    }
 
 
 @page.route('admin', '/edit', '撰写页面')
@@ -236,3 +243,8 @@ def get_navbar_item(sender, item, **kwargs):
     item['item'] = {
         'more': more
     }
+
+
+@signals.filter.connect
+def filter(sender, query, params, **kwargs):
+    template_signals.filter.send(query=query, params=params, join_db=Page.template)
