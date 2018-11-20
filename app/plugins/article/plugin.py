@@ -148,6 +148,7 @@ def article_list(request, templates, meta, scripts, **kwargs):
 
             templates.append(jsonify({'result': 'OK'}))
     else:
+        cleanup_temp_article()
         widget = {}
         signals.get_admin_article_list.send(widget=widget, params=request.args)
         widget = widget['widget']
