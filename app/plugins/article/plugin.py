@@ -23,6 +23,7 @@ import os.path
 from uuid import uuid4
 from ..template import signals as template_signals
 from ..view_count import signals as view_count_signals
+from ...signals import restore
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -67,7 +68,7 @@ def show_article(number):
     return resp
 
 
-@signals.restore.connect
+@restore.connect
 def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']
@@ -96,7 +97,16 @@ def restore(sender, data, directory, **kwargs):
                 db.session.flush()
             if 'view_count' in article:
                 view_count_signals.restore.send(repository_id=a.repository_id, count=article['view_count'])
-            signals.restore.send(data=article, directory=directory, article=a)
+            if 'categories' in article:
+                restored_categories = []
+                category_signals.restore.send(categories=article['categories'], restored_categories=restored_categories)
+                a.categories = restored_categories
+                db.session.flush()
+            if 'tags' in article:
+                restored_tags = []
+                tag_signals.restore.send(tags=article['tags'], restored_tags=restored_tags)
+                a.tags = restored_tags
+                db.session.flush()
 
 
 @comment_signals.get_comment_show_info.connect

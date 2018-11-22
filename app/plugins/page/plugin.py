@@ -82,7 +82,6 @@ def restore(sender, data, directory, **kwargs):
                 db.session.flush()
             if 'view_count' in page:
                 view_count_signals.restore.send(repository_id=p.repository_id, count=page['view_count'])
-            signals.restore.send(data=page, directory=directory, page=p)
 
 
 @comment_signals.get_comment_show_info.connect

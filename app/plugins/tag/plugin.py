@@ -12,33 +12,27 @@ tag = Plugin('标签', 'tag')
 tag_instance = tag
 
 
-@article_signals.restore.connect
-def restore_article(sender, data, article, **kwargs):
-    if 'tags' in data:
-        ts = []
-        for tag in data['tags']:
-            t = Tag.query.filter_by(name=tag).first()
-            if t is None:
-                t = Tag.create(name=tag, slug=slugify(tag))
-                db.session.add(t)
-                db.session.flush()
-            ts.append(t)
-        article.tags = ts
-        db.session.flush()
+@signals.restore.connect
+def restore_tags(sender, tags, restored_tags, **kwargs):
+    for tag in tags:
+        if type(tag) is str:
+            tag = {'name': tag}
+        t = Tag.query.filter_by(name=tag['name']).first()
+        if t is None:
+            t = Tag.create(name=tag['name'], slug=slugify(tag['name']), description=tag.get('description', ''))
+            db.session.add(t)
+            db.session.flush()
+        else:
+            if t.description is None or t.description == '':
+                t.description = tag.get('description', '')
+        restored_tags.append(t)
+    db.session.flush()
 
 
 @restore.connect
-def restore(sender, data, **kwargs):
+def global_restore(sender, data, **kwargs):
     if 'tag' in data:
-        for tag in data['tag']:
-            t = Tag.query.filter_by(name=tag['name']).first()
-            if t is None:
-                t = Tag.create(name=tag['name'], slug=slugify(tag['name']),
-                               description=tag['description'])
-                db.session.add(t)
-                db.session.flush()
-            else:
-                t.description = tag['description']
+        signals.restore.send(tags=data['tag'], restored_tags=[])
 
 
 @tag.route('admin', '/list', '管理标签')

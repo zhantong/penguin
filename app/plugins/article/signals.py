@@ -1,6 +1,5 @@
 from blinker import signal
 
-restore = signal('article.restore')
 article_list_url = signal('article_list_url')
 custom_list = signal('article.custom_list')
 list_column_head = signal('article.list_column_head')
