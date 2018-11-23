@@ -3,6 +3,7 @@ from flask import render_template, request, url_for
 from ..plugins.article import signals as article_signals
 from ..plugins.comment import signals as comment_signals
 from . import signals
+from ..plugins.settings.plugin import get_setting
 
 
 @main.route('/')
@@ -37,7 +38,7 @@ def internal_server_error(e):
 def get_navbar_item(sender, item, **kwargs):
     item['item'] = {
         'type': 'brand',
-        'brand': 'Penguin',
+        'brand': get_setting('site_name'),
         'more': [
             {
                 'type': 'item',

@@ -9,6 +9,7 @@ import tempfile
 import smtplib
 import sys
 from . import signals
+from ..settings.plugin import get_setting
 
 send_mail = Plugin('发送邮件', 'send_mail')
 send_mail_instance = send_mail
@@ -66,7 +67,7 @@ def send_email(to_address, subject, content):
     smtp_address = Meta.get('smtp_address')
 
     msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = _format_address('Penguin <%s>' % from_address)
+    msg['From'] = _format_address(get_setting('site_name') + from_address)
     msg['To'] = _format_address('%s <%s>' % (to_address, to_address))
     msg['Subject'] = Header(subject, 'utf-8').encode()
 

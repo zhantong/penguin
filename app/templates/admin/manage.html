@@ -16,7 +16,7 @@
     {% endif %}
 {% endmacro %}
 
-{% block title %}管理{{ title }} - Penguin{% endblock %}
+{% block title %}管理{{ title }} - {{ get_setting('site_name') }}{% endblock %}
 
 {% block page_title %}<h1>管理{{ title }}</h1>{% endblock %}
 

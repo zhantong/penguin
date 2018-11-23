@@ -3,6 +3,7 @@ from .main import signals as main_signals
 from .plugins.article import signals as article_signals
 from .plugins.article_contents import signals as article_contents_signals
 from .plugins.page import signals as page_signals
+from .plugins.settings.plugin import get_setting
 
 
 def custom(app):
@@ -58,4 +59,4 @@ def custom(app):
 
             return custom_navbar
 
-        return dict(custom_navbar=custom_navbar)
+        return dict(custom_navbar=custom_navbar, get_setting=get_setting)

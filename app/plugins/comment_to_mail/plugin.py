@@ -23,6 +23,7 @@ from ..comment.models import Comment
 import redis
 from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
+from ..settings.plugin import get_setting
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -156,7 +157,7 @@ def send_email(app, to_address, subject, content):
     password = app.config['MAIL_PASSWORD']
 
     msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = _format_address('Penguin <%s>' % from_address)
+    msg['From'] = _format_address(get_setting('site_name') + from_address)
     msg['To'] = _format_address('%s <%s>' % (to_address, to_address))
     msg['Subject'] = Header(subject, 'utf-8').encode()
 
