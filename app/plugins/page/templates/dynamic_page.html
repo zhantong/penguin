@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page['title'] }} - {{ get_setting('site_name') }}{% endblock %}
+
+{% block metas %}
+    {{ super() }}
+{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    {% for style in styles %}
+        {{ style|safe }}
+    {% endfor %}
+    <style type="text/css">
+        article img {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        code {
+            word-break: break-word;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>{{ page['title'] }}</h1>
+    <article class="post">
+        {{ page['html'] | safe }}
+    </article>
+    {{ rendered_comments|safe }}
+{% endblock %}
+
+{% block sidebar_left %}
+    {% for left_widget in left_widgets %}
+        {{ left_widget|safe }}
+    {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% for script in scripts %}
+        {{ script|safe }}
+    {% endfor %}
+{% endblock %}

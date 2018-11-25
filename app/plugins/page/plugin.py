@@ -6,7 +6,7 @@ page_instance = page
 from . import signals
 from ...main import main
 from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
-    send_from_directory
+    send_from_directory, abort
 from ...signals import restore
 from datetime import datetime
 from ...models import db, User
@@ -35,33 +35,55 @@ def show_page(slug):
     page = Page.query.filter_by(slug=slug).order_by(Page.version_timestamp.desc())
     if 'version' in request.args:
         page = page.filter_by(number=request.args['version'])
-    page = page.first_or_404()
-    left_widgets = []
-    right_widgets = []
-    scripts = []
-    styles = []
-    cookies_to_set = {}
-    rendered_comments = {}
-    comment_signals.get_rendered_comments.send(session=session, comments=page.comments,
-                                               rendered_comments=rendered_comments,
-                                               scripts=scripts, styles=styles,
-                                               meta={'type': 'page', 'page_id': page.id})
-    rendered_comments = rendered_comments['rendered_comments']
-    signals.show.send(request=request, page=page, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
-                      right_widgets=right_widgets, scripts=scripts, styles=styles)
-    view_count_signals.viewing.send(repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
-    if page.template is not None:
-        html = {}
-        template_signals.render_template.send(template=page.template, json_params=json.loads(page.body),
-                                              html=html)
-        page.body_html = html['html']
-    resp = make_response(render_template(Path('page', 'templates', 'page.html').as_posix(), page=page,
-                                         rendered_comments=rendered_comments, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, scripts=scripts, styles=styles,
-                                         get_pages=get_pages))
-    for key, value in cookies_to_set.items():
-        resp.set_cookie(key, value)
-    return resp
+    page = page.first()
+    if page is not None:
+        left_widgets = []
+        right_widgets = []
+        scripts = []
+        styles = []
+        cookies_to_set = {}
+        rendered_comments = {}
+        comment_signals.get_rendered_comments.send(session=session, comments=page.comments,
+                                                   rendered_comments=rendered_comments,
+                                                   scripts=scripts, styles=styles,
+                                                   meta={'type': 'page', 'page_id': page.id})
+        rendered_comments = rendered_comments['rendered_comments']
+        signals.show.send(request=request, page=page, cookies_to_set=cookies_to_set, left_widgets=left_widgets,
+                          right_widgets=right_widgets, scripts=scripts, styles=styles)
+        view_count_signals.viewing.send(repository_id=page.repository_id, request=request,
+                                        cookies_to_set=cookies_to_set)
+        if page.template is not None:
+            html = {}
+            template_signals.render_template.send(template=page.template, json_params=json.loads(page.body),
+                                                  html=html)
+            page.body_html = html['html']
+        resp = make_response(render_template(Path('page', 'templates', 'page.html').as_posix(), page=page,
+                                             rendered_comments=rendered_comments, left_widgets=left_widgets,
+                                             right_widgets=right_widgets, scripts=scripts, styles=styles,
+                                             get_pages=get_pages))
+        for key, value in cookies_to_set.items():
+            resp.set_cookie(key, value)
+        return resp
+    else:
+        dynamic_pages = []
+        page = None
+        signals.dynamic_page.send(pages=dynamic_pages)
+        for dynamic_page in dynamic_pages:
+            if dynamic_page['slug'] == slug:
+                page = dynamic_page
+                break
+        if page is None:
+            abort(404)
+        left_widgets = []
+        right_widgets = []
+        scripts = []
+        styles = []
+        scripts.append(page['script'])
+        styles.append(page['style'])
+        resp = make_response(render_template(page_instance.template_path('dynamic_page.html'), page=page,
+                                             left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
+                                             styles=styles))
+        return resp
 
 
 @restore.connect
@@ -238,6 +260,14 @@ def get_navbar_item(sender, item, **kwargs):
             'type': 'item',
             'name': page.title,
             'link': url_for('main.show_page', slug=page.slug)
+        })
+    dynamic_pages = []
+    signals.dynamic_page.send(pages=dynamic_pages)
+    for page in dynamic_pages:
+        more.append({
+            'type': 'item',
+            'name': page['title'],
+            'link': url_for('main.show_page', slug=page['slug'])
         })
     item['item'] = {
         'more': more
