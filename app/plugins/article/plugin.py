@@ -24,6 +24,7 @@ from uuid import uuid4
 from ..template import signals as template_signals
 from ..view_count import signals as view_count_signals
 from ...signals import restore
+from ..page import signals as page_signals
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -362,4 +363,17 @@ def template_custom_list_column(sender, custom_columns, **kwargs):
             'name': name_func,
             'link': link_func
         }
+    })
+
+
+@page_signals.dynamic_page.connect
+def dynamic_page(sender, pages, **kwargs):
+    articles = Article.query_published().order_by(Article.timestamp.desc()).all()
+    pages.append({
+        'title': '文章目录',
+        'slug': 'list',
+        'html': render_template(article_instance.template_path('dynamic_page_contents', 'contents.html'),
+                                articles=articles),
+        'script': render_template(article_instance.template_path('dynamic_page_contents', 'contents.js.html')),
+        'style': ''
     })
