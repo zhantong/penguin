@@ -1,7 +1,6 @@
 import jinja2
 from .main import signals as main_signals
 from .plugins.article import signals as article_signals
-from .plugins.article_contents import signals as article_contents_signals
 from .plugins.page import signals as page_signals
 from .plugins.settings.plugin import get_setting
 
@@ -51,8 +50,6 @@ def custom(app):
             main_signals.get_navbar_item.send(item=item)
             process_item(item['item'])
             article_signals.get_navbar_item.send(item=item)
-            process_item(item['item'])
-            article_contents_signals.get_navbar_item.send(item=item)
             process_item(item['item'])
             page_signals.get_navbar_item.send(item=item)
             process_item(item['item'])
