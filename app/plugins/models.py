@@ -1,10 +1,41 @@
 from flask import url_for
 from urllib.parse import urlencode
 from pathlib import Path
+import blinker
+import inspect
 
 
 class Plugin:
     plugins = {}
+
+    class Signal:
+        signals = {}
+
+        def __init__(self, outer_class):
+            self.outer_class = outer_class
+
+        @staticmethod
+        def connect(plugin_name, name):
+            caller = inspect.getframeinfo(inspect.stack()[1][0])
+            signal_name = plugin_name + '.' + name
+            if signal_name not in Plugin.Signal.signals:
+                Plugin.Signal.signals[signal_name] = {}
+            if 'connect' not in Plugin.Signal.signals[signal_name]:
+                Plugin.Signal.signals[signal_name]['connect'] = []
+            Plugin.Signal.signals[signal_name]['connect'].append(caller)
+            signal = blinker.signal(signal_name)
+            return signal.connect
+
+        def connect_this(self, name):
+            caller = inspect.getframeinfo(inspect.stack()[1][0])
+            signal_name = self.outer_class.slug + '.' + name
+            if signal_name not in Plugin.Signal.signals:
+                Plugin.Signal.signals[signal_name] = {}
+            if 'connect' not in Plugin.Signal.signals[signal_name]:
+                Plugin.Signal.signals[signal_name]['connect'] = []
+            Plugin.Signal.signals[signal_name]['connect'].append(caller)
+            signal = blinker.signal(signal_name)
+            return signal.connect
 
     @staticmethod
     def find_plugin(slug):
@@ -15,6 +46,7 @@ class Plugin:
         self.name = name
         self.slug = slug
         self.routes = {}
+        self.signal = self.Signal(self)
 
     def route(self, blueprint, rule, name=None, **kwargs):
         def wrap(f):
