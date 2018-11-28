@@ -8,7 +8,6 @@ from email.header import Header
 import tempfile
 import smtplib
 import sys
-from . import signals
 from ..settings.plugin import get_setting
 
 send_mail = Plugin('发送邮件', 'send_mail')
@@ -43,13 +42,13 @@ def test_send_mail(request, meta, templates, scripts, **kwargs):
         subject = request.form.get('subject')
         body = request.form.get('body')
         result = {}
-        signals.send_mail.send(recipient=recipient, subject=subject, body=body, result=result)
+        send_mail_instance.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body, result=result)
 
         meta['override_render'] = True
         templates.append(jsonify(result))
 
 
-@signals.send_mail.connect
+@send_mail_instance.signal.connect_this('send_mail')
 def send_mail(sender, recipient, subject, body, result, **kwargs):
     is_success, error_log = send_email(recipient, subject, body)
     result['status'] = is_success

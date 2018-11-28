@@ -3,16 +3,14 @@ from .models import Tag
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ...signals import restore
-from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
-from . import signals
 
 tag = Plugin('标签', 'tag')
 tag_instance = tag
 
 
-@signals.restore.connect
+@tag_instance.signal.connect_this('restore')
 def restore_tags(sender, tags, restored_tags, **kwargs):
     for tag in tags:
         if type(tag) is str:
@@ -32,7 +30,7 @@ def restore_tags(sender, tags, restored_tags, **kwargs):
 @restore.connect
 def global_restore(sender, data, **kwargs):
     if 'tag' in data:
-        signals.restore.send(tags=data['tag'], restored_tags=[])
+        tag_instance.signal.send_this('restore', tags=data['tag'], restored_tags=[])
 
 
 @tag.route('admin', '/list', '管理标签')
@@ -49,7 +47,7 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         tags = pagination.items
         custom_columns = []
         column = {}
-        signals.custom_list_column.send(column=column)
+        tag_instance.signal.send_this('custom_list_column', column=column)
         custom_columns.append(column['column'])
         templates.append(render_template(tag.template_path('list.html'), tag_instance=tag, tags=tags,
                                          article_instance=article_instance,
@@ -100,7 +98,7 @@ def delete(tag_id):
     }
 
 
-@article_signals.show_edit_article_widget.connect
+@Plugin.Signal.connect('article', 'show_edit_article_widget')
 def show_edit_article_widget(sender, post, widgets, **kwargs):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in post.tags]
@@ -114,7 +112,7 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     })
 
 
-@signals.get_widget.connect
+@tag_instance.signal.connect_this('get_widget')
 def get_widget(sender, tags, widget, **kwargs):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in tags]
@@ -128,7 +126,7 @@ def get_widget(sender, tags, widget, **kwargs):
     }
 
 
-@signals.set_widget.connect
+@tag_instance.signal.connect_this('set_widget')
 def set_widget(sender, js_data, tags, **kwargs):
     tag_names = []
     for item in js_data:
@@ -144,7 +142,7 @@ def set_widget(sender, js_data, tags, **kwargs):
         tags.append(tag)
 
 
-@signals.filter.connect
+@tag_instance.signal.connect_this('filter')
 def filter(sender, query, params, join_db=Tag, **kwargs):
     if 'tag' in params and params['tag'] != '':
         query['query'] = query['query'].join(join_db).filter(Tag.slug == params['tag'])

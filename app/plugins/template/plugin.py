@@ -3,14 +3,13 @@ from .models import Template
 from flask import current_app, flash, render_template, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
-from . import signals
 from ..article.plugin import article as article_instance
 
 template = Plugin('模板', 'template')
 template_instance = template
 
 
-@signals.get_widget.connect
+@template_instance.signal.connect_this('get_widget')
 def get_widget(sender, current_template_id, widget, **kwargs):
     all_templates = Template.query.all()
     current_template = Template.query.filter_by(id=current_template_id).first()
@@ -23,7 +22,7 @@ def get_widget(sender, current_template_id, widget, **kwargs):
     }
 
 
-@signals.set_widget.connect
+@template_instance.signal.connect_this('set_widget')
 def set_widget(sender, js_data, template, **kwargs):
     template['template'] = None
     for item in js_data:
@@ -57,7 +56,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         the_templates = pagination.items
         custom_columns = []
-        signals.custom_list_column.send(custom_columns=custom_columns)
+        template_instance.signal.send_this('custom_list_column', custom_columns=custom_columns)
         templates.append(
             render_template(template_instance.template_path('list.html'), template_instance=template_instance,
                             templates=the_templates,
@@ -98,14 +97,14 @@ def new_tag(templates, meta, **kwargs):
     templates.append(redirect(template_instance.url_for('/edit')))
 
 
-@signals.render_template.connect
+@template_instance.signal.connect_this('render_template')
 def render(sender, template, json_params, html, **kwargs):
     template = Jinja2Tempalte(template.body)
     params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}
     html['html'] = template.render(**params)
 
 
-@signals.filter.connect
+@template_instance.signal.connect_this('filter')
 def filter(sender, query, params, join_db=Template, **kwargs):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(join_db).filter(Template.slug == params['template'])

@@ -6,7 +6,6 @@ from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
 from ...utils import format_comments
-from . import signals
 from ...admin.signals import show_list, manage
 from datetime import datetime
 from ..models import Plugin
@@ -67,8 +66,8 @@ def submit_comment():
     comment = Comment(body=body, parent=parent, author=author, ip=ip, agent=agent)
     db.session.add(comment)
     db.session.commit()
-    signals.on_new_comment.send(comment=comment, meta=meta)
-    signals.comment_submitted.send(comment=comment)
+    comment_instance.signal.send_this('on_new_comment', comment=comment, meta=meta)
+    comment_instance.signal.send_this('comment_submitted', comment=comment)
     return jsonify({
         'code': 0,
         'message': '发表成功'
@@ -77,7 +76,8 @@ def submit_comment():
 
 def get_comment_show_info(comment):
     info = {}
-    signals.get_comment_show_info.send(comment=comment, anchor='comment-' + str(comment.id), info=info)
+    comment_instance.signal.send_this('get_comment_show_info', comment=comment, anchor='comment-' + str(comment.id),
+                                      info=info)
     return info
 
 
@@ -164,7 +164,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         scripts.append(render_template(comment_instance.template_path('list.js.html'), meta=meta))
 
 
-@signals.get_rendered_comments.connect
+@comment_instance.signal.connect_this('get_rendered_comments')
 def get_rendered_comments(sender, session, comments, rendered_comments, scripts, meta, **kwargs):
     comments = format_comments(comments)
     rendered_comments['rendered_comments'] = render_template(comment_instance.template_path('comment.html'),
@@ -176,7 +176,7 @@ def get_rendered_comments(sender, session, comments, rendered_comments, scripts,
                                    ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str))
 
 
-@signals.restore.connect
+@comment_instance.signal.connect_this('restore')
 def restore(sender, comments, restored_comments, **kwargs):
     def process_comments(comments, parent=0):
         for comment in comments:
@@ -198,7 +198,7 @@ def restore(sender, comments, restored_comments, **kwargs):
     process_comments(comments)
 
 
-@signals.get_widget_latest_comments.connect
+@comment_instance.signal.connect_this('get_widget_latest_comments')
 def get_widget_latest_comments(sender, widget, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     widget['widget'] = {

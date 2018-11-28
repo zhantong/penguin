@@ -8,7 +8,7 @@ from ...models import User
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
 from random import randint
-from ..view_count import signals as view_count_signals
+from ..models import Plugin
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
@@ -76,7 +76,7 @@ class Page(db.Model):
 
     def get_view_count(self):
         count = {}
-        view_count_signals.get_count.send(repository_id=self.repository_id, count=count)
+        Plugin.Signal.send('view_count', 'get_count', repository_id=self.repository_id, count=count)
         return count['count']
 
 

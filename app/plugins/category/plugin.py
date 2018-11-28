@@ -3,16 +3,14 @@ from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ...signals import restore
-from ..article import signals as article_signals
 from ..models import Plugin
 from ..article.plugin import article as article_instance
-from . import signals
 
 category = Plugin('分类', 'category')
 category_instance = category
 
 
-@signals.get_widget_list.connect
+@category_instance.signal.connect_this('get_widget_list')
 def get_widget_list(sender, widget, end_point, count_func, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
     widget['widget'] = {
@@ -23,7 +21,7 @@ def get_widget_list(sender, widget, end_point, count_func, **kwargs):
     }
 
 
-@signals.restore.connect
+@category_instance.signal.connect_this('restore')
 def restore_categories(sender, categories, restored_categories, **kwargs):
     for category in categories:
         if type(category) is str:
@@ -44,10 +42,10 @@ def restore_categories(sender, categories, restored_categories, **kwargs):
 @restore.connect
 def global_restore(sender, data, **kwargs):
     if 'category' in data:
-        signals.restore.send(categories=data['category'], restored_categories=[])
+        category_instance.signal.send_this('restore', categories=data['category'], restored_categories=[])
 
 
-@article_signals.show_edit_article_widget.connect
+@Plugin.Signal.connect('article', 'show_edit_article_widget')
 def show_edit_article_widget(sender, post, widgets, **kwargs):
     all_category = Category.query.all()
     category_ids = [category.id for category in post.categories]
@@ -59,7 +57,7 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     })
 
 
-@signals.get_widget.connect
+@category_instance.signal.connect_this('get_widget')
 def get_widget(sender, categories, widget, **kwargs):
     all_category = Category.query.all()
     category_ids = [category.id for category in categories]
@@ -71,7 +69,7 @@ def get_widget(sender, categories, widget, **kwargs):
     }
 
 
-@signals.set_widget.connect
+@category_instance.signal.connect_this('set_widget')
 def set_widget(sender, js_data, categories, **kwargs):
     category_ids = []
     for item in js_data:
@@ -106,7 +104,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         categories = pagination.items
         custom_columns = []
         column = {}
-        signals.custom_list_column.send(column=column)
+        category_instance.signal.send_this('custom_list_column', column=column)
         custom_columns.append(column['column'])
         templates.append(
             render_template(category_instance.template_path('list.html'), category_instance=category_instance,
@@ -147,7 +145,7 @@ def new_tag(templates, meta, **kwargs):
     templates.append(redirect(category_instance.url_for('/edit')))
 
 
-@signals.filter.connect
+@category_instance.signal.connect_this('filter')
 def filter(sender, query, params, join_db=Category, **kwargs):
     if 'category' in params and params['category'] != '':
         query['query'] = query['query'].join(join_db).filter(Category.slug == params['category'])

@@ -7,8 +7,6 @@ import os.path
 import uuid
 from .. import plugin
 from datetime import datetime
-from ..article import signals as article_signals
-from . import signals
 import json
 
 from ..models import Plugin
@@ -60,7 +58,7 @@ def upload():
     db.session.add(attachment)
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
-    signals.on_new_attachment.send(attachment=attachment, meta=meta)
+    attachment_instance.signal.send_this('on_new_attachment', ttachment=attachment, meta=meta)
     return jsonify({
         'code': 0,
         'message': '上传成功',
@@ -81,7 +79,7 @@ def delete_upload(id):
     })
 
 
-@signals.restore.connect
+@attachment_instance.signal.connect_this('restore')
 def restore(sender, attachments, directory, restored_attachments, attachment_restored, **kwargs):
     for attachment in attachments:
         a = Attachment.create(file_path=os.path.join(directory,
@@ -96,7 +94,7 @@ def restore(sender, attachments, directory, restored_attachments, attachment_res
         attachment_restored(attachment, a.filename)
 
 
-@article_signals.show_edit_article_widget.connect
+@Plugin.Signal.connect('article', 'show_edit_article_widget')
 def show_edit_article_widget(sender, post, widgets, **kwargs):
     widgets.append({
         'slug': 'attachment',
@@ -108,7 +106,7 @@ def show_edit_article_widget(sender, post, widgets, **kwargs):
     })
 
 
-@signals.get_widget.connect
+@attachment_instance.signal.connect_this('get_widget')
 def get_widget(sender, attachments, meta, widget, **kwargs):
     widget['widget'] = {
         'slug': 'attachment',
