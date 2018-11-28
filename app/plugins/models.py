@@ -37,6 +37,17 @@ class Plugin:
             signal = blinker.signal(signal_name)
             return signal.connect
 
+        @staticmethod
+        def send(plugin_name, name, **kwargs):
+            signal_name = plugin_name + '.' + name
+            signal = blinker.signal(signal_name)
+            signal.send(**kwargs)
+
+        def send_this(self, name, **kwargs):
+            signal_name = self.outer_class.slug + '.' + name
+            signal = blinker.signal(signal_name)
+            signal.send(**kwargs)
+
     @staticmethod
     def find_plugin(slug):
         return Plugin.plugins[slug]
