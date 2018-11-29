@@ -1,16 +1,5 @@
-import os
-import smtplib
-import tempfile
-from email.header import Header
-from email.mime.text import MIMEText
-from email.utils import parseaddr, formataddr
-import sys
 from flask import current_app, redirect, render_template
-from ..comment.signals import comment_submitted
 from ...extensions import db
-from ...admin.signals import edit, submit
-from ...plugins import add_template_file
-from pathlib import Path
 from ..models import Plugin
 import urllib.request
 import time
@@ -23,7 +12,6 @@ from ..comment.models import Comment
 import redis
 from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
-from ..settings.plugin import get_setting
 
 comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
 comment_to_mail_instance = comment_to_mail
@@ -147,63 +135,7 @@ def me(templates, **kwargs):
                                      login_url=comment_to_mail.url_for('/login')))
 
 
-def _format_address(s):
-    name, address = parseaddr(s)
-    return formataddr((Header(name, 'utf-8').encode(), address))
-
-
-def send_email(app, to_address, subject, content):
-    from_address = app.config['MAIL_USERNAME']
-    password = app.config['MAIL_PASSWORD']
-
-    msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = _format_address(get_setting('site_name') + from_address)
-    msg['To'] = _format_address('%s <%s>' % (to_address, to_address))
-    msg['Subject'] = Header(subject, 'utf-8').encode()
-
-    log_file = tempfile.TemporaryFile()
-    available_fd = log_file.fileno()
-    log_file.close()
-    os.dup2(2, available_fd)
-    log_file = tempfile.TemporaryFile()
-    os.dup2(log_file.fileno(), 2)
-
-    try:
-        smtp = smtplib.SMTP_SSL(app.config['MAIL_SERVER'], app.config['MAIL_PORT'])
-        smtplib.stderr = log_file
-        smtp.set_debuglevel(2)
-        smtp.login(from_address, password)
-        smtp.sendmail(from_address, [to_address], msg.as_string())
-        smtp.quit()
-    except smtplib.SMTPException as e:
-        is_success = False
-    else:
-        is_success = True
-
-    sys.stderr.flush()
-    log_file.flush()
-    log_file.seek(0)
-    stderr_bytes = log_file.read()
-    log_file.close()
-    os.dup2(available_fd, 2)
-    os.close(available_fd)
-
-    return is_success, stderr_bytes.decode()
-
-
-@edit.connect_via('comment_to_mail')
-def edit(sender, contents, **kwargs):
-    add_template_file(contents, Path(__file__), 'templates', 'content.html')
-
-
-@submit.connect_via('comment_to_mail')
-def submit(sender, args, form, **kwargs):
-    app = current_app._get_current_object()
-    is_sent, log = send_email(app, form['address'], form['subject'], form['content'])
-    print(log)
-
-
-@comment_submitted.connect
+@Plugin.Signal.connect('comment', 'comment_submitted')
 def comment_submitted(sender, comment, **kwargs):
     message = Message(comment=comment, status='未发送')
     db.session.add(message)
