@@ -10,7 +10,6 @@ from flask import render_template, request, make_response, url_for, current_app,
 from datetime import datetime
 from ...models import User
 from ...models import db
-from pathlib import Path
 
 from .models import Article
 import json
@@ -56,7 +55,7 @@ def show_article(number):
                            json_params=json.loads(article.body),
                            html=html)
         article.body_html = html['html']
-    resp = make_response(render_template(Path('article', 'templates', 'article.html').as_posix(), article=article,
+    resp = make_response(render_template(article_instance.template_path('article.html'), article=article,
                                          rendered_comments=rendered_comments, left_widgets=left_widgets,
                                          right_widgets=right_widgets, scripts=scripts, styles=styles,
                                          get_articles=get_articles))

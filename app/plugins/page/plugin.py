@@ -9,7 +9,6 @@ from flask import render_template, url_for, request, session, make_response, fla
 from ...signals import restore
 from datetime import datetime
 from ...models import db, User
-from pathlib import Path
 from .models import Page
 import json
 from uuid import uuid4
@@ -53,7 +52,7 @@ def show_page(slug):
             Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body),
                                html=html)
             page.body_html = html['html']
-        resp = make_response(render_template(Path('page', 'templates', 'page.html').as_posix(), page=page,
+        resp = make_response(render_template(page_instance.template_path('page.html'), page=page,
                                              rendered_comments=rendered_comments, left_widgets=left_widgets,
                                              right_widgets=right_widgets, scripts=scripts, styles=styles,
                                              get_pages=get_pages))
