@@ -2,7 +2,6 @@ from ...models import db
 from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
-from ...signals import restore
 from ..models import Plugin
 from ..article.plugin import article as article_instance
 
@@ -39,7 +38,7 @@ def restore_categories(sender, categories, restored_categories, **kwargs):
     db.session.flush()
 
 
-@restore.connect
+@Plugin.Signal.connect('app', 'restore')
 def global_restore(sender, data, **kwargs):
     if 'category' in data:
         category_instance.signal.send_this('restore', categories=data['category'], restored_categories=[])

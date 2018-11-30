@@ -6,7 +6,6 @@ page_instance = page
 from ...main import main
 from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
     send_from_directory, abort
-from ...signals import restore
 from datetime import datetime
 from ...models import db, User
 from .models import Page
@@ -81,7 +80,7 @@ def show_page(slug):
         return resp
 
 
-@restore.connect
+@Plugin.Signal.connect('app', 'restore')
 def restore(sender, data, directory, **kwargs):
     if 'page' in data:
         pages = data['page']

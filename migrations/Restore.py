@@ -2,8 +2,8 @@ import json
 from datetime import datetime
 from app import db
 from app.models import Role, User
-from . import signals
 import os
+from app.plugins.models import Plugin
 
 
 class Restore:
@@ -21,5 +21,5 @@ class Restore:
 
     def restore(self):
         self.process_admin(self.data['admin'])
-        signals.restore.send(data=self.data, directory=os.path.dirname(self.file_path))
+        Plugin.Signal.send('app', 'restore', data=self.data, directory=os.path.dirname(self.file_path))
         db.session.commit()

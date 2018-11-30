@@ -16,7 +16,6 @@ import json
 from .. import plugin
 import os.path
 from uuid import uuid4
-from ...signals import restore
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -64,7 +63,7 @@ def show_article(number):
     return resp
 
 
-@restore.connect
+@Plugin.Signal.connect('app', 'restore')
 def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']

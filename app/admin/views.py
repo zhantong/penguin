@@ -1,5 +1,4 @@
-from . import signals
-from flask import render_template, request, redirect, url_for, jsonify, abort
+from flask import render_template, request, jsonify, abort
 from flask_login import login_required
 from . import admin
 from ..utils import slugify
@@ -15,49 +14,6 @@ def before_request():
 @admin.route('/')
 def index():
     return render_template('admin/index.html', plugins=Plugin.plugins)
-
-
-@admin.route('/edit')
-def edit():
-    type = request.args['type']
-    context = {}
-    styles = []
-    hiddens = []
-    contents = []
-    widgets = []
-    scripts = []
-    result = signals.edit.send(type, args=request.args, context=context, styles=styles, hiddens=hiddens,
-                               contents=contents, widgets=widgets,
-                               scripts=scripts)
-    return render_template('admin/edit.html', **request.args.to_dict(), **context, styles=styles, hiddens=hiddens,
-                           contents=contents, widgets=widgets,
-                           scripts=scripts, plugins=Plugin.plugins, templates=[])
-
-
-@admin.route('/edit', methods=['POST'])
-def submit():
-    args = request.args
-    type = request.form['type']
-    result = signals.submit.send(type, args=args, form=request.form)
-    return redirect(url_for('.show_list', type=type))
-
-
-@admin.route('/manage')
-def show_list():
-    type = request.args['type']
-    result = signals.show_list.send(type, args=request.args)
-    if len(result) == 0:
-        return redirect(url_for('.edit', type=type))
-    context = result[0][1]
-    return render_template('admin/manage.html', **context, plugins=Plugin.plugins, templates=[],
-                           scripts=[], csss=[])
-
-
-@admin.route('/manage', methods=['POST'])
-def manage():
-    type = request.form['type']
-    result = signals.manage.send(type, form=request.form)
-    return redirect(url_for('.show_list', type=type))
 
 
 @admin.route('/<path:path>', methods=['GET', 'POST'])

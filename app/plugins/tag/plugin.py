@@ -2,7 +2,6 @@ from ...models import db
 from .models import Tag
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
-from ...signals import restore
 from ..models import Plugin
 from ..article.plugin import article as article_instance
 
@@ -27,7 +26,7 @@ def restore_tags(sender, tags, restored_tags, **kwargs):
     db.session.flush()
 
 
-@restore.connect
+@Plugin.Signal.connect('app', 'restore')
 def global_restore(sender, data, **kwargs):
     if 'tag' in data:
         tag_instance.signal.send_this('restore', tags=data['tag'], restored_tags=[])

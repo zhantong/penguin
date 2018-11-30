@@ -2,7 +2,6 @@ from flask import Flask
 from config import config
 import flask_whooshalchemyplus
 from flask_whooshalchemyplus import index_all
-from . import signals
 from .extensions import bootstrap, db, login_manager, csrf, moment
 
 
@@ -34,8 +33,6 @@ def create_app(config_name):
 
     from .plugins import plugin as plugin_blueprint
     app.register_blueprint(plugin_blueprint, url_prefix='/plugin')
-
-    signals.init_app.send(app=app)
 
     from . import jinja2_customs
     jinja2_customs.custom(app)

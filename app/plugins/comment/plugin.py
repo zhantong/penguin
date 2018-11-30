@@ -1,12 +1,10 @@
 from ...models import db, User, Role
 from ..comment.models import Comment
-from flask import current_app, url_for, flash, request, jsonify, render_template, session
-from ...element_models import Hyperlink, Table, Pagination, Plain, Datetime
+from flask import current_app, flash, request, jsonify, render_template, session
 from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
 from ...utils import format_comments
-from ...admin.signals import show_list, manage
 from datetime import datetime
 from ..models import Plugin
 import json
@@ -79,56 +77,6 @@ def get_comment_show_info(comment):
     comment_instance.signal.send_this('get_comment_show_info', comment=comment, anchor='comment-' + str(comment.id),
                                       info=info)
     return info
-
-
-@show_list.connect_via('comment')
-def show_list(sender, args):
-    def get_comment_url(comment):
-        if comment.post.post_type == 'article':
-            return url_for('main.show_article', number=comment.post.number, _anchor='comment-' + str(comment.id))
-        elif comment.post.post_type == 'page':
-            return url_for('main.show_page', number=comment.post.number, _anchor='comment-' + str(comment.id))
-
-    page = args.get('page', 1, type=int)
-    pagination = Comment.query.order_by(desc(Comment.timestamp)) \
-        .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
-    comments = pagination.items
-    head = ('', '标题', '作者', '时间', '内容')
-    rows = []
-    for comment in comments:
-        rows.append((comment.id
-                     , Hyperlink('Hyperlink', comment.post.title, get_comment_url(comment))
-                     , Plain('Plain', comment.author.name)
-                     , Datetime('Datetime', comment.timestamp)
-                     , Plain('Plain', comment.body_html)))
-    table = Table('Table', head, rows)
-    args = args.to_dict()
-    if 'page' in args:
-        del args['page']
-    return {
-        **args,
-        'title': '评论',
-        'table': table,
-        'disable_search': True,
-        'pagination': Pagination('Pagination', pagination, '.show_list', args)
-    }
-
-
-@manage.connect_via('comment')
-def manage(sender, form):
-    action = form.get('action', '', type=str)
-    if action == 'delete':
-        ids = form.getlist('id')
-        ids = [int(id) for id in ids]
-        if ids:
-            first_comment_name = Comment.query.get(ids[0]).body
-            for comment in Comment.query.filter(Comment.id.in_(ids)):
-                db.session.delete(comment)
-            db.session.commit()
-            message = '已删除分类"' + first_comment_name + '"'
-            if len(ids) > 1:
-                message += '以及剩下的' + str(len(ids) - 1) + '条评论'
-            flash(message)
 
 
 def delete(comment_id):

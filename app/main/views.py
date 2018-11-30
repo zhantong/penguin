@@ -1,9 +1,9 @@
 from . import main
 from flask import render_template, request, url_for
-from ..plugins.article import signals as article_signals
-from ..plugins.comment import signals as comment_signals
-from . import signals
 from ..plugins.settings.plugin import get_setting
+from ..plugins.models import Plugin
+
+main_instance = Plugin('main', 'main', show_in_sidebar=False)
 
 
 @main.route('/')
@@ -13,11 +13,11 @@ def index():
     main_widgets = []
 
     widget = {'widget': None}
-    article_signals.get_widget_category_list.send(widget=widget)
+    Plugin.Signal.send('article', 'get_widget_category_list', widget=widget)
     left_widgets.append(widget['widget'])
-    comment_signals.get_widget_latest_comments.send(widget=widget)
+    Plugin.Signal.send('comment', 'get_widget_latest_comments', widget=widget)
     right_widgets.append(widget['widget'])
-    article_signals.get_widget_article_list.send(widget=widget, request=request)
+    Plugin.Signal.send('article', 'get_widget_article_list', widget=widget, request=request)
     main_widgets.append(widget['widget'])
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets,
@@ -34,7 +34,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@signals.get_navbar_item.connect
+@main_instance.signal.connect_this('get_navbar_item')
 def get_navbar_item(sender, item, **kwargs):
     item['item'] = {
         'type': 'brand',
