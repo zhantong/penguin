@@ -52,10 +52,11 @@ class Plugin:
     def find_plugin(slug):
         return Plugin.plugins[slug]
 
-    def __init__(self, name, slug):
+    def __init__(self, name, slug, show_in_sidebar=True):
         Plugin.plugins[slug] = self
         self.name = name
         self.slug = slug
+        self.show_in_sidebar = show_in_sidebar
         self.routes = {}
         self.signal = self.Signal(self)
 

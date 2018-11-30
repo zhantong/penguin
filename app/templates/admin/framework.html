@@ -26,26 +26,28 @@
                         {% include sidebar %}
                     {% endfor %}
                     {% for plugin in plugins.values() %}
-                        <div class="panel-heading" role="tab" id="nav-{{ plugin.slug }}-heading">
-                            <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" href="#nav-{{ plugin.slug }}-collapse"
-                                   aria-expanded="true" aria-controls="nav-{{ plugin['slug'] }}-collapse">
-                                    {{ plugin.name }}
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse in" role="tabpanel"
-                             aria-labelledby="nav-{{ plugin.slug }}-heading">
-                            <ul class="list-group">
-                                {% for route in plugin.routes.values() %}
-                                    {% if route.name is not none %}
-                                        <li class="list-group-item">
-                                            <a href="{{ route.path() }}">{{ route.name }}</a>
-                                        </li>
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
-                        </div>
+                        {% if plugin.show_in_sidebar %}
+                            <div class="panel-heading" role="tab" id="nav-{{ plugin.slug }}-heading">
+                                <h4 class="panel-title">
+                                    <a role="button" data-toggle="collapse" href="#nav-{{ plugin.slug }}-collapse"
+                                       aria-expanded="true" aria-controls="nav-{{ plugin['slug'] }}-collapse">
+                                        {{ plugin.name }}
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse in" role="tabpanel"
+                                 aria-labelledby="nav-{{ plugin.slug }}-heading">
+                                <ul class="list-group">
+                                    {% for route in plugin.routes.values() %}
+                                        {% if route.name is not none %}
+                                            <li class="list-group-item">
+                                                <a href="{{ route.path() }}">{{ route.name }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
