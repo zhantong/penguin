@@ -8,9 +8,15 @@ from ..article.plugin import article as article_instance
 tag = Plugin('标签', 'tag')
 tag_instance = tag
 
+tag_instance.signal.declare_signal('restore', return_type='single')
+tag_instance.signal.declare_signal('set_widget', return_type='single')
+tag_instance.signal.declare_signal('get_widget', return_type='single')
+tag_instance.signal.declare_signal('custom_list_column', return_type='list')
+
 
 @tag_instance.signal.connect_this('restore')
-def restore_tags(sender, tags, restored_tags, **kwargs):
+def restore_tags(sender, tags, **kwargs):
+    restored_tags = []
     for tag in tags:
         if type(tag) is str:
             tag = {'name': tag}
@@ -24,6 +30,7 @@ def restore_tags(sender, tags, restored_tags, **kwargs):
                 t.description = tag.get('description', '')
         restored_tags.append(t)
     db.session.flush()
+    return restored_tags
 
 
 @Plugin.Signal.connect('app', 'restore')
@@ -44,10 +51,7 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         pagination = Tag.query.order_by(Tag.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         tags = pagination.items
-        custom_columns = []
-        column = {}
-        tag_instance.signal.send_this('custom_list_column', column=column)
-        custom_columns.append(column['column'])
+        custom_columns = tag_instance.signal.send_this('custom_list_column')
         templates.append(render_template(tag.template_path('list.html'), tag_instance=tag, tags=tags,
                                          article_instance=article_instance,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
@@ -97,25 +101,11 @@ def delete(tag_id):
     }
 
 
-@Plugin.Signal.connect('article', 'show_edit_article_widget')
-def show_edit_article_widget(sender, post, widgets, **kwargs):
-    all_tag_name = [tag.name for tag in Tag.query.all()]
-    tag_names = [tag.name for tag in post.tags]
-    widgets.append({
-        'slug': 'tag',
-        'name': '标签',
-        'html': render_template(tag_instance.template_path('widget_edit_article', 'widget.html'),
-                                all_tag_name=all_tag_name),
-        'js': render_template(tag_instance.template_path('widget_edit_article', 'widget.js.html'),
-                              tag_names=tag_names)
-    })
-
-
 @tag_instance.signal.connect_this('get_widget')
-def get_widget(sender, tags, widget, **kwargs):
+def get_widget(sender, tags, **kwargs):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in tags]
-    widget['widget'] = {
+    return {
         'slug': 'tag',
         'name': '标签',
         'html': render_template(tag_instance.template_path('widget_edit_article', 'widget.html'),
@@ -126,7 +116,8 @@ def get_widget(sender, tags, widget, **kwargs):
 
 
 @tag_instance.signal.connect_this('set_widget')
-def set_widget(sender, js_data, tags, **kwargs):
+def set_widget(sender, js_data, **kwargs):
+    tags = []
     tag_names = []
     for item in js_data:
         if item['name'] == 'tag_name':
@@ -139,6 +130,7 @@ def set_widget(sender, js_data, tags, **kwargs):
             db.session.add(tag)
             db.session.flush()
         tags.append(tag)
+    return tags
 
 
 @tag_instance.signal.connect_this('filter')

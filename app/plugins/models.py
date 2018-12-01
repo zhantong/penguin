@@ -41,12 +41,26 @@ class Plugin:
         def send(plugin_name, name, **kwargs):
             signal_name = plugin_name + '.' + name
             signal = blinker.signal(signal_name)
-            signal.send(**kwargs)
+            result = signal.send(**kwargs)
+            if 'return_type' in Plugin.Signal.signals[signal_name]:
+                return_type = Plugin.Signal.signals[signal_name]['return_type']
+                if return_type == 'single':
+                    return result[0][1]
+                if return_type == 'list':
+                    return [item[1] for item in result]
+                if return_type == 'single_not_none':
+                    for item in result:
+                        if item[1] is not None:
+                            return item[1]
 
         def send_this(self, name, **kwargs):
+            return Plugin.Signal.send(self.outer_class.slug, name, **kwargs)
+
+        def declare_signal(self, name, return_type=None):
             signal_name = self.outer_class.slug + '.' + name
-            signal = blinker.signal(signal_name)
-            signal.send(**kwargs)
+            if signal_name not in Plugin.Signal.signals:
+                Plugin.Signal.signals[signal_name] = {}
+            Plugin.Signal.signals[signal_name]['return_type'] = return_type
 
     @staticmethod
     def find_plugin(slug):

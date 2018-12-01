@@ -44,13 +44,9 @@ def custom(app):
                     for item in more:
                         insert_item(item)
 
-            item = {}
-            Plugin.Signal.send('main', 'get_navbar_item', item=item)
-            process_item(item['item'])
-            Plugin.Signal.send('article', 'get_navbar_item', item=item)
-            process_item(item['item'])
-            Plugin.Signal.send('page', 'get_navbar_item', item=item)
-            process_item(item['item'])
+            process_item(Plugin.Signal.send('main', 'get_navbar_item'))
+            process_item(Plugin.Signal.send('article', 'get_navbar_item'))
+            process_item(Plugin.Signal.send('page', 'get_navbar_item'))
 
             return custom_navbar
 

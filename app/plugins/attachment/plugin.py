@@ -14,6 +14,9 @@ from ..models import Plugin
 attachment = Plugin('附件', 'attachment')
 attachment_instance = attachment
 
+attachment_instance.signal.declare_signal('restore', return_type='single')
+attachment_instance.signal.declare_signal('get_widget', return_type='single')
+
 
 @plugin.route('/attachment/static/<path:filename>')
 def attachment_static(filename):
@@ -80,7 +83,8 @@ def delete_upload(id):
 
 
 @attachment_instance.signal.connect_this('restore')
-def restore(sender, attachments, directory, restored_attachments, attachment_restored, **kwargs):
+def restore(sender, attachments, directory, attachment_restored, **kwargs):
+    restored_attachments = []
     for attachment in attachments:
         a = Attachment.create(file_path=os.path.join(directory,
                                                      attachment['file_path'] if attachment['file_path'][0] != '/' else
@@ -92,23 +96,12 @@ def restore(sender, attachments, directory, restored_attachments, attachment_res
         db.session.flush()
         restored_attachments.append(a)
         attachment_restored(attachment, a.filename)
-
-
-@Plugin.Signal.connect('article', 'show_edit_article_widget')
-def show_edit_article_widget(sender, post, widgets, **kwargs):
-    widgets.append({
-        'slug': 'attachment',
-        'name': '附件',
-        'html': render_template(attachment_instance.template_path('widget_edit_article', 'widget.html'),
-                                post=post),
-        'js': render_template(attachment_instance.template_path('widget_edit_article', 'widget.js.html'),
-                              post=post)
-    })
+    return restored_attachments
 
 
 @attachment_instance.signal.connect_this('get_widget')
-def get_widget(sender, attachments, meta, widget, **kwargs):
-    widget['widget'] = {
+def get_widget(sender, attachments, meta, **kwargs):
+    return {
         'slug': 'attachment',
         'name': '附件',
         'html': render_template(attachment_instance.template_path('widget_edit_article', 'widget.html'),

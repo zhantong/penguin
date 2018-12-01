@@ -8,11 +8,17 @@ from ..article.plugin import article as article_instance
 category = Plugin('分类', 'category')
 category_instance = category
 
+category_instance.signal.declare_signal('get_widget_list', return_type='single')
+category_instance.signal.declare_signal('restore', return_type='single')
+category_instance.signal.declare_signal('set_widget', return_type='single')
+category_instance.signal.declare_signal('custom_list_column', return_type='single')
+category_instance.signal.declare_signal('get_widget', return_type='single')
+
 
 @category_instance.signal.connect_this('get_widget_list')
-def get_widget_list(sender, widget, end_point, count_func, **kwargs):
+def get_widget_list(sender, end_point, count_func, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
-    widget['widget'] = {
+    return {
         'slug': 'category',
         'name': '分类',
         'html': render_template(category_instance.template_path('widget_list', 'widget.html'),
@@ -21,7 +27,8 @@ def get_widget_list(sender, widget, end_point, count_func, **kwargs):
 
 
 @category_instance.signal.connect_this('restore')
-def restore_categories(sender, categories, restored_categories, **kwargs):
+def restore_categories(sender, categories, **kwargs):
+    restored_categories = []
     for category in categories:
         if type(category) is str:
             category = {'name': category}
@@ -36,31 +43,20 @@ def restore_categories(sender, categories, restored_categories, **kwargs):
                 c.description = category.get('description', '')
         restored_categories.append(c)
     db.session.flush()
+    return restored_categories
 
 
 @Plugin.Signal.connect('app', 'restore')
 def global_restore(sender, data, **kwargs):
     if 'category' in data:
-        category_instance.signal.send_this('restore', categories=data['category'], restored_categories=[])
-
-
-@Plugin.Signal.connect('article', 'show_edit_article_widget')
-def show_edit_article_widget(sender, post, widgets, **kwargs):
-    all_category = Category.query.all()
-    category_ids = [category.id for category in post.categories]
-    widgets.append({
-        'slug': 'category',
-        'name': '分类',
-        'html': render_template(category_instance.template_path('widget_edit_article', 'widget.html'),
-                                all_category=all_category, category_ids=category_ids)
-    })
+        return category_instance.signal.send_this('restore', categories=data['category'])
 
 
 @category_instance.signal.connect_this('get_widget')
-def get_widget(sender, categories, widget, **kwargs):
+def get_widget(sender, categories, **kwargs):
     all_category = Category.query.all()
     category_ids = [category.id for category in categories]
-    widget['widget'] = {
+    return {
         'slug': 'category',
         'name': '分类',
         'html': render_template(category_instance.template_path('widget_edit_article', 'widget.html'),
@@ -69,12 +65,12 @@ def get_widget(sender, categories, widget, **kwargs):
 
 
 @category_instance.signal.connect_this('set_widget')
-def set_widget(sender, js_data, categories, **kwargs):
+def set_widget(sender, js_data, **kwargs):
     category_ids = []
     for item in js_data:
         if item['name'] == 'category-id':
             category_ids.append(int(item['value']))
-    categories.extend(Category.query.get(category_id) for category_id in category_ids)
+    return [Category.query.get(category_id) for category_id in category_ids]
 
 
 def delete(category_id):
@@ -101,10 +97,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Category.query.order_by(Category.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         categories = pagination.items
-        custom_columns = []
-        column = {}
-        category_instance.signal.send_this('custom_list_column', column=column)
-        custom_columns.append(column['column'])
+        custom_columns = [category_instance.signal.send_this('custom_list_column')]
         templates.append(
             render_template(category_instance.template_path('list.html'), category_instance=category_instance,
                             categories=categories,

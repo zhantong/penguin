@@ -15,6 +15,10 @@ from .js_captcha import confuse_string
 comment = Plugin('评论', 'comment')
 comment_instance = comment
 
+comment_instance.signal.declare_signal('get_widget_latest_comments', return_type='single')
+comment_instance.signal.declare_signal('restore', return_type='single')
+comment_instance.signal.declare_signal('get_comment_show_info', return_type='single_not_none')
+
 ENABLE_TENCENT_CAPTCHA = True
 
 
@@ -73,10 +77,8 @@ def submit_comment():
 
 
 def get_comment_show_info(comment):
-    info = {}
-    comment_instance.signal.send_this('get_comment_show_info', comment=comment, anchor='comment-' + str(comment.id),
-                                      info=info)
-    return info
+    return comment_instance.signal.send_this('get_comment_show_info', comment=comment,
+                                             anchor='comment-' + str(comment.id))
 
 
 def delete(comment_id):
@@ -125,7 +127,9 @@ def get_rendered_comments(sender, session, comments, rendered_comments, scripts,
 
 
 @comment_instance.signal.connect_this('restore')
-def restore(sender, comments, restored_comments, **kwargs):
+def restore(sender, comments, **kwargs):
+    restored_comments = []
+
     def process_comments(comments, parent=0):
         for comment in comments:
             if type(comment['author']) is str:
@@ -144,12 +148,13 @@ def restore(sender, comments, restored_comments, **kwargs):
             process_comments(comment['children'], parent=c.id)
 
     process_comments(comments)
+    return restored_comments
 
 
 @comment_instance.signal.connect_this('get_widget_latest_comments')
-def get_widget_latest_comments(sender, widget, **kwargs):
+def get_widget_latest_comments(sender, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
-    widget['widget'] = {
+    return {
         'slug': 'latest_comments',
         'name': '最近回复',
         'html': render_template(comment_instance.template_path('widget_latest_comments', 'widget.html'),

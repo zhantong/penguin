@@ -21,6 +21,11 @@
     {% for style in styles %}
         {{ style|safe }}
     {% endfor %}
+    {% for widget in left_widgets %}
+        {% if 'style' in widget %}
+            {{ widget['style']|safe }}
+        {% endif %}
+    {% endfor %}
     <style type="text/css">
         article img {
             max-width: 100%;
@@ -115,8 +120,23 @@
 {% endblock %}
 
 {% block sidebar_left %}
-    {% for left_widget in left_widgets %}
-        {{ left_widget|safe }}
+    {% for widget in left_widgets %}
+        <div class="panel panel-default" data-widget-slug="{{ widget['slug'] }}">
+            <div class="panel-heading" role="tab" id="widget-{{ widget['slug'] }}-heading">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordion"
+                       href="#widget-{{ widget['slug'] }}-collapse"
+                       aria-expanded="true" aria-controls="widget-{{ widget['slug'] }}-collapse">
+                        {{ widget['name'] }}
+                    </a>
+                </h4>
+            </div>
+            <div id="widget-{{ widget['slug'] }}-collapse" class="panel-collapse collapse in"
+                 role="tabpanel"
+                 aria-labelledby="widget-{{ widget['slug'] }}-heading">
+                {{ widget['html']|safe }}
+            </div>
+        </div>
     {% endfor %}
 {% endblock %}
 
@@ -124,5 +144,10 @@
     {{ super() }}
     {% for script in scripts %}
         {{ script|safe }}
+    {% endfor %}
+    {% for widget in left_widgets %}
+        {% if 'script' in widget %}
+            {{ widget['script']|safe }}
+        {% endif %}
     {% endfor %}
 {% endblock %}

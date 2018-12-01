@@ -5,6 +5,8 @@ from ..plugins.models import Plugin
 
 main_instance = Plugin('main', 'main', show_in_sidebar=False)
 
+main_instance.signal.declare_signal('get_navbar_item', return_type='single')
+
 
 @main.route('/')
 def index():
@@ -12,13 +14,9 @@ def index():
     right_widgets = []
     main_widgets = []
 
-    widget = {'widget': None}
-    Plugin.Signal.send('article', 'get_widget_category_list', widget=widget)
-    left_widgets.append(widget['widget'])
-    Plugin.Signal.send('comment', 'get_widget_latest_comments', widget=widget)
-    right_widgets.append(widget['widget'])
-    Plugin.Signal.send('article', 'get_widget_article_list', widget=widget, request=request)
-    main_widgets.append(widget['widget'])
+    left_widgets.append(Plugin.Signal.send('article', 'get_widget_category_list'))
+    right_widgets.append(Plugin.Signal.send('comment', 'get_widget_latest_comments'))
+    main_widgets.append(Plugin.Signal.send('article', 'get_widget_article_list', request=request))
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets,
                            right_widgets=right_widgets)
@@ -35,8 +33,8 @@ def internal_server_error(e):
 
 
 @main_instance.signal.connect_this('get_navbar_item')
-def get_navbar_item(sender, item, **kwargs):
-    item['item'] = {
+def get_navbar_item(sender, **kwargs):
+    return {
         'type': 'brand',
         'brand': get_setting('site_name'),
         'more': [

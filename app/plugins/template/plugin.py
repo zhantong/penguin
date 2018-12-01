@@ -8,12 +8,16 @@ from ..article.plugin import article as article_instance
 template = Plugin('模板', 'template')
 template_instance = template
 
+template_instance.signal.declare_signal('set_widget', return_type='single')
+template_instance.signal.declare_signal('render_template', return_type='single')
+template_instance.signal.declare_signal('get_widget', return_type='single')
+
 
 @template_instance.signal.connect_this('get_widget')
-def get_widget(sender, current_template_id, widget, **kwargs):
+def get_widget(sender, current_template_id, **kwargs):
     all_templates = Template.query.all()
     current_template = Template.query.filter_by(id=current_template_id).first()
-    widget['widget'] = {
+    return {
         'slug': 'template',
         'name': '模板',
         'html': render_template(template_instance.template_path('widget_edit_article', 'widget.html'),
@@ -23,12 +27,11 @@ def get_widget(sender, current_template_id, widget, **kwargs):
 
 
 @template_instance.signal.connect_this('set_widget')
-def set_widget(sender, js_data, template, **kwargs):
-    template['template'] = None
+def set_widget(sender, js_data, **kwargs):
     for item in js_data:
         if item['name'] == 'template-id':
             if item['value'] != '':
-                template['template'] = Template.query.get(int(item['value']))
+                return Template.query.get(int(item['value']))
 
 
 def delete(template_id):
@@ -55,8 +58,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Template.query.order_by(Template.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         the_templates = pagination.items
-        custom_columns = []
-        template_instance.signal.send_this('custom_list_column', custom_columns=custom_columns)
+        custom_columns = template_instance.signal.send_this('custom_list_column')
         templates.append(
             render_template(template_instance.template_path('list.html'), template_instance=template_instance,
                             templates=the_templates,
@@ -98,10 +100,10 @@ def new_tag(templates, meta, **kwargs):
 
 
 @template_instance.signal.connect_this('render_template')
-def render(sender, template, json_params, html, **kwargs):
+def render(sender, template, json_params, **kwargs):
     template = Jinja2Tempalte(template.body)
     params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}
-    html['html'] = template.render(**params)
+    return template.render(**params)
 
 
 @template_instance.signal.connect_this('filter')

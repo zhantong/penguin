@@ -13,6 +13,8 @@ from ..settings.plugin import get_setting
 send_mail = Plugin('发送邮件', 'send_mail')
 send_mail_instance = send_mail
 
+send_mail_instance.signal.declare_signal('send_mail', return_type='single')
+
 
 @send_mail.route('admin', '/account', '设置账号')
 def account(request, templates, **kwargs):
@@ -41,8 +43,7 @@ def test_send_mail(request, meta, templates, scripts, **kwargs):
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')
         body = request.form.get('body')
-        result = {}
-        send_mail_instance.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body, result=result)
+        result = send_mail_instance.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body)
 
         meta['override_render'] = True
         templates.append(jsonify(result))
@@ -51,8 +52,10 @@ def test_send_mail(request, meta, templates, scripts, **kwargs):
 @send_mail_instance.signal.connect_this('send_mail')
 def send_mail(sender, recipient, subject, body, result, **kwargs):
     is_success, error_log = send_email(recipient, subject, body)
-    result['status'] = is_success
-    result['log'] = error_log
+    return {
+        'status': is_success,
+        'log': error_log
+    }
 
 
 def _format_address(s):
