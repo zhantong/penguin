@@ -68,6 +68,18 @@ def show_signals():
 
 
 @app.cli.command()
+def show_signals_new():
+    from app.plugins.models import Plugin
+    signals = Plugin.Signal.signals
+    for signal, value in signals.items():
+        print(signal)
+        for name, value in value.items():
+            print('\t', name)
+            for item in value:
+                print('\t', '\t', item)
+
+
+@app.cli.command()
 def run_worker():
     redis_url = app.config['REDIS_URL']
     redis_connection = redis.from_url(redis_url)
