@@ -15,8 +15,11 @@ from zipfile import ZipFile
 from urllib.request import urlopen
 import redis
 from rq import Connection, Worker
+from app.plugins.models import Plugin
 
 app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
+
+penguin_instance = Plugin('Penguin', 'penguin', show_in_sidebar=False)
 
 
 @app.cli.command()
@@ -24,6 +27,8 @@ def deploy():
     db.create_all()
 
     Role.insert_roles()
+
+    penguin_instance.signal.send_this('deploy')
 
 
 @app.cli.command()
@@ -69,7 +74,6 @@ def show_signals():
 
 @app.cli.command()
 def show_signals_new():
-    from app.plugins.models import Plugin
     signals = Plugin.Signal.signals
     for signal, value in signals.items():
         print(signal)

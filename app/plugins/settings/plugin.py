@@ -6,6 +6,11 @@ settings = Plugin('设置', 'settings')
 settings_instance = settings
 
 
+@Plugin.Signal.connect('penguin', 'deploy')
+def deploy(sender, **kwargs):
+    Settings.set('site_name', 'Penguin')
+
+
 @settings.route('admin', '/settings', '通用')
 def general(request, templates, **kwargs):
     if request.method == 'GET':
