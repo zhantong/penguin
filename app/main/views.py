@@ -3,9 +3,9 @@ from flask import render_template, request, url_for
 from ..plugins.settings.plugin import get_setting
 from ..plugins.models import Plugin
 
-main_instance = Plugin('main', 'main', show_in_sidebar=False)
+current_plugin = Plugin.current_plugin()
 
-main_instance.signal.declare_signal('get_navbar_item', return_type='single')
+current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
 
 
 @main.route('/')
@@ -32,7 +32,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@main_instance.signal.connect_this('get_navbar_item')
+@current_plugin.signal.connect_this('get_navbar_item')
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'brand',

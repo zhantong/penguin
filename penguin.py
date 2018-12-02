@@ -19,7 +19,7 @@ from app.plugins.models import Plugin
 
 app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
 
-penguin_instance = Plugin('Penguin', 'penguin', show_in_sidebar=False)
+current_plugin = Plugin('penguin', show_in_sidebar=False)
 
 
 @app.cli.command()
@@ -28,7 +28,7 @@ def deploy():
 
     Role.insert_roles()
 
-    penguin_instance.signal.send_this('deploy')
+    current_plugin.signal.send_this('deploy')
 
 
 @app.cli.command()

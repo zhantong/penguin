@@ -105,9 +105,10 @@ class Plugin:
         caller_path_comp = caller_path.split(os.sep)
         if 'plugins' in caller_path_comp:
             plugin_slug = caller_path_comp[caller_path_comp.index('plugins') + 1]
-            return Plugin.plugins[plugin_slug]
+
         else:
-            raise ValueError()
+            plugin_slug = Path(caller_path).parent.name
+        return Plugin.plugins[plugin_slug]
 
 
 class Route:
