@@ -90,7 +90,7 @@ def restore(sender, data, directory, **kwargs):
 
 
 @Plugin.Signal.connect('comment', 'get_comment_show_info')
-def get_comment_show_info(sender, comment, anchor, info, **kwargs):
+def get_comment_show_info(sender, comment, anchor, **kwargs):
     if comment.page is not None:
         return {
             'title': comment.page.title,
