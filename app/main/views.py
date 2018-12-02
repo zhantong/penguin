@@ -1,6 +1,5 @@
 from . import main
 from flask import render_template, request, url_for
-from ..plugins.settings.plugin import get_setting
 from ..plugins.models import Plugin
 
 current_plugin = Plugin.current_plugin()
@@ -36,7 +35,7 @@ def internal_server_error(e):
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'brand',
-        'brand': get_setting('site_name'),
+        'brand': Plugin.get_setting_value('site_name'),
         'more': [
             {
                 'type': 'item',
