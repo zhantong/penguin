@@ -3,7 +3,6 @@ from .models import Template
 from flask import current_app, flash, render_template, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
-from ..article.plugin import current_plugin as article_instance
 
 template = Plugin('模板', 'template')
 template_instance = template
@@ -11,6 +10,7 @@ template_instance = template
 template_instance.signal.declare_signal('set_widget', return_type='single')
 template_instance.signal.declare_signal('render_template', return_type='single')
 template_instance.signal.declare_signal('get_widget', return_type='single')
+template_instance.signal.declare_signal('custom_list_column', return_type='list')
 
 
 @template_instance.signal.connect_this('get_widget')
@@ -62,7 +62,6 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         templates.append(
             render_template(template_instance.template_path('list.html'), template_instance=template_instance,
                             templates=the_templates,
-                            article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': template_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(template_instance.template_path('list.js.html')))

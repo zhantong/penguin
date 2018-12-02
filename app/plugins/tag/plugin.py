@@ -3,7 +3,6 @@ from .models import Tag
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
-from ..article.plugin import current_plugin as article_instance
 
 tag = Plugin('标签', 'tag')
 tag_instance = tag
@@ -53,7 +52,6 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         tags = pagination.items
         custom_columns = tag_instance.signal.send_this('custom_list_column')
         templates.append(render_template(tag.template_path('list.html'), tag_instance=tag, tags=tags,
-                                         article_instance=article_instance,
                                          pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                                      'url_for': tag_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(tag.template_path('list.js.html')))

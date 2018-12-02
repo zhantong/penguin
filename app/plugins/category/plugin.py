@@ -3,7 +3,6 @@ from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
-from ..article.plugin import current_plugin as article_instance
 
 category = Plugin('分类', 'category')
 category_instance = category
@@ -11,7 +10,7 @@ category_instance = category
 category_instance.signal.declare_signal('get_widget_list', return_type='single')
 category_instance.signal.declare_signal('restore', return_type='single')
 category_instance.signal.declare_signal('set_widget', return_type='single')
-category_instance.signal.declare_signal('custom_list_column', return_type='single')
+category_instance.signal.declare_signal('custom_list_column', return_type='list')
 category_instance.signal.declare_signal('get_widget', return_type='single')
 
 
@@ -97,11 +96,10 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Category.query.order_by(Category.name) \
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         categories = pagination.items
-        custom_columns = [category_instance.signal.send_this('custom_list_column')]
+        custom_columns = category_instance.signal.send_this('custom_list_column')
         templates.append(
             render_template(category_instance.template_path('list.html'), category_instance=category_instance,
                             categories=categories,
-                            article_instance=article_instance,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
                                         'url_for': category_instance.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(category_instance.template_path('list.js.html')))
