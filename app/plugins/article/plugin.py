@@ -39,15 +39,10 @@ def show_article(number):
     article = article.first_or_404()
     left_widgets = []
     right_widgets = []
-    scripts = []
-    styles = []
     cookies_to_set = {}
-    rendered_comments = {}
-    Plugin.Signal.send('comment', 'get_rendered_comments', session=session, comments=article.comments,
-                       rendered_comments=rendered_comments,
-                       scripts=scripts, styles=styles,
-                       meta={'type': 'article', 'article_id': article.id})
-    rendered_comments = rendered_comments['rendered_comments']
+    widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session,
+                                                  comments=article.comments,
+                                                  meta={'type': 'article', 'article_id': article.id})
     left_widgets.append(Plugin.Signal.send('toc', 'get_widget', article=article))
     left_widgets.append(Plugin.Signal.send('prev_next_articles', 'get_widget', article=article))
     Plugin.Signal.send('view_count', 'viewing', repository_id=article.repository_id, request=request,
@@ -56,9 +51,8 @@ def show_article(number):
         article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template,
                                                json_params=json.loads(article.body))
     resp = make_response(render_template(article_instance.template_path('article.html'), article=article,
-                                         rendered_comments=rendered_comments, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, scripts=scripts, styles=styles,
-                                         get_articles=get_articles))
+                                         widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
+                                         right_widgets=right_widgets, get_articles=get_articles))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp

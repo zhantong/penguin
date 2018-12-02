@@ -35,23 +35,17 @@ def show_page(slug):
     if page is not None:
         left_widgets = []
         right_widgets = []
-        scripts = []
-        styles = []
         cookies_to_set = {}
-        rendered_comments = {}
-        Plugin.Signal.send('comment', 'get_rendered_comments', session=session, comments=page.comments,
-                           rendered_comments=rendered_comments,
-                           scripts=scripts, styles=styles,
-                           meta={'type': 'page', 'page_id': page.id})
-        rendered_comments = rendered_comments['rendered_comments']
+        widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session,
+                                                      comments=page.comments, meta={'type': 'page', 'page_id': page.id})
         Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request,
                            cookies_to_set=cookies_to_set)
         if page.template is not None:
             page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template,
                                                 json_params=json.loads(page.body))
         resp = make_response(render_template(page_instance.template_path('page.html'), page=page,
-                                             rendered_comments=rendered_comments, left_widgets=left_widgets,
-                                             right_widgets=right_widgets, scripts=scripts, styles=styles,
+                                             widget_rendered_comments=widget_rendered_comments,
+                                             left_widgets=left_widgets, right_widgets=right_widgets,
                                              get_pages=get_pages))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)

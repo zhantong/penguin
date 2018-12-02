@@ -18,6 +18,7 @@ comment_instance = comment
 comment_instance.signal.declare_signal('get_widget_latest_comments', return_type='single')
 comment_instance.signal.declare_signal('restore', return_type='single')
 comment_instance.signal.declare_signal('get_comment_show_info', return_type='single_not_none')
+comment_instance.signal.declare_signal('get_widget_rendered_comments', return_type='single')
 
 ENABLE_TENCENT_CAPTCHA = True
 
@@ -114,16 +115,17 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         scripts.append(render_template(comment_instance.template_path('list.js.html'), meta=meta))
 
 
-@comment_instance.signal.connect_this('get_rendered_comments')
-def get_rendered_comments(sender, session, comments, rendered_comments, scripts, meta, **kwargs):
+@comment_instance.signal.connect_this('get_widget_rendered_comments')
+def get_rendered_comments(sender, session, comments, meta, **kwargs):
     comments = format_comments(comments)
-    rendered_comments['rendered_comments'] = render_template(comment_instance.template_path('comment.html'),
-                                                             comments=comments, meta=meta,
-                                                             ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA)
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
-    scripts.append(render_template(comment_instance.template_path('comment.js.html'), meta=meta,
-                                   ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str))
+    return {
+        'html': render_template(comment_instance.template_path('comment.html'), comments=comments, meta=meta,
+                                ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
+        'script': render_template(comment_instance.template_path('comment.js.html'), meta=meta,
+                                  ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
+    }
 
 
 @comment_instance.signal.connect_this('restore')

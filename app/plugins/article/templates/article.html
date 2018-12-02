@@ -116,7 +116,7 @@
     <article class="post">
         {{ article.body_html | safe }}
     </article>
-    {{ rendered_comments|safe }}
+    {{ widget_rendered_comments['html']|safe }}
 {% endblock %}
 
 {% block sidebar_left %}
@@ -150,4 +150,5 @@
             {{ widget['script']|safe }}
         {% endif %}
     {% endfor %}
+    {{ widget_rendered_comments['script']|safe }}
 {% endblock %}
