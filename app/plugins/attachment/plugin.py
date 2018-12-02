@@ -8,14 +8,12 @@ import uuid
 from .. import plugin
 from datetime import datetime
 import json
-
 from ..models import Plugin
 
-attachment = Plugin('附件', 'attachment')
-attachment_instance = attachment
+current_plugin = Plugin.current_plugin()
 
-attachment_instance.signal.declare_signal('restore', return_type='single')
-attachment_instance.signal.declare_signal('get_widget', return_type='single')
+current_plugin.signal.declare_signal('restore', return_type='single')
+current_plugin.signal.declare_signal('get_widget', return_type='single')
 
 
 @plugin.route('/attachment/static/<path:filename>')
@@ -61,7 +59,7 @@ def upload():
     db.session.add(attachment)
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
-    attachment_instance.signal.send_this('on_new_attachment', ttachment=attachment, meta=meta)
+    current_plugin.signal.send_this('on_new_attachment', ttachment=attachment, meta=meta)
     return jsonify({
         'code': 0,
         'message': '上传成功',
@@ -82,7 +80,7 @@ def delete_upload(id):
     })
 
 
-@attachment_instance.signal.connect_this('restore')
+@current_plugin.signal.connect_this('restore')
 def restore(sender, attachments, directory, attachment_restored, **kwargs):
     restored_attachments = []
     for attachment in attachments:
@@ -99,13 +97,13 @@ def restore(sender, attachments, directory, attachment_restored, **kwargs):
     return restored_attachments
 
 
-@attachment_instance.signal.connect_this('get_widget')
+@current_plugin.signal.connect_this('get_widget')
 def get_widget(sender, attachments, meta, **kwargs):
     return {
         'slug': 'attachment',
         'name': '附件',
-        'html': render_template(attachment_instance.template_path('widget_edit_article', 'widget.html'),
+        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'),
                                 attachments=attachments),
-        'js': render_template(attachment_instance.template_path('widget_edit_article', 'widget.js.html'),
+        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'),
                               meta=meta)
     }

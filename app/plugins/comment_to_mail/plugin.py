@@ -13,8 +13,7 @@ import redis
 from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
 
-comment_to_mail = Plugin('评论邮件提醒', 'comment_to_mail')
-comment_to_mail_instance = comment_to_mail
+current_plugin = Plugin.current_plugin()
 
 opener = urllib.request.build_opener()
 
@@ -51,7 +50,7 @@ def is_authorized():
     return True
 
 
-@comment_to_mail.route('admin', '/settings', '设置')
+@current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, **kwargs):
     if request.method == 'GET':
         client_id = OAuth2Meta.get('client_id')
@@ -62,7 +61,7 @@ def account(request, templates, **kwargs):
         token_url = OAuth2Meta.get('token_url')
         api_base_url = OAuth2Meta.get('api_base_url')
         templates.append(
-            render_template(comment_to_mail_instance.template_path('account.html'), client_id=client_id,
+            render_template(current_plugin.template_path('account.html'), client_id=client_id,
                             redirect_url=redirect_url, scope=scope, client_secret=client_secret,
                             authorize_url=authorize_url, token_url=token_url, api_base_url=api_base_url))
     elif request.method == 'POST':
@@ -82,7 +81,7 @@ def account(request, templates, **kwargs):
         OAuth2Meta.set('api_base_url', api_base_url)
 
 
-@comment_to_mail.route('admin', '/login', None)
+@current_plugin.route('admin', '/login', None)
 def login(meta, templates, **kwargs):
     authorize_url = OAuth2Meta.get('authorize_url')
     client_id = OAuth2Meta.get('client_id')
@@ -96,7 +95,7 @@ def login(meta, templates, **kwargs):
              'scope': scope})))
 
 
-@comment_to_mail.route('admin', '/authorize')
+@current_plugin.route('admin', '/authorize')
 def authorize(request, meta, templates, **kwargs):
     token_url = OAuth2Meta.get('token_url')
     client_id = OAuth2Meta.get('client_id')
@@ -117,10 +116,10 @@ def authorize(request, meta, templates, **kwargs):
         OAuth2Meta.set('refresh_token', result['refresh_token'])
         opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
     meta['override_render'] = True
-    templates.append(redirect(comment_to_mail.url_for('/me')))
+    templates.append(redirect(current_plugin.url_for('/me')))
 
 
-@comment_to_mail.route('admin', '/me', '我')
+@current_plugin.route('admin', '/me', '我')
 def me(templates, **kwargs):
     if is_authorized():
         api_base_url = OAuth2Meta.get('api_base_url')
@@ -131,8 +130,8 @@ def me(templates, **kwargs):
             me = None
     else:
         me = None
-    templates.append(render_template(comment_to_mail_instance.template_path('me.html'), me=me,
-                                     login_url=comment_to_mail.url_for('/login')))
+    templates.append(render_template(current_plugin.template_path('me.html'), me=me,
+                                     login_url=current_plugin.url_for('/login')))
 
 
 @Plugin.Signal.connect('comment', 'comment_submitted')
@@ -144,7 +143,7 @@ def comment_submitted(sender, comment, **kwargs):
     comment_info = get_comment_show_info(comment)
     if comment.parent == 0:
         recipient = 'zhantong1994@163.com'
-        body = render_template(comment_to_mail_instance.template_path('message_to_author.html'),
+        body = render_template(current_plugin.template_path('message_to_author.html'),
                                comment_info=comment_info, author_name=comment.author.name,
                                author_body=comment.body_html)
     else:
@@ -152,7 +151,7 @@ def comment_submitted(sender, comment, **kwargs):
         recipient = parent_comment.author.email
         if recipient is None or recipient == '':
             return
-        body = render_template(comment_to_mail_instance.template_path('message_to_recipient.html'),
+        body = render_template(current_plugin.template_path('message_to_recipient.html'),
                                comment_info=comment_info, recipient_name=parent_comment.author.name,
                                author_name=comment.author.name, author_body=comment.body_html,
                                recipient_body=parent_comment.body_html)
@@ -212,7 +211,7 @@ def send_mail(recipient, subject, body, message_id):
         db.session.commit()
 
 
-@comment_to_mail.route('admin', '/list', '管理提醒')
+@current_plugin.route('admin', '/list', '管理提醒')
 def list_messages(request, templates, scripts, meta, **kwargs):
     if request.method == 'POST':
         if request.form['action'] == 'resend':
@@ -232,8 +231,8 @@ def list_messages(request, templates, scripts, meta, **kwargs):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()
         templates.append(
-            render_template(comment_to_mail_instance.template_path('list.html'), messages=messages,
+            render_template(current_plugin.template_path('list.html'), messages=messages,
                             queue=queue,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': comment_to_mail_instance.url_for}))
-        scripts.append(render_template(comment_to_mail_instance.template_path('list.js.html')))
+                                        'url_for': current_plugin.url_for}))
+        scripts.append(render_template(current_plugin.template_path('list.js.html')))

@@ -10,20 +10,19 @@ import smtplib
 import sys
 from ..settings.plugin import get_setting
 
-send_mail = Plugin('发送邮件', 'send_mail')
-send_mail_instance = send_mail
+current_plugin = Plugin.current_plugin()
 
-send_mail_instance.signal.declare_signal('send_mail', return_type='single')
+current_plugin.signal.declare_signal('send_mail', return_type='single')
 
 
-@send_mail.route('admin', '/account', '设置账号')
+@current_plugin.route('admin', '/account', '设置账号')
 def account(request, templates, **kwargs):
     if request.method == 'GET':
         email = Meta.get('email')
         password = Meta.get('password')
         smtp_address = Meta.get('smtp_address')
         templates.append(
-            render_template(send_mail_instance.template_path('account.html'), email=email, password=password,
+            render_template(current_plugin.template_path('account.html'), email=email, password=password,
                             smtp_address=smtp_address))
     elif request.method == 'POST':
         email = request.form.get('email', type=str)
@@ -34,22 +33,22 @@ def account(request, templates, **kwargs):
         Meta.set('smtp_address', smtp_address)
 
 
-@send_mail.route('admin', '/test-send-mail', '测试发送邮件')
+@current_plugin.route('admin', '/test-send-mail', '测试发送邮件')
 def test_send_mail(request, meta, templates, scripts, **kwargs):
     if request.method == 'GET':
-        templates.append(render_template(send_mail_instance.template_path('test_send_mail.html')))
-        scripts.append(render_template(send_mail_instance.template_path('test_send_mail.js.html')))
+        templates.append(render_template(current_plugin.template_path('test_send_mail.html')))
+        scripts.append(render_template(current_plugin.template_path('test_send_mail.js.html')))
     elif request.method == 'POST':
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')
         body = request.form.get('body')
-        result = send_mail_instance.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body)
+        result = current_plugin.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body)
 
         meta['override_render'] = True
         templates.append(jsonify(result))
 
 
-@send_mail_instance.signal.connect_this('send_mail')
+@current_plugin.signal.connect_this('send_mail')
 def send_mail(sender, recipient, subject, body, result, **kwargs):
     is_success, error_log = send_email(recipient, subject, body)
     return {

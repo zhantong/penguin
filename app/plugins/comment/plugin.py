@@ -12,13 +12,12 @@ import urllib.request
 import urllib.parse
 from .js_captcha import confuse_string
 
-comment = Plugin('评论', 'comment')
-comment_instance = comment
+current_plugin = Plugin.current_plugin()
 
-comment_instance.signal.declare_signal('get_widget_latest_comments', return_type='single')
-comment_instance.signal.declare_signal('restore', return_type='single')
-comment_instance.signal.declare_signal('get_comment_show_info', return_type='single_not_none')
-comment_instance.signal.declare_signal('get_widget_rendered_comments', return_type='single')
+current_plugin.signal.declare_signal('get_widget_latest_comments', return_type='single')
+current_plugin.signal.declare_signal('restore', return_type='single')
+current_plugin.signal.declare_signal('get_comment_show_info', return_type='single_not_none')
+current_plugin.signal.declare_signal('get_widget_rendered_comments', return_type='single')
 
 ENABLE_TENCENT_CAPTCHA = True
 
@@ -69,8 +68,8 @@ def submit_comment():
     comment = Comment(body=body, parent=parent, author=author, ip=ip, agent=agent)
     db.session.add(comment)
     db.session.commit()
-    comment_instance.signal.send_this('on_new_comment', comment=comment, meta=meta)
-    comment_instance.signal.send_this('comment_submitted', comment=comment)
+    current_plugin.signal.send_this('on_new_comment', comment=comment, meta=meta)
+    current_plugin.signal.send_this('comment_submitted', comment=comment)
     return jsonify({
         'code': 0,
         'message': '发表成功'
@@ -78,8 +77,8 @@ def submit_comment():
 
 
 def get_comment_show_info(comment):
-    return comment_instance.signal.send_this('get_comment_show_info', comment=comment,
-                                             anchor='comment-' + str(comment.id))
+    return current_plugin.signal.send_this('get_comment_show_info', comment=comment,
+                                           anchor='comment-' + str(comment.id))
 
 
 def delete(comment_id):
@@ -94,7 +93,7 @@ def delete(comment_id):
     }
 
 
-@comment.route('admin', '/list', '管理评论')
+@current_plugin.route('admin', '/list', '管理评论')
 def list_tags(request, templates, scripts, meta, **kwargs):
     if request.method == 'POST':
         if request.form['action'] == 'delete':
@@ -107,28 +106,28 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
         comments = pagination.items
         templates.append(
-            render_template(comment_instance.template_path('list.html'), comment_instance=comment_instance,
+            render_template(current_plugin.template_path('list.html'), comment_instance=current_plugin,
                             comments=comments,
                             get_comment_show_info=get_comment_show_info,
                             pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': comment_instance.url_for}))
-        scripts.append(render_template(comment_instance.template_path('list.js.html'), meta=meta))
+                                        'url_for': current_plugin.url_for}))
+        scripts.append(render_template(current_plugin.template_path('list.js.html'), meta=meta))
 
 
-@comment_instance.signal.connect_this('get_widget_rendered_comments')
+@current_plugin.signal.connect_this('get_widget_rendered_comments')
 def get_rendered_comments(sender, session, comments, meta, **kwargs):
     comments = format_comments(comments)
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
     return {
-        'html': render_template(comment_instance.template_path('comment.html'), comments=comments, meta=meta,
+        'html': render_template(current_plugin.template_path('comment.html'), comments=comments, meta=meta,
                                 ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
-        'script': render_template(comment_instance.template_path('comment.js.html'), meta=meta,
+        'script': render_template(current_plugin.template_path('comment.js.html'), meta=meta,
                                   ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
     }
 
 
-@comment_instance.signal.connect_this('restore')
+@current_plugin.signal.connect_this('restore')
 def restore(sender, comments, **kwargs):
     restored_comments = []
 
@@ -153,12 +152,12 @@ def restore(sender, comments, **kwargs):
     return restored_comments
 
 
-@comment_instance.signal.connect_this('get_widget_latest_comments')
+@current_plugin.signal.connect_this('get_widget_latest_comments')
 def get_widget_latest_comments(sender, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     return {
         'slug': 'latest_comments',
         'name': '最近回复',
-        'html': render_template(comment_instance.template_path('widget_latest_comments', 'widget.html'),
+        'html': render_template(current_plugin.template_path('widget_latest_comments', 'widget.html'),
                                 comments=comments, get_comment_show_info=get_comment_show_info)
     }

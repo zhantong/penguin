@@ -2,8 +2,7 @@ from ..models import Plugin
 from flask import render_template, current_app
 from .models import Settings
 
-settings = Plugin('设置', 'settings')
-settings_instance = settings
+current_plugin = Plugin.current_plugin()
 
 
 @Plugin.Signal.connect('penguin', 'deploy')
@@ -11,12 +10,12 @@ def deploy(sender, **kwargs):
     Settings.set('site_name', 'Penguin')
 
 
-@settings.route('admin', '/settings', '通用')
+@current_plugin.route('admin', '/settings', '通用')
 def general(request, templates, **kwargs):
     if request.method == 'GET':
         site_name = Settings.get('site_name')
 
-        templates.append(render_template(settings_instance.template_path('general.html'), site_name=site_name))
+        templates.append(render_template(current_plugin.template_path('general.html'), site_name=site_name))
     elif request.method == 'POST':
         def reload():
             current_app.config['SITE_NAME'] = Settings.get('site_name')

@@ -2,13 +2,12 @@ from ..article.models import Article
 from flask import render_template
 from ..models import Plugin
 
-prev_next_articles = Plugin('上一篇/下一篇文章', 'prev_next_articles')
-prev_next_articles_instance = prev_next_articles
+current_plugin = Plugin.current_plugin()
 
-prev_next_articles_instance.signal.declare_signal('get_widget', return_type='single')
+current_plugin.signal.declare_signal('get_widget', return_type='single')
 
 
-@prev_next_articles_instance.signal.connect_this('get_widget')
+@current_plugin.signal.connect_this('get_widget')
 def get_widget(sender, article, **kwargs):
     prev_next_articles = []
     prev_article = Article.query_published().filter(Article.timestamp < article.timestamp).order_by(
@@ -22,6 +21,6 @@ def get_widget(sender, article, **kwargs):
     return {
         'slug': 'prev_next_articles',
         'name': '上一篇/下一篇文章',
-        'html': render_template(prev_next_articles_instance.template_path('widget_content.html'),
+        'html': render_template(current_plugin.template_path('widget_content.html'),
                                 prev_next_articles=prev_next_articles)
     }

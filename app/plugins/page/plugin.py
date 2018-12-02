@@ -1,8 +1,4 @@
 from ..models import Plugin
-
-page = Plugin('页面', 'page')
-page_instance = page
-
 from ...main import main
 from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
     send_from_directory, abort
@@ -14,8 +10,11 @@ from uuid import uuid4
 from .. import plugin
 import os.path
 
-page_instance.signal.declare_signal('get_navbar_item', return_type='single')
-page_instance.signal.declare_signal('dynamic_page', return_type='list')
+current_plugin = Plugin.current_plugin()
+
+current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
+current_plugin.signal.declare_signal('dynamic_page', return_type='list')
+current_plugin.signal.declare_signal('get_admin_page_list', return_type='single')
 
 
 @plugin.route('/page/static/<path:filename>')
@@ -43,7 +42,7 @@ def show_page(slug):
         if page.template is not None:
             page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template,
                                                 json_params=json.loads(page.body))
-        resp = make_response(render_template(page_instance.template_path('page.html'), page=page,
+        resp = make_response(render_template(current_plugin.template_path('page.html'), page=page,
                                              widget_rendered_comments=widget_rendered_comments,
                                              left_widgets=left_widgets, right_widgets=right_widgets,
                                              get_pages=get_pages))
@@ -52,7 +51,7 @@ def show_page(slug):
         return resp
     else:
         page = None
-        dynamic_pages = page_instance.signal.send_this('dynamic_page')
+        dynamic_pages = current_plugin.signal.send_this('dynamic_page')
         for dynamic_page in dynamic_pages:
             if dynamic_page['slug'] == slug:
                 page = dynamic_page
@@ -65,7 +64,7 @@ def show_page(slug):
         styles = []
         scripts.append(page['script'])
         styles.append(page['style'])
-        resp = make_response(render_template(page_instance.template_path('dynamic_page.html'), page=page,
+        resp = make_response(render_template(current_plugin.template_path('dynamic_page.html'), page=page,
                                              left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
                                              styles=styles))
         return resp
@@ -115,7 +114,7 @@ def cleanup_temp_page():
     db.session.commit()
 
 
-@page.route('admin', '/list', '管理页面')
+@current_plugin.route('admin', '/list', '管理页面')
 def page_list(request, templates, meta, scripts, **kwargs):
     if request.method == 'POST':
         if request.form['action'] == 'delete':
@@ -141,12 +140,12 @@ def page_list(request, templates, meta, scripts, **kwargs):
             templates.append(jsonify({'result': 'OK'}))
     else:
         cleanup_temp_page()
-        widget = page_instance.signal.send_this('get_admin_page_list', params=request.args)
+        widget = current_plugin.signal.send_this('get_admin_page_list', params=request.args)
         templates.append(widget['html'])
         scripts.append(widget['js'])
 
 
-@page_instance.signal.connect_this('get_admin_page_list')
+@current_plugin.signal.connect_this('get_admin_page_list')
 def get_admin_page_list(sender, params, **kwargs):
     def get_pages(repository_id):
         return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
@@ -157,21 +156,21 @@ def get_admin_page_list(sender, params, **kwargs):
     query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(
         Page.version_timestamp.desc())
     query = {'query': query}
-    page_instance.signal.send_this('filter', query=query, params=request.args)
+    current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': render_template(page_instance.template_path('list.html'), repository_ids=repository_ids,
+        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,
                                 pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                            'url_for': page_instance.url_for},
+                                            'url_for': current_plugin.url_for},
                                 get_pages=get_pages,
-                                url_for=page_instance.url_for),
-        'js': render_template(page_instance.template_path('list.js.html'))
+                                url_for=current_plugin.url_for),
+        'js': render_template(current_plugin.template_path('list.js.html'))
     }
 
 
-@page.route('admin', '/edit', '撰写页面')
+@current_plugin.route('admin', '/edit', '撰写页面')
 def edit_page(request, templates, scripts, csss, **kwargs):
     if request.method == 'POST':
         title = request.form['title']
@@ -206,10 +205,10 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments,
                                           meta={'type': 'page', 'page_id': page.id}))
         templates.append(
-            render_template(page_instance.template_path('edit.html'), page=page, widgets=widgets))
+            render_template(current_plugin.template_path('edit.html'), page=page, widgets=widgets))
         scripts.append(
-            render_template(page_instance.template_path('edit.js.html'), page=page, widgets=widgets))
-        csss.append(render_template(page_instance.template_path('edit.css.html'), widgets=widgets))
+            render_template(current_plugin.template_path('edit.js.html'), page=page, widgets=widgets))
+        csss.append(render_template(current_plugin.template_path('edit.css.html'), widgets=widgets))
 
 
 @Plugin.Signal.connect('comment', 'on_new_comment')
@@ -230,7 +229,7 @@ def on_new_attachment(sender, attachment, meta, **kwargs):
         db.session.commit()
 
 
-@page_instance.signal.connect_this('get_navbar_item')
+@current_plugin.signal.connect_this('get_navbar_item')
 def get_navbar_item(sender, **kwargs):
     pages = Page.query.all()
     more = []
@@ -240,7 +239,7 @@ def get_navbar_item(sender, **kwargs):
             'name': page.title,
             'link': url_for('main.show_page', slug=page.slug)
         })
-    dynamic_pages = page_instance.signal.send_this('dynamic_page')
+    dynamic_pages = current_plugin.signal.send_this('dynamic_page')
     for page in dynamic_pages:
         more.append({
             'type': 'item',
@@ -252,7 +251,7 @@ def get_navbar_item(sender, **kwargs):
     }
 
 
-@page_instance.signal.connect_this('filter')
+@current_plugin.signal.connect_this('filter')
 def filter(sender, query, params, **kwargs):
     Plugin.Signal.send('template', 'filter', query=query, params=params, join_db=Page.template)
 
@@ -263,7 +262,7 @@ def template_custom_list_column(sender, **kwargs):
         return len(template.pages)
 
     def link_func(template):
-        return page_instance.url_for('/list', **template.get_info()['url_params'])
+        return current_plugin.url_for('/list', **template.get_info()['url_params'])
 
     return {
         'title': '页面数',
