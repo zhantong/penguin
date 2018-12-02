@@ -1,8 +1,4 @@
 from ..models import Plugin
-
-article = Plugin('文章', 'article')
-article_instance = article
-
 from . import meta
 from ...main import main
 from flask import render_template, request, make_response, url_for, current_app, session, flash, jsonify, \
@@ -17,10 +13,12 @@ from .. import plugin
 import os.path
 from uuid import uuid4
 
-article_instance.signal.declare_signal('get_widget_category_list', return_type='single')
-article_instance.signal.declare_signal('get_widget_article_list', return_type='single')
-article_instance.signal.declare_signal('get_navbar_item', return_type='single')
-article_instance.signal.declare_signal('get_admin_article_list', return_type='single')
+current_plugin = Plugin.current_plugin()
+
+current_plugin.signal.declare_signal('get_widget_category_list', return_type='single')
+current_plugin.signal.declare_signal('get_widget_article_list', return_type='single')
+current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
+current_plugin.signal.declare_signal('get_admin_article_list', return_type='single')
 
 
 @plugin.route('/article/static/<path:filename>')
@@ -50,7 +48,7 @@ def show_article(number):
     if article.template is not None:
         article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template,
                                                json_params=json.loads(article.body))
-    resp = make_response(render_template(article_instance.template_path('article.html'), article=article,
+    resp = make_response(render_template(current_plugin.template_path('article.html'), article=article,
                                          widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
                                          right_widgets=right_widgets, get_articles=get_articles))
     for key, value in cookies_to_set.items():
@@ -100,7 +98,7 @@ def get_comment_show_info(sender, comment, anchor, **kwargs):
         }
 
 
-@article_instance.signal.connect_this('article_list_url')
+@current_plugin.signal.connect_this('article_list_url')
 def article_list_url(sender, params, **kwargs):
     return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)
 
@@ -117,7 +115,7 @@ def delete(article_id):
     }
 
 
-@article.route('admin', '/list', '管理文章')
+@current_plugin.route('admin', '/list', '管理文章')
 def article_list(request, templates, meta, scripts, **kwargs):
     if request.method == 'POST':
         if request.form['action'] == 'delete':
@@ -143,12 +141,12 @@ def article_list(request, templates, meta, scripts, **kwargs):
             templates.append(jsonify({'result': 'OK'}))
     else:
         cleanup_temp_article()
-        widget = article_instance.signal.send_this('get_admin_article_list', params=request.args)
+        widget = current_plugin.signal.send_this('get_admin_article_list', params=request.args)
         templates.append(widget['html'])
         scripts.append(widget['js'])
 
 
-@article_instance.signal.connect_this('get_admin_article_list')
+@current_plugin.signal.connect_this('get_admin_article_list')
 def get_admin_widget_article_list(sender, params, **kwargs):
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
@@ -159,21 +157,21 @@ def get_admin_widget_article_list(sender, params, **kwargs):
     query = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(
         Article.version_timestamp.desc())
     query = {'query': query}
-    article_instance.signal.send_this('filter', query=query, params=request.args)
+    current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': render_template(article_instance.template_path('list.html'), repository_ids=repository_ids,
+        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,
                                 pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                            'url_for': article_instance.url_for},
+                                            'url_for': current_plugin.url_for},
                                 get_articles=get_articles,
-                                url_for=article_instance.url_for),
-        'js': render_template(article_instance.template_path('list.js.html'))
+                                url_for=current_plugin.url_for),
+        'js': render_template(current_plugin.template_path('list.js.html'))
     }
 
 
-@article.route('admin', '/edit', '撰写文章')
+@current_plugin.route('admin', '/edit', '撰写文章')
 def edit_article(request, templates, scripts, csss, **kwargs):
     if request.method == 'POST':
         title = request.form['title']
@@ -212,10 +210,10 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets.append(Plugin.Signal.send('category', 'get_widget', categories=article.categories))
         widgets.append(Plugin.Signal.send('tag', 'get_widget', tags=article.tags))
         templates.append(
-            render_template(article_instance.template_path('edit.html'), article=article, widgets=widgets))
+            render_template(current_plugin.template_path('edit.html'), article=article, widgets=widgets))
         scripts.append(
-            render_template(article_instance.template_path('edit.js.html'), article=article, widgets=widgets))
-        csss.append(render_template(article_instance.template_path('edit.css.html'), widgets=widgets))
+            render_template(current_plugin.template_path('edit.js.html'), article=article, widgets=widgets))
+        csss.append(render_template(current_plugin.template_path('edit.css.html'), widgets=widgets))
 
 
 def cleanup_temp_article():
@@ -241,7 +239,7 @@ def on_new_attachment(sender, attachment, meta, **kwargs):
         db.session.commit()
 
 
-@article_instance.signal.connect_this('get_widget_category_list')
+@current_plugin.signal.connect_this('get_widget_category_list')
 def get_widget_category_list(sender, **kwargs):
     def count_func(category):
         return len(category.articles)
@@ -249,25 +247,25 @@ def get_widget_category_list(sender, **kwargs):
     return Plugin.Signal.send('category', 'get_widget_list', end_point='.index', count_func=count_func)
 
 
-@article_instance.signal.connect_this('get_widget_article_list')
+@current_plugin.signal.connect_this('get_widget_article_list')
 def get_widget_article_list(sender, request, **kwargs):
     page = request.args.get('page', 1, type=int)
     query = Article.query_published().order_by(Article.timestamp.desc())
     query = {'query': query}
-    article_instance.signal.send_this('filter', query=query, params=request.args)
+    current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
     articles = pagination.items
     return {
         'slug': 'article_list',
         'name': '文章列表',
-        'html': render_template(article_instance.template_path('widget_article_list', 'widget.html'),
+        'html': render_template(current_plugin.template_path('widget_article_list', 'widget.html'),
                                 articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
                                 request_params=request.args)
     }
 
 
-@article_instance.signal.connect_this('filter')
+@current_plugin.signal.connect_this('filter')
 def filter(sender, query, params, **kwargs):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
@@ -276,11 +274,11 @@ def filter(sender, query, params, **kwargs):
     Plugin.Signal.send('template', 'filter', query=query, params=params, join_db=Article.template)
 
 
-@article_instance.signal.connect_this('get_navbar_item')
+@current_plugin.signal.connect_this('get_navbar_item')
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'template',
-        'template': render_template(article_instance.template_path('navbar_search', 'navbar.html')),
+        'template': render_template(current_plugin.template_path('navbar_search', 'navbar.html')),
     }
 
 
@@ -290,7 +288,7 @@ def category_custom_list_column(sender, **kwargs):
         return len(category.articles)
 
     def link_func(category):
-        return article_instance.url_for('/list', **category.get_info()['url_params'])
+        return current_plugin.url_for('/list', **category.get_info()['url_params'])
 
     return {
         'title': '文章数',
@@ -307,7 +305,7 @@ def tag_custom_list_column(sender, **kwargs):
         return len(tag.articles)
 
     def link_func(tag):
-        return article_instance.url_for('/list', **tag.get_info()['url_params'])
+        return current_plugin.url_for('/list', **tag.get_info()['url_params'])
 
     return {
         'title': '文章数',
@@ -324,7 +322,7 @@ def template_custom_list_column(sender, **kwargs):
         return len(template.articles)
 
     def link_func(template):
-        return article_instance.url_for('/list', **template.get_info()['url_params'])
+        return current_plugin.url_for('/list', **template.get_info()['url_params'])
 
     return {
         'title': '文章数',
@@ -341,8 +339,8 @@ def dynamic_page(sender, **kwargs):
     return {
         'title': '文章目录',
         'slug': 'list',
-        'html': render_template(article_instance.template_path('dynamic_page_contents', 'contents.html'),
+        'html': render_template(current_plugin.template_path('dynamic_page_contents', 'contents.html'),
                                 articles=articles),
-        'script': render_template(article_instance.template_path('dynamic_page_contents', 'contents.js.html')),
+        'script': render_template(current_plugin.template_path('dynamic_page_contents', 'contents.js.html')),
         'style': ''
     }

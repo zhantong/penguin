@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from pathlib import Path
 import blinker
 import inspect
+import os
 
 
 class Plugin:
@@ -92,6 +93,17 @@ class Plugin:
 
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
+
+    @staticmethod
+    def current_plugin():
+        caller = inspect.getframeinfo(inspect.stack()[1][0])
+        caller_path = caller.filename
+        caller_path_comp = caller_path.split(os.sep)
+        if 'plugins' in caller_path_comp:
+            plugin_slug = caller_path_comp[caller_path_comp.index('plugins') + 1]
+            return Plugin.plugins[plugin_slug]
+        else:
+            raise ValueError()
 
 
 class Route:

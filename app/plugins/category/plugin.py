@@ -3,7 +3,7 @@ from .models import Category
 from flask import current_app, flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
-from ..article.plugin import article as article_instance
+from ..article.plugin import current_plugin as article_instance
 
 category = Plugin('分类', 'category')
 category_instance = category

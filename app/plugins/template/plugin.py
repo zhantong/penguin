@@ -3,7 +3,7 @@ from .models import Template
 from flask import current_app, flash, render_template, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
-from ..article.plugin import article as article_instance
+from ..article.plugin import current_plugin as article_instance
 
 template = Plugin('模板', 'template')
 template_instance = template
