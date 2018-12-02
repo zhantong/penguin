@@ -1,5 +1,5 @@
 from ..models import Plugin
 
-p = Plugin('设置', 'settings')
+p = Plugin('设置')
 
 from . import plugin, models
