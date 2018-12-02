@@ -110,6 +110,26 @@ class Plugin:
             plugin_slug = Path(caller_path).parent.name
         return Plugin.plugins[plugin_slug]
 
+    @staticmethod
+    def get_setting_value(key, plugin_name=None, default=None):
+        from .settings.plugin import get_setting_value
+        return get_setting_value(key, category=plugin_name, default=default)
+
+    @staticmethod
+    def get_setting(key, plugin_name=None):
+        from .settings.plugin import get_setting
+        return get_setting(key, category=plugin_name)
+
+    def get_setting_value_this(self, key, default=None):
+        return Plugin.get_setting_value(self.slug, key, default=default)
+
+    def get_setting_this(self, key):
+        return Plugin.get_setting(self.slug, key)
+
+    def set_setting(self, key, **kwargs):
+        from .settings.plugin import set_setting
+        return set_setting(key, self.slug, **kwargs)
+
 
 class Route:
     def __init__(self, plugin, blueprint, rule, func, name=None):
