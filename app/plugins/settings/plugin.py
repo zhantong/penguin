@@ -7,7 +7,7 @@ current_plugin = Plugin.current_plugin()
 
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
-    current_plugin.set_setting('site_name', value='Penguin', description='站名', value_type='str')
+    current_plugin.set_setting('site_name', name='站名', value='Penguin', value_type='str')
 
 
 @current_plugin.route('admin', '/settings', '通用')
@@ -27,16 +27,16 @@ def general(request, templates, **kwargs):
         reload()
 
 
-def get_setting(key, category=None):
+def get_setting(slug, category=None):
     if category is None:
         category = current_plugin.slug
-    return Settings.get(key, category)
+    return Settings.get(slug, category)
 
 
-def get_setting_value(key, category=None, default=None):
+def get_setting_value(slug, category=None, default=None):
     if category is None:
         category = current_plugin.slug
-    value = Settings.get_value(key, category)
+    value = Settings.get_value(slug, category)
     if value is None:
         value = default
     return value
