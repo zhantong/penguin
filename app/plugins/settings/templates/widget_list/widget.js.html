@@ -1,0 +1,18 @@
+<script>
+    $(function () {
+        $('#settings-form').submit(function (e) {
+            e.preventDefault();
+            var $theForm = $(this);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for('.submit_settings') }}',
+                data: $theForm.serialize(),
+                success: function (msg) {
+                    location.reload();
+                }
+            });
+
+        })
+    })
+</script>

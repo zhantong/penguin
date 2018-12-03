@@ -1,8 +1,11 @@
 from ..models import Plugin
-from flask import render_template, current_app
+from flask import render_template, current_app, request, jsonify
 from .models import Settings
+from ...admin import admin
 
 current_plugin = Plugin.current_plugin()
+
+current_plugin.signal.declare_signal('get_widget_list', return_type='single')
 
 
 @Plugin.Signal.connect('penguin', 'deploy')
@@ -44,3 +47,35 @@ def get_setting_value(slug, category=None, default=None):
 
 def set_setting(key, category='settings', **kwargs):
     Settings.set(key, category, **kwargs)
+
+
+@current_plugin.signal.connect_this('get_widget_list')
+def get_widget_list(sender, category, meta, **kwargs):
+    settings = Settings.query.filter_by(category=category).all()
+    return {
+        'slug': 'settings',
+        'name': '设置',
+        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), settings=settings,
+                                category=category, meta=meta),
+        'script': render_template(current_plugin.template_path('widget_list', 'widget.js.html'))
+    }
+
+
+@admin.route('/settings', methods=['POST'])
+def submit_settings():
+    meta = {}
+    for slug, value in request.form.items():
+        if slug == '_category':
+            category = value
+    for slug, value in request.form.items():
+        if slug == 'csrf_token' or slug == '_category':
+            continue
+        if slug.startswith('_meta_'):
+            key = slug[len('_meta_')]
+            meta[key] = value
+        else:
+            set_setting(slug, category, value=value)
+    return jsonify({
+        'code': 0,
+        'message': '更新成功'
+    })
