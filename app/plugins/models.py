@@ -121,10 +121,10 @@ class Plugin:
         return get_setting(key, category=plugin_name)
 
     def get_setting_value_this(self, key, default=None):
-        return Plugin.get_setting_value(self.slug, key, default=default)
+        return Plugin.get_setting_value(key, self.slug, default=default)
 
     def get_setting_this(self, key):
-        return Plugin.get_setting(self.slug, key)
+        return Plugin.get_setting(key, self.slug)
 
     def set_setting(self, key, **kwargs):
         from .settings.plugin import set_setting
