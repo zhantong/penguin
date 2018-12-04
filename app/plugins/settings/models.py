@@ -12,6 +12,7 @@ class Settings(db.Model):
     value_type = db.Column(db.String(40))
     category = db.Column(db.String(40))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    visibility = db.Column(db.String(40), default='visible')
 
     @staticmethod
     def get_value(slug, category='penguin'):

@@ -51,7 +51,7 @@ def set_setting(key, category='settings', **kwargs):
 
 @current_plugin.signal.connect_this('get_widget_list')
 def get_widget_list(sender, category, meta, **kwargs):
-    settings = Settings.query.filter_by(category=category).all()
+    settings = Settings.query.filter_by(category=category, visibility='visible').all()
     return {
         'slug': 'settings',
         'name': '设置',
