@@ -164,7 +164,7 @@ def send_mail(recipient, subject, body, message_id):
         return
     token_type = current_plugin.get_setting_value_this('token_type')
     access_token = current_plugin.get_setting_value_this('access_token')
-    request = urllib.request.Request(api_base_url + 'me/messages', data=json.dumps(
+    request = urllib.request.Request(api_base_url + '/me/messages', data=json.dumps(
         {'subject': subject, 'body': {'contentType': 'HTML', 'content': body},
          'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
     request.add_header('Authorization', token_type + ' ' + access_token)
@@ -179,7 +179,7 @@ def send_mail(recipient, subject, body, message_id):
         db.session.commit()
     if not is_authorized():
         return
-    request = urllib.request.Request(api_base_url + 'me/messages/' + message_id + '/send', method='POST')
+    request = urllib.request.Request(api_base_url + '/me/messages/' + message_id + '/send', method='POST')
     request.add_header('Authorization', token_type + ' ' + access_token)
     request.add_header('Content-Length', '0')
     with urllib.request.urlopen(request) as f:
