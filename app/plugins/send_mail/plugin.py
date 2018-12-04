@@ -1,5 +1,4 @@
 from ..models import Plugin
-from .models import Meta
 from flask import render_template, jsonify
 import os.path
 from email.mime.text import MIMEText
@@ -14,22 +13,19 @@ current_plugin = Plugin.current_plugin()
 current_plugin.signal.declare_signal('send_mail', return_type='single')
 
 
+@Plugin.Signal.connect('penguin', 'deploy')
+def deploy(sender, **kwargs):
+    current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
+    current_plugin.set_setting('password', name='密码', value='', value_type='str')
+    current_plugin.set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
+
+
 @current_plugin.route('admin', '/account', '设置账号')
-def account(request, templates, **kwargs):
-    if request.method == 'GET':
-        email = Meta.get('email')
-        password = Meta.get('password')
-        smtp_address = Meta.get('smtp_address')
-        templates.append(
-            render_template(current_plugin.template_path('account.html'), email=email, password=password,
-                            smtp_address=smtp_address))
-    elif request.method == 'POST':
-        email = request.form.get('email', type=str)
-        password = request.form.get('password', type=str)
-        smtp_address = request.form.get('smtp-address', type=str)
-        Meta.set('email', email)
-        Meta.set('password', password)
-        Meta.set('smtp_address', smtp_address)
+def account(request, templates, scripts, **kwargs):
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
+                                meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])
 
 
 @current_plugin.route('admin', '/test-send-mail', '测试发送邮件')
@@ -62,9 +58,9 @@ def _format_address(s):
 
 
 def send_email(to_address, subject, content):
-    from_address = Meta.get('email')
-    password = Meta.get('password')
-    smtp_address = Meta.get('smtp_address')
+    from_address = current_plugin.get_setting_value_this('email')
+    password = current_plugin.get_setting_value_this('password')
+    smtp_address = current_plugin.get_setting_value_this('smtp_address')
 
     msg = MIMEText(content, 'plain', 'utf-8')
     msg['From'] = _format_address(Plugin.get_setting_value('site_name') + from_address)
