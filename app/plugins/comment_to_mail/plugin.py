@@ -6,7 +6,7 @@ import time
 import urllib.parse
 import json
 import urllib.error
-from .models import OAuth2Meta, Message
+from .models import Message
 from ..comment.plugin import get_comment_show_info
 from ..comment.models import Comment
 import redis
@@ -18,19 +18,34 @@ current_plugin = Plugin.current_plugin()
 opener = urllib.request.build_opener()
 
 
+@Plugin.Signal.connect('penguin', 'deploy')
+def deploy(sender, **kwargs):
+    current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
+    current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
+    current_plugin.set_setting('scope', name='Delegated Permissions', value='', value_type='str')
+    current_plugin.set_setting('client_secret', name='Application Secret', value='', value_type='str')
+    current_plugin.set_setting('authorize_url', name='Authorize URL', value='', value_type='str')
+    current_plugin.set_setting('token_url', name='Token URL', value='', value_type='str')
+    current_plugin.set_setting('api_base_url', name='API Base URL', value='', value_type='str')
+    current_plugin.set_setting('access_token', value='', value_type='str', visibility='invisible')
+    current_plugin.set_setting('expires_at', value='0', value_type='int', visibility='invisible')
+    current_plugin.set_setting('refresh_token', value='', value_type='str', visibility='invisible')
+    current_plugin.set_setting('token_type', value='', value_type='str', visibility='invisible')
+
+
 def is_authorized():
-    access_token = OAuth2Meta.get('access_token')
-    if access_token is None:
+    access_token = current_plugin.get_setting_value_this('access_token')
+    if access_token == '':
         return False
-    expires_at = int(OAuth2Meta.get('expires_at'))
+    expires_at = current_plugin.get_setting_value_this('expires_at')
     if expires_at - 10 < int(time.time()):
-        token_url = OAuth2Meta.get('token_url')
-        refresh_token = OAuth2Meta.get('refresh_token')
-        client_id = OAuth2Meta.get('client_id')
-        redirect_url = OAuth2Meta.get('redirect_url')
-        scope = OAuth2Meta.get('scope')
-        client_secret = OAuth2Meta.get('client_secret')
-        if refresh_token is None:
+        token_url = current_plugin.get_setting_value_this('token_url')
+        refresh_token = current_plugin.get_setting_value_this('refresh_token')
+        client_id = current_plugin.get_setting_value_this('client_id')
+        redirect_url = current_plugin.get_setting_value_this('redirect_url')
+        scope = current_plugin.get_setting_value_this('scope')
+        client_secret = current_plugin.get_setting_value_this('client_secret')
+        if refresh_token == '':
             return False
         with urllib.request.urlopen(token_url,
                                     data=urllib.parse.urlencode({'client_id': client_id,
@@ -40,53 +55,30 @@ def is_authorized():
                                                                  'redirect_uri': redirect_url,
                                                                  'client_secret': client_secret}).encode()) as f:
             result = json.loads(f.read().decode())
-            OAuth2Meta.set('access_token', result['access_token'])
-            OAuth2Meta.set('token_type', result['token_type'])
-            OAuth2Meta.set('expires_at', str(int(time.time()) + result['expires_in']))
-            OAuth2Meta.set('refresh_token', result['refresh_token'])
-    token_type = OAuth2Meta.get('token_type')
-    access_token = OAuth2Meta.get('access_token')
+            current_plugin.set_setting('access_token', value=result['access_token'])
+            current_plugin.set_setting('token_type', value=result['token_type'])
+            current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
+            current_plugin.set_setting('refresh_token', value=result['refresh_token'])
+    token_type = current_plugin.get_setting_value_this('token_type')
+    access_token = current_plugin.get_setting_value_this('access_token')
     opener.addheaders = [('Authorization', token_type + ' ' + access_token)]
     return True
 
 
 @current_plugin.route('admin', '/settings', '设置')
-def account(request, templates, **kwargs):
-    if request.method == 'GET':
-        client_id = OAuth2Meta.get('client_id')
-        redirect_url = OAuth2Meta.get('redirect_url')
-        scope = OAuth2Meta.get('scope')
-        client_secret = OAuth2Meta.get('client_secret')
-        authorize_url = OAuth2Meta.get('authorize_url')
-        token_url = OAuth2Meta.get('token_url')
-        api_base_url = OAuth2Meta.get('api_base_url')
-        templates.append(
-            render_template(current_plugin.template_path('account.html'), client_id=client_id,
-                            redirect_url=redirect_url, scope=scope, client_secret=client_secret,
-                            authorize_url=authorize_url, token_url=token_url, api_base_url=api_base_url))
-    elif request.method == 'POST':
-        client_id = request.form.get('client-id', type=str)
-        redirect_url = request.form.get('redirect-url', type=str)
-        scope = request.form.get('scope', type=str)
-        client_secret = request.form.get('client-secret', type=str)
-        authorize_url = request.form.get('authorize-url', type=str)
-        token_url = request.form.get('token-url', type=str)
-        api_base_url = request.form.get('api-base-url', type=str)
-        OAuth2Meta.set('client_id', client_id)
-        OAuth2Meta.set('redirect_url', redirect_url)
-        OAuth2Meta.set('scope', scope)
-        OAuth2Meta.set('client_secret', client_secret)
-        OAuth2Meta.set('authorize_url', authorize_url)
-        OAuth2Meta.set('token_url', token_url)
-        OAuth2Meta.set('api_base_url', api_base_url)
+def account(request, templates, scripts, **kwargs):
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
+                                meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])
 
 
 @current_plugin.route('admin', '/login', None)
 def login(meta, templates, **kwargs):
-    authorize_url = OAuth2Meta.get('authorize_url')
-    client_id = OAuth2Meta.get('client_id')
-    scope = OAuth2Meta.get('scope')
-    redirect_url = OAuth2Meta.get('redirect_url')
+    authorize_url = current_plugin.get_setting_value_this('authorize_url')
+    client_id = current_plugin.get_setting_value_this('client_id')
+    scope = current_plugin.get_setting_value_this('scope')
+    redirect_url = current_plugin.get_setting_value_this('redirect_url')
 
     meta['override_render'] = True
     templates.append(redirect(
@@ -97,11 +89,11 @@ def login(meta, templates, **kwargs):
 
 @current_plugin.route('admin', '/authorize')
 def authorize(request, meta, templates, **kwargs):
-    token_url = OAuth2Meta.get('token_url')
-    client_id = OAuth2Meta.get('client_id')
-    scope = OAuth2Meta.get('scope')
-    redirect_url = OAuth2Meta.get('redirect_url')
-    client_secret = OAuth2Meta.get('client_secret')
+    token_url = current_plugin.get_setting_value_this('token_url')
+    client_id = current_plugin.get_setting_value_this('client_id')
+    scope = current_plugin.get_setting_value_this('scope')
+    redirect_url = current_plugin.get_setting_value_this('redirect_url')
+    client_secret = current_plugin.get_setting_value_this('client_secret')
 
     code = request.args['code']
     with urllib.request.urlopen(token_url,
@@ -110,10 +102,10 @@ def authorize(request, meta, templates, **kwargs):
                                                              'code': code, 'redirect_uri': redirect_url,
                                                              'client_secret': client_secret}).encode()) as f:
         result = json.loads(f.read().decode())
-        OAuth2Meta.set('access_token', result['access_token'])
-        OAuth2Meta.set('token_type', result['token_type'])
-        OAuth2Meta.set('expires_at', str(int(time.time()) + result['expires_in']))
-        OAuth2Meta.set('refresh_token', result['refresh_token'])
+        current_plugin.set_setting('access_token', value=result['access_token'])
+        current_plugin.set_setting('token_type', value=result['token_type'])
+        current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
+        current_plugin.set_setting('refresh_token', value=result['refresh_token'])
         opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
     meta['override_render'] = True
     templates.append(redirect(current_plugin.url_for('/me')))
@@ -122,7 +114,7 @@ def authorize(request, meta, templates, **kwargs):
 @current_plugin.route('admin', '/me', '我')
 def me(templates, **kwargs):
     if is_authorized():
-        api_base_url = OAuth2Meta.get('api_base_url')
+        api_base_url = current_plugin.get_setting_value_this('api_base_url')
         try:
             f = opener.open(api_base_url + '/me')
             me = json.loads(f.read().decode())
@@ -167,11 +159,11 @@ def comment_submitted(sender, comment, **kwargs):
 
 def send_mail(recipient, subject, body, message_id):
     message = Message.query.get(message_id)
-    api_base_url = OAuth2Meta.get('api_base_url')
+    api_base_url = current_plugin.get_setting_value_this('api_base_url')
     if not is_authorized():
         return
-    token_type = OAuth2Meta.get('token_type')
-    access_token = OAuth2Meta.get('access_token')
+    token_type = current_plugin.get_setting_value_this('token_type')
+    access_token = current_plugin.get_setting_value_this('access_token')
     request = urllib.request.Request(api_base_url + 'me/messages', data=json.dumps(
         {'subject': subject, 'body': {'contentType': 'HTML', 'content': body},
          'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
