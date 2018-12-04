@@ -1,6 +1,6 @@
 from ...models import db
 from .models import Template
-from flask import current_app, flash, render_template, jsonify, redirect
+from flask import flash, render_template, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
 
@@ -55,7 +55,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Template.query.order_by(Template.name) \
-            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         the_templates = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
         templates.append(

@@ -10,7 +10,6 @@ class Config:
     ALLOWED_UPLOAD_FILE_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
     BOOTSTRAP_SERVE_LOCAL = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    PENGUIN_POSTS_PER_PAGE = 20
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.exmail.qq.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', '465'))
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')

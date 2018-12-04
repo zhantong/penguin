@@ -1,8 +1,7 @@
 from ..models import Plugin
 from . import meta
 from ...main import main
-from flask import render_template, request, make_response, url_for, current_app, session, flash, jsonify, \
-    send_from_directory
+from flask import render_template, request, make_response, url_for, session, flash, jsonify, send_from_directory
 from datetime import datetime
 from ...models import User
 from ...models import db
@@ -159,7 +158,7 @@ def get_admin_widget_article_list(sender, params, **kwargs):
     query = {'query': query}
     current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
         'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,
@@ -254,7 +253,7 @@ def get_widget_article_list(sender, request, **kwargs):
     query = {'query': query}
     current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     articles = pagination.items
     return {
         'slug': 'article_list',

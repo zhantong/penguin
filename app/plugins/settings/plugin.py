@@ -1,5 +1,5 @@
 from ..models import Plugin
-from flask import render_template, current_app, request, jsonify
+from flask import render_template, request, jsonify
 from .models import Settings
 from ...admin import admin
 
@@ -11,6 +11,7 @@ current_plugin.signal.declare_signal('get_widget_list', return_type='single')
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
     current_plugin.set_setting('site_name', name='站名', value='Penguin', value_type='str')
+    current_plugin.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
 
 @current_plugin.route('admin', '/settings', '通用')

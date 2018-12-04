@@ -1,7 +1,6 @@
 from ..models import Plugin
 from ...main import main
-from flask import render_template, url_for, request, session, make_response, flash, jsonify, current_app, \
-    send_from_directory, abort
+from flask import render_template, url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
 from datetime import datetime
 from ...models import db, User
 from .models import Page
@@ -158,7 +157,7 @@ def get_admin_page_list(sender, params, **kwargs):
     query = {'query': query}
     current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
         'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,

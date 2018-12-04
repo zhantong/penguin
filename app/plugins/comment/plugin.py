@@ -1,6 +1,6 @@
 from ...models import db, User, Role
 from ..comment.models import Comment
-from flask import current_app, flash, request, jsonify, render_template, session
+from flask import flash, request, jsonify, render_template, session
 from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
@@ -103,7 +103,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Comment.query.order_by(desc(Comment.timestamp)) \
-            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         comments = pagination.items
         templates.append(
             render_template(current_plugin.template_path('list.html'), comment_instance=current_plugin,

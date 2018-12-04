@@ -1,6 +1,6 @@
 from ...models import db
 from .models import Category
-from flask import current_app, flash, render_template, jsonify, redirect
+from flask import flash, render_template, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
 
@@ -93,7 +93,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Category.query.order_by(Category.name) \
-            .paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'], error_out=False)
+            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         categories = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
         templates.append(

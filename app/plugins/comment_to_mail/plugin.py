@@ -217,7 +217,7 @@ def list_messages(request, templates, scripts, meta, **kwargs):
                 fq.requeue(job_id)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Message.query.paginate(page, per_page=current_app.config['PENGUIN_POSTS_PER_PAGE'],
+        pagination = Message.query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'),
                                             error_out=False)
         messages = pagination.items
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
