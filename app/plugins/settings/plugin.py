@@ -14,20 +14,11 @@ def deploy(sender, **kwargs):
 
 
 @current_plugin.route('admin', '/settings', '通用')
-def general(request, templates, **kwargs):
-    if request.method == 'GET':
-        site_name = Settings.get('site_name')
-
-        templates.append(render_template(current_plugin.template_path('general.html'), site_name=site_name))
-    elif request.method == 'POST':
-        def reload():
-            current_app.config['SITE_NAME'] = Settings.get('site_name')
-
-        site_name = request.form.get('site-name', type=str)
-
-        Settings.set('site_name', site_name)
-
-        reload()
+def general(templates, scripts, **kwargs):
+    widget = current_plugin.signal.send_this('get_widget_list', category=current_plugin.slug,
+                                             meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])
 
 
 def get_setting(slug, category=None):
