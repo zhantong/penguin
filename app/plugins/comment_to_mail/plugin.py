@@ -139,7 +139,7 @@ def comment_submitted(sender, comment, **kwargs):
                                comment_info=comment_info, author_name=comment.author.name,
                                author_body=comment.body_html)
     else:
-        parent_comment = Comment.get(comment.parent).first()
+        parent_comment = Comment.query.get(comment.parent).first()
         recipient = parent_comment.author.email
         if recipient is None or recipient == '':
             return
