@@ -73,7 +73,7 @@ def upload():
     db.session.add(attachment)
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
-    current_plugin.signal.send_this('on_new_attachment', ttachment=attachment, meta=meta)
+    current_plugin.signal.send_this('on_new_attachment', attachment=attachment, meta=meta)
     return jsonify({
         'code': 0,
         'message': '上传成功',
