@@ -20,6 +20,8 @@ class Settings(db.Model):
         if item is not None:
             if item.value_type is None:
                 return item.value
+            if item.value_type == 'str_list':
+                return item.value.split()
             return eval(item.value_type)(item.value)
         return None
 

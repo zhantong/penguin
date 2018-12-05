@@ -16,6 +16,20 @@ current_plugin.signal.declare_signal('restore', return_type='single')
 current_plugin.signal.declare_signal('get_widget', return_type='single')
 
 
+@Plugin.Signal.connect('penguin', 'deploy')
+def deploy(sender, **kwargs):
+    current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif',
+                               value_type='str_list')
+
+
+@current_plugin.route('admin', '/settings', '设置')
+def account(request, templates, scripts, **kwargs):
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
+                                meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])
+
+
 @plugin.route('/attachment/static/<path:filename>')
 def attachment_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
@@ -43,8 +57,8 @@ def upload():
             'message': '未选择上传文件'
         })
     filename = file.filename
-    if '.' not in filename \
-            or filename.rsplit('.', 1)[1].lower() not in current_app.config['ALLOWED_UPLOAD_FILE_EXTENSIONS']:
+    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in \
+            current_plugin.get_setting_value_this('allowed_upload_file_extensions'):
         return jsonify({
             'code': 3,
             'message': '禁止上传的文件类型'
