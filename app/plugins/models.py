@@ -67,7 +67,7 @@ class Plugin:
     def find_plugin(slug):
         return Plugin.plugins[slug]
 
-    def __init__(self, name, slug=None, show_in_sidebar=True):
+    def __init__(self, name, directory, slug=None, show_in_sidebar=True):
         if slug is None:
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             caller_path = caller.filename
@@ -75,6 +75,7 @@ class Plugin:
         Plugin.plugins[slug] = self
         self.name = name
         self.slug = slug
+        self.directory = directory
         self.show_in_sidebar = show_in_sidebar
         self.routes = {}
         self.signal = self.Signal(self)

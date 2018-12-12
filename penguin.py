@@ -19,7 +19,7 @@ from app.plugins.models import Plugin
 
 app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
 
-current_plugin = Plugin('penguin', show_in_sidebar=False)
+current_plugin = Plugin('penguin', 'penguin', show_in_sidebar=False)
 
 
 @app.cli.command()

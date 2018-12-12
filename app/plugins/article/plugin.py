@@ -1,5 +1,4 @@
 from ..models import Plugin
-from . import meta
 from ...main import main
 from flask import render_template, request, make_response, url_for, session, flash, jsonify, send_from_directory
 from datetime import datetime
@@ -99,7 +98,7 @@ def get_comment_show_info(sender, comment, anchor, **kwargs):
 
 @current_plugin.signal.connect_this('article_list_url')
 def article_list_url(sender, params, **kwargs):
-    return url_for('.dispatch', path=meta.PLUGIN_NAME + '/' + 'list', **params)
+    return url_for('.dispatch', path=current_plugin.slug + '/' + 'list', **params)
 
 
 def delete(article_id):
