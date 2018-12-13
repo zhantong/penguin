@@ -1,5 +1,23 @@
 {
   "id": "tag",
   "name": "标签",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "restore",
+      "return_type": "single"
+    },
+    {
+      "name": "set_widget",
+      "return_type": "single"
+    },
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    },
+    {
+      "name": "custom_list_column",
+      "return_type": "list"
+    }
+  ]
 }

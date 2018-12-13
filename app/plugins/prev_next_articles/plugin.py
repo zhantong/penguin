@@ -4,8 +4,6 @@ from ..models import Plugin
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('get_widget', return_type='single')
-
 
 @current_plugin.signal.connect_this('get_widget')
 def get_widget(sender, article, **kwargs):

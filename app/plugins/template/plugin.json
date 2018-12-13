@@ -1,5 +1,23 @@
 {
   "id": "template",
   "name": "模板",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "set_widget",
+      "return_type": "single"
+    },
+    {
+      "name": "render_template",
+      "return_type": "single"
+    },
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    },
+    {
+      "name": "custom_list_column",
+      "return_type": "list"
+    }
+  ]
 }

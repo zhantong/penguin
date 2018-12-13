@@ -11,10 +11,6 @@ import os.path
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
-current_plugin.signal.declare_signal('dynamic_page', return_type='list')
-current_plugin.signal.declare_signal('get_admin_page_list', return_type='single')
-
 
 @plugin.route('/page/static/<path:filename>')
 def page_static(filename):

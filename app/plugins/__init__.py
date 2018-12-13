@@ -22,4 +22,7 @@ def pre_load_plugins():
         if os.path.isfile(config_file):
             with open(config_file) as f:
                 config = json.loads(f.read())
-            Plugin(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'])
+            plugin = Plugin(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'])
+            if 'signals' in config:
+                for signal in config['signals']:
+                    plugin.signal.declare_signal(signal['name'], signal['return_type'])

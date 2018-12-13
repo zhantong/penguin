@@ -1,5 +1,11 @@
 {
   "id": "prev_next_articles",
   "name": "上一篇/下一篇文章",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    }
+  ]
 }

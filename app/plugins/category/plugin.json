@@ -1,5 +1,27 @@
 {
   "id": "category",
   "name": "分类",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget_list",
+      "return_type": "single"
+    },
+    {
+      "name": "restore",
+      "return_type": "single"
+    },
+    {
+      "name": "set_widget",
+      "return_type": "single"
+    },
+    {
+      "name": "custom_list_column",
+      "return_type": "list"
+    },
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    }
+  ]
 }

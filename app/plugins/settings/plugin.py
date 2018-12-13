@@ -5,8 +5,6 @@ from ...admin import admin
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('get_widget_list', return_type='single')
-
 
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):

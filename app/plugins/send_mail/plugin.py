@@ -10,8 +10,6 @@ import sys
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('send_mail', return_type='single')
-
 
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):

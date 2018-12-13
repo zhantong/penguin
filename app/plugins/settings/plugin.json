@@ -1,5 +1,11 @@
 {
   "id": "settings",
   "name": "设置",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget_list",
+      "return_type": "single"
+    }
+  ]
 }

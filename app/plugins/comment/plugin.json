@@ -1,5 +1,23 @@
 {
   "id": "comment",
   "name": "评论",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget_latest_comments",
+      "return_type": "single"
+    },
+    {
+      "name": "restore",
+      "return_type": "single"
+    },
+    {
+      "name": "get_comment_show_info",
+      "return_type": "single_not_none"
+    },
+    {
+      "name": "get_widget_rendered_comments",
+      "return_type": "single"
+    }
+  ]
 }

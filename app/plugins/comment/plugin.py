@@ -14,11 +14,6 @@ from .js_captcha import confuse_string
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('get_widget_latest_comments', return_type='single')
-current_plugin.signal.declare_signal('restore', return_type='single')
-current_plugin.signal.declare_signal('get_comment_show_info', return_type='single_not_none')
-current_plugin.signal.declare_signal('get_widget_rendered_comments', return_type='single')
-
 ENABLE_TENCENT_CAPTCHA = True
 
 

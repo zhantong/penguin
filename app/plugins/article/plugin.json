@@ -1,5 +1,23 @@
 {
   "id": "article",
   "name": "文章",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget_category_list",
+      "return_type": "single"
+    },
+    {
+      "name": "get_widget_article_list",
+      "return_type": "single"
+    },
+    {
+      "name": "get_navbar_item",
+      "return_type": "single"
+    },
+    {
+      "name": "get_admin_article_list",
+      "return_type": "single"
+    }
+  ]
 }

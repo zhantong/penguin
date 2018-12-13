@@ -6,11 +6,6 @@ from ..models import Plugin
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('set_widget', return_type='single')
-current_plugin.signal.declare_signal('render_template', return_type='single')
-current_plugin.signal.declare_signal('get_widget', return_type='single')
-current_plugin.signal.declare_signal('custom_list_column', return_type='list')
-
 
 @current_plugin.signal.connect_this('get_widget')
 def get_widget(sender, current_template_id, **kwargs):

@@ -1,5 +1,19 @@
 {
   "id": "page",
   "name": "页面",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_navbar_item",
+      "return_type": "single"
+    },
+    {
+      "name": "dynamic_page",
+      "return_type": "list"
+    },
+    {
+      "name": "get_admin_page_list",
+      "return_type": "single"
+    }
+  ]
 }

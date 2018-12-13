@@ -1,5 +1,15 @@
 {
   "id": "attachment",
   "name": "附件",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "restore",
+      "return_type": "single"
+    },
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    }
+  ]
 }

@@ -13,11 +13,6 @@ from uuid import uuid4
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('get_widget_category_list', return_type='single')
-current_plugin.signal.declare_signal('get_widget_article_list', return_type='single')
-current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
-current_plugin.signal.declare_signal('get_admin_article_list', return_type='single')
-
 
 @plugin.route('/article/static/<path:filename>')
 def article_static(filename):

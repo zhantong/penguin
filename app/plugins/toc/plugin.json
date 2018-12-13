@@ -1,5 +1,11 @@
 {
   "id": "toc",
   "name": "文章目录",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_widget",
+      "return_type": "single"
+    }
+  ]
 }

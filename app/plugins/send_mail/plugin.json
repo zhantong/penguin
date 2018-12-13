@@ -1,5 +1,11 @@
 {
   "id": "send_mail",
   "name": "发送邮件",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "send_mail",
+      "return_type": "single"
+    }
+  ]
 }

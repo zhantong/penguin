@@ -12,9 +12,6 @@ from ..models import Plugin
 
 current_plugin = Plugin.current_plugin()
 
-current_plugin.signal.declare_signal('restore', return_type='single')
-current_plugin.signal.declare_signal('get_widget', return_type='single')
-
 
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
