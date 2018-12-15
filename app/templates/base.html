@@ -4,59 +4,45 @@
 
 {% block navbar %}
     {% set custom_navbar=custom_navbar() %}
-    <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                        data-target="#navbar-collapse" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/">{{ custom_navbar['brand'] }}</a>
-            </div>
-
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    {% for item in custom_navbar['items'] %}
-                        <li><a href="{{ item['link'] }}">{{ item['name'] }}</a></li>
-                    {% endfor %}
-                </ul>
-                {% for template in custom_navbar['templates'] %}
-                    {{ template['template']|safe }}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <a class="navbar-brand" href="/">{{ custom_navbar['brand'] }}</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {% for item in custom_navbar['items'] %}
+                    <li class="nav-item"><a class="nav-link" href="{{ item['link'] }}">{{ item['name'] }}</a></li>
                 {% endfor %}
-            </div>
+            </ul>
+            {% for template in custom_navbar['templates'] %}
+                {{ template['template']|safe }}
+            {% endfor %}
         </div>
     </nav>
 {% endblock %}
 
-{% block body_attribs %}
-    style = "padding-top: 70px;"
-{% endblock %}
 
 {% block content %}
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-2 col-md-2 hidden-sm hidden-xs" data-spy="affix">
+        <div class="row flex-xl-nowrap mt-3">
+            <div class="col-lg-2 col-md-2 hidden-sm hidden-xs bd-sidebar">
                 {% block sidebar_left %}
                 {% endblock %}
             </div>
-            <div class="col-lg-8 col-lg-push-2 col-md-10 col-md-push-2 col-sm-12 col-xs-12">
+            <div class="col-lg-8 col-md-10 col-sm-12 col-xs-12">
                 <div class="container">
                     {% for message in get_flashed_messages() %}
                         <div class="alert alert-warning alert-dismissible" role="alert">
-                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                             {{ message }}
+                            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
                         </div>
                     {% endfor %}
                 </div>
                 {% block main %}
                 {% endblock %}
             </div>
-            <div class="col-lg-2 col-lg-push-2 hidden-md hidden-sm hidden-xs">
+            <div class="col-lg-2 hidden-md hidden-sm hidden-xs">
                 {% block sidebar_right %}
                 {% endblock %}
             </div>

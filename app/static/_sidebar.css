@@ -1,0 +1,11 @@
+.bd-sidebar {
+    position: -webkit-sticky;
+    position: sticky;
+    z-index: 1000;
+    height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.card-footer ul {
+    margin-bottom: 0;
+}

@@ -3,44 +3,42 @@
 <div>
     {% for article in articles %}
         <article>
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="card mb-3">
+                <div class="card-header">
                     <a href="{{ url_for('.show_article', number=article.number) }}">
-                        <h4>
-                            {% if article.title %}
-                                {{ article.title }}
-                            {% else %}
-                                （无标题）
-                            {% endif %}
-                        </h4>
+                        {% if article.title %}
+                            {{ article.title }}
+                        {% else %}
+                            （无标题）
+                        {% endif %}
                     </a>
                 </div>
-                <div class="panel-body">
+                <div class="card-body">
                     {{ article.body_abstract }}
                 </div>
-                <div class="panel-footer">
+                <div class="card-footer">
                     <ul class="list-inline small">
-                        <li>
+                        <li class="list-inline-item">
                             <i class="fa fa-calendar fa-fw"></i>
                             {{ moment(article.timestamp).format('L') }}
                         </li>
-                        <li>
+                        <li class="list-inline-item">
                             <i class="fa fa-heart fa-fw" title="阅读量"></i>
-                            <span class="badge">{{ article.get_view_count() }}</span>
+                            <span class="badge badge-pill badge-secondary">{{ article.get_view_count() }}</span>
                         </li>
-                        <li>
+                        <li class="list-inline-item">
                             <i class="fa fa-bookmark fa-fw" title="分类"></i>
                             {% for category in article.categories %}
                                 {% set category_info=category.get_info() %}
-                                <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
+                                <a class="badge badge-secondary" href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
                                 {% if not loop.last %}
                                     ,
                                 {% endif %}
                             {% endfor %}
                         </li>
-                        <li>
+                        <li class="list-inline-item">
                             <i class="fa fa-comment fa-fw" title="评论数"></i>
-                            <span class="badge">{{ article.comments|length }}</span>
+                            <span class="badge badge-pill badge-secondary">{{ article.comments|length }}</span>
                         </li>
                     </ul>
                 </div>

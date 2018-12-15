@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}登录 - {{ get_setting_value('site_name') }}{% endblock %}
 
@@ -8,7 +8,7 @@
         <div class="page-header">
             <h1>登录</h1>
         </div>
-        {{ wtf.quick_form(form) }}
+        {{ render_form(form) }}
     </div>
 {% endblock %}
 
