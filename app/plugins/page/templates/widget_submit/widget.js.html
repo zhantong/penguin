@@ -1,0 +1,44 @@
+<script src="{{ url_for('plugin.page_static', filename='laydate-5.0.9/dist/laydate.js') }}"></script>
+
+<script>
+    function updateHideTimestamp(date) {
+        $('#submit-datetime').next().val(Math.floor(date.getTime() / 1000))
+    }
+
+    var postDate = new Date('{{ page.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
+    updateHideTimestamp(postDate);
+    laydate.render({
+        elem: '#submit-datetime',
+        type: 'datetime',
+        value: postDate,
+        format: 'yyyy-MM-dd HH:mm:ss',
+        done: function (value, date, endDate) {
+            updateHideTimestamp(new Date(value));
+        }
+    });
+
+    $('#btn-submit').click(function (event) {
+        var data = {
+            id:{{ page.id }},
+            title: $('#page-title').val(),
+            slug: $('#page-slug').val(),
+            body: $('#page-body').val(),
+            timestamp: $('#page-timestamp').val()
+        };
+        var widgets = {};
+        $('.panel[data-widget-slug]').each(function (i, panel) {
+            widgets[$(this).data('widget-slug')] = $(this).find('select, textarea, input').serializeArray();
+        });
+        data['widgets'] = JSON.stringify(widgets);
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            type: 'POST',
+            data: data,
+            success: function (msg) {
+                location.reload();
+            }
+        });
+    })
+</script>

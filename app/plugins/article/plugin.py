@@ -197,6 +197,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             db.session.add(article)
             db.session.commit()
         widgets = []
+        widgets.append(current_plugin.signal.send_this('get_widget_submit', article=article))
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=article.template_id))
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments,
                                           meta={'type': 'article', 'article_id': article.id}))
@@ -336,4 +337,15 @@ def dynamic_page(sender, **kwargs):
                                 articles=articles),
         'script': render_template(current_plugin.template_path('dynamic_page_contents', 'contents.js.html')),
         'style': ''
+    }
+
+
+@current_plugin.signal.connect_this('get_widget_submit')
+def get_widget_submit(sender, article, **kwargs):
+    return {
+        'slug': 'submit',
+        'name': '发布',
+        'html': render_template(current_plugin.template_path('widget_submit', 'widget.html')),
+        'footer': render_template(current_plugin.template_path('widget_submit', 'footer.html')),
+        'js': render_template(current_plugin.template_path('widget_submit', 'widget.js.html'), article=article)
     }

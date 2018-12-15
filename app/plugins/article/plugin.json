@@ -18,6 +18,10 @@
     {
       "name": "get_admin_article_list",
       "return_type": "single"
+    },
+    {
+      "name": "get_widget_submit",
+      "return_type": "single"
     }
   ]
 }

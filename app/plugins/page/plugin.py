@@ -195,6 +195,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
             db.session.add(page)
             db.session.commit()
         widgets = []
+        widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=page.template_id))
 
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments,
@@ -265,4 +266,15 @@ def template_custom_list_column(sender, **kwargs):
             'name': name_func,
             'link': link_func
         }
+    }
+
+
+@current_plugin.signal.connect_this('get_widget_submit')
+def get_widget_submit(sender, page, **kwargs):
+    return {
+        'slug': 'submit',
+        'name': '发布',
+        'html': render_template(current_plugin.template_path('widget_submit', 'widget.html')),
+        'footer': render_template(current_plugin.template_path('widget_submit', 'footer.html')),
+        'js': render_template(current_plugin.template_path('widget_submit', 'widget.js.html'), page=page)
     }
