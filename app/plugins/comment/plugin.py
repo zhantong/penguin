@@ -154,5 +154,6 @@ def get_widget_latest_comments(sender, **kwargs):
         'slug': 'latest_comments',
         'name': '最近回复',
         'html': render_template(current_plugin.template_path('widget_latest_comments', 'widget.html'),
-                                comments=comments, get_comment_show_info=get_comment_show_info)
+                                comments=comments, get_comment_show_info=get_comment_show_info),
+        'is_html_as_list': True
     }

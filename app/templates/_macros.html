@@ -78,3 +78,31 @@
         </li>
     </ul>
 {% endmacro %}
+
+{% macro render_card(slug,title,body=None,footer=None,content_before=None,content_after=None) %}
+    <div class="card mb-3">
+        <div class="card-header" id="card-{{ slug }}-heading">
+            <a data-toggle="collapse" data-target="#card-collapse-{{ slug }}" aria-expanded="true" aria-controls="card-collapse-{{ slug }}">
+                {{ title }}
+            </a>
+        </div>
+        <div id="card-collapse-{{ slug }}" class="collapse show" aria-labelledby="card-{{ slug }}-heading">
+            {% if content_before %}
+                {{ content_before|safe }}
+            {% endif %}
+            {% if body %}
+                <div class="card-body">
+                    {{ body|safe }}
+                </div>
+            {% endif %}
+            {% if content_after %}
+                {{ content_after|safe }}
+            {% endif %}
+        </div>
+        {% if footer %}
+            <div class="card-footer">
+                {{ footer|safe }}
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}

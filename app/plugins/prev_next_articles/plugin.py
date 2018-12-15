@@ -20,5 +20,6 @@ def get_widget(sender, article, **kwargs):
         'slug': 'prev_next_articles',
         'name': '上一篇/下一篇文章',
         'html': render_template(current_plugin.template_path('widget_content.html'),
-                                prev_next_articles=prev_next_articles)
+                                prev_next_articles=prev_next_articles),
+        'is_html_as_list': True
     }

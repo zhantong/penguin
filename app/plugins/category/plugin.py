@@ -14,7 +14,8 @@ def get_widget_list(sender, end_point, count_func, **kwargs):
         'slug': 'category',
         'name': '分类',
         'html': render_template(current_plugin.template_path('widget_list', 'widget.html'),
-                                all_category=all_category, end_point=end_point, count_func=count_func)
+                                all_category=all_category, end_point=end_point, count_func=count_func),
+        'is_html_as_list': True
     }
 
 

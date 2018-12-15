@@ -1,4 +1,4 @@
-<ul class="list-group">
+<ul class="list-group list-group-flush">
     {% for article in prev_next_articles %}
         <li class="list-group-item">
             <a href="{{ url_for('main.show_article', number=article.number) }}">{{ article.title }}</a>

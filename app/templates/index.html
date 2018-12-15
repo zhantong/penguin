@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_macros.html" as macros %}
 
 {% block styles %}
     {{ super() }}
@@ -17,39 +18,21 @@
 
 {% block sidebar_left %}
     {% for widget in left_widgets %}
-        <div class="card" data-widget-slug="{{ widget['slug'] }}">
-            <div class="card-header" id="widget-{{ widget['slug'] }}-heading">
-                <a role="button" data-toggle="collapse" data-parent="#accordion"
-                   href="#widget-{{ widget['slug'] }}-collapse"
-                   aria-expanded="true" aria-controls="widget-{{ widget['slug'] }}-collapse">
-                    {{ widget['name'] }}
-                </a>
-            </div>
-            <div id="widget-{{ widget['slug'] }}-collapse" class="panel-collapse collapse show"
-                 role="tabpanel"
-                 aria-labelledby="widget-{{ widget['slug'] }}-heading">
-                {{ widget['html']|safe }}
-            </div>
-        </div>
+        {% if 'is_html_as_list' in widget and widget['is_html_as_list'] %}
+            {{ macros.render_card(widget['slug'],widget['name'],content_before=widget['html']) }}
+        {% else %}
+            {{ macros.render_card(widget['slug'],widget['name'],widget['html']) }}
+        {% endif %}
     {% endfor %}
 {% endblock %}
 
 {% block sidebar_right %}
     {% for widget in right_widgets %}
-        <div class="card" data-widget-slug="{{ widget['slug'] }}">
-            <div class="card-header" role="tab" id="widget-{{ widget['slug'] }}-heading">
-                <a role="button" data-toggle="collapse" data-parent="#accordion"
-                   href="#widget-{{ widget['slug'] }}-collapse"
-                   aria-expanded="true" aria-controls="widget-{{ widget['slug'] }}-collapse">
-                    {{ widget['name'] }}
-                </a>
-            </div>
-            <div id="widget-{{ widget['slug'] }}-collapse" class="panel-collapse collapse in"
-                 role="tabpanel"
-                 aria-labelledby="widget-{{ widget['slug'] }}-heading">
-                {{ widget['html']|safe }}
-            </div>
-        </div>
+        {% if 'is_html_as_list' in widget and widget['is_html_as_list'] %}
+            {{ macros.render_card(widget['slug'],widget['name'],content_before=widget['html']) }}
+        {% else %}
+            {{ macros.render_card(widget['slug'],widget['name'],widget['html']) }}
+        {% endif %}
     {% endfor %}
 {% endblock %}
 
