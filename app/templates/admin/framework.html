@@ -29,9 +29,9 @@
                                     {{ plugin.name }}
                                 </a>
                             </div>
-                            <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse in" role="tabpanel"
+                            <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse show" role="tabpanel"
                                  aria-labelledby="nav-{{ plugin.slug }}-heading">
-                                <ul class="list-group">
+                                <ul class="list-group list-group-flush">
                                     {% for route in plugin.routes.values() %}
                                         {% if route.name is not none %}
                                             <li class="list-group-item">
