@@ -124,3 +124,8 @@ def set_widget(sender, js_data, **kwargs):
 def filter(sender, query, params, join_db=Tag, **kwargs):
     if 'tag' in params and params['tag'] != '':
         query['query'] = query['query'].join(join_db).filter(Tag.slug == params['tag'])
+
+
+@current_plugin.signal.connect_this('get_rendered_tag_items')
+def get_rendered_tag_items(sender, tags, **kwargs):
+    return current_plugin.render_template('tag_items.html', tags=tags)

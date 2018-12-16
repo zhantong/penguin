@@ -1,0 +1,8 @@
+<i class="fa fa-tag fa-fw" title="标签"></i>
+{% for tag in tags %}
+    {% set tag_info=tag.get_info() %}
+    <a class="badge badge-secondary" href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
+    {% if not loop.last %}
+        ,
+    {% endif %}
+{% endfor %}

@@ -18,6 +18,10 @@
     {
       "name": "custom_list_column",
       "return_type": "list"
+    },
+    {
+      "name": "get_rendered_tag_items",
+      "return_type": "single"
     }
   ]
 }

@@ -330,3 +330,8 @@ def get_widget_submit(sender, article, **kwargs):
 @current_plugin.context_func
 def render_category_items(article):
     return Plugin.Signal.send('category', 'get_rendered_category_items', categories=article.categories)
+
+
+@current_plugin.context_func
+def render_tag_items(article):
+    return Plugin.Signal.send('tag', 'get_rendered_tag_items', tags=article.tags)

@@ -58,14 +58,7 @@
             {{ render_category_items(article)|safe }}
         </li>
         <li>
-            <i class="fa fa-tag fa-fw" title="标签"></i>
-            {% for tag in article.tags %}
-                {% set tag_info=tag.get_info() %}
-                <a href="{{ tag_info['url'] }}">{{ tag_info['name'] }}</a>
-                {% if not loop.last %}
-                    ,
-                {% endif %}
-            {% endfor %}
+            {{ render_tag_items(article)|safe }}
         </li>
         <li>
             <i class="fa fa-comment fa-fw" title="评论数"></i>
