@@ -1,4 +1,4 @@
-from flask import url_for
+from flask import url_for, render_template
 from urllib.parse import urlencode
 from pathlib import Path
 import blinker
@@ -79,6 +79,7 @@ class Plugin:
         self.show_in_sidebar = show_in_sidebar
         self.routes = {}
         self.signal = self.Signal(self)
+        self.template_context = {}
 
     def route(self, blueprint, rule, name=None, **kwargs):
         def wrap(f):
@@ -130,6 +131,13 @@ class Plugin:
     def set_setting(self, key, **kwargs):
         from .settings.plugin import set_setting
         return set_setting(key, self.slug, **kwargs)
+
+    def render_template(self, *args, **kwargs):
+        return render_template(self.template_path(*args), **self.template_context, **kwargs)
+
+    def context_func(self, f):
+        self.template_context[f.__name__] = f
+        return f
 
 
 class Route:

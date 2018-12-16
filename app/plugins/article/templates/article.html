@@ -55,7 +55,7 @@
             {{ moment(article.timestamp).format('L') }}
         </li>
         <li>
-            {{ get_rendered_category_items(article)|safe }}
+            {{ render_category_items(article)|safe }}
         </li>
         <li>
             <i class="fa fa-tag fa-fw" title="标签"></i>

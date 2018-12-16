@@ -27,7 +27,7 @@
                             <span class="badge badge-pill badge-secondary">{{ article.get_view_count() }}</span>
                         </li>
                         <li class="list-inline-item">
-                            {{ get_rendered_category_items(article)|safe }}
+                            {{ render_category_items(article)|safe }}
                         </li>
                         <li class="list-inline-item">
                             <i class="fa fa-comment fa-fw" title="评论数"></i>

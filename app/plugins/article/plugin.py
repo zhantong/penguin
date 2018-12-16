@@ -1,6 +1,6 @@
 from ..models import Plugin
 from ...main import main
-from flask import render_template, request, make_response, url_for, session, flash, jsonify, send_from_directory
+from flask import request, make_response, url_for, session, flash, jsonify, send_from_directory
 from datetime import datetime
 from ...models import User
 from ...models import db
@@ -41,9 +41,9 @@ def show_article(number):
     if article.template is not None:
         article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template,
                                                json_params=json.loads(article.body))
-    resp = make_response(render_template(current_plugin.template_path('article.html'), article=article,
-                                         widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, get_articles=get_articles, get_rendered_category_items=get_rendered_category_items))
+    resp = make_response(current_plugin.render_template('article.html', article=article,
+                                                        widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
+                                                        right_widgets=right_widgets, get_articles=get_articles))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
@@ -155,12 +155,12 @@ def get_admin_widget_article_list(sender, params, **kwargs):
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,
-                                pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                            'url_for': current_plugin.url_for},
-                                get_articles=get_articles,
-                                url_for=current_plugin.url_for),
-        'js': render_template(current_plugin.template_path('list.js.html'))
+        'html': current_plugin.render_template('list.html', repository_ids=repository_ids,
+                                               pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
+                                                           'url_for': current_plugin.url_for},
+                                               get_articles=get_articles,
+                                               url_for=current_plugin.url_for),
+        'js': current_plugin.render_template('list.js.html')
     }
 
 
@@ -204,10 +204,10 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets.append(Plugin.Signal.send('category', 'get_widget', categories=article.categories))
         widgets.append(Plugin.Signal.send('tag', 'get_widget', tags=article.tags))
         templates.append(
-            render_template(current_plugin.template_path('edit.html'), article=article, widgets=widgets))
+            current_plugin.render_template('edit.html', article=article, widgets=widgets))
         scripts.append(
-            render_template(current_plugin.template_path('edit.js.html'), article=article, widgets=widgets))
-        csss.append(render_template(current_plugin.template_path('edit.css.html'), widgets=widgets))
+            current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
+        csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
 
 
 def cleanup_temp_article():
@@ -253,9 +253,9 @@ def get_widget_article_list(sender, request, **kwargs):
     return {
         'slug': 'article_list',
         'name': '文章列表',
-        'html': render_template(current_plugin.template_path('widget_article_list', 'widget.html'),
-                                articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
-                                request_params=request.args, get_rendered_category_items=get_rendered_category_items)
+        'html': current_plugin.render_template('widget_article_list', 'widget.html',
+                                               articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
+                                               request_params=request.args)
     }
 
 
@@ -272,7 +272,7 @@ def filter(sender, query, params, **kwargs):
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'template',
-        'template': render_template(current_plugin.template_path('navbar_search', 'navbar.html')),
+        'template': current_plugin.render_template('navbar_search', 'navbar.html'),
     }
 
 
@@ -333,9 +333,9 @@ def dynamic_page(sender, **kwargs):
     return {
         'title': '文章目录',
         'slug': 'list',
-        'html': render_template(current_plugin.template_path('dynamic_page_contents', 'contents.html'),
-                                articles=articles),
-        'script': render_template(current_plugin.template_path('dynamic_page_contents', 'contents.js.html')),
+        'html': current_plugin.render_template('dynamic_page_contents', 'contents.html',
+                                               articles=articles),
+        'script': current_plugin.render_template('dynamic_page_contents', 'contents.js.html'),
         'style': ''
     }
 
@@ -345,11 +345,12 @@ def get_widget_submit(sender, article, **kwargs):
     return {
         'slug': 'submit',
         'name': '发布',
-        'html': render_template(current_plugin.template_path('widget_submit', 'widget.html')),
-        'footer': render_template(current_plugin.template_path('widget_submit', 'footer.html')),
-        'js': render_template(current_plugin.template_path('widget_submit', 'widget.js.html'), article=article)
+        'html': current_plugin.render_template('widget_submit', 'widget.html'),
+        'footer': current_plugin.render_template('widget_submit', 'footer.html'),
+        'js': current_plugin.render_template('widget_submit', 'widget.js.html', article=article)
     }
 
 
-def get_rendered_category_items(article):
+@current_plugin.context_func
+def render_category_items(article):
     return Plugin.Signal.send('category', 'get_rendered_category_items', categories=article.categories)
