@@ -13,8 +13,7 @@ def get_widget_list(sender, end_point, count_func, **kwargs):
     return {
         'slug': 'category',
         'name': '分类',
-        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'),
-                                all_category=all_category, end_point=end_point, count_func=count_func),
+        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), all_category=all_category, end_point=end_point, count_func=count_func),
         'is_html_as_list': True
     }
 
@@ -27,8 +26,7 @@ def restore_categories(sender, categories, **kwargs):
             category = {'name': category}
         c = Category.query.filter_by(name=category['name']).first()
         if c is None:
-            c = Category.create(name=category['name'], slug=slugify(category['name']),
-                                description=category.get('description', ''))
+            c = Category.create(name=category['name'], slug=slugify(category['name']), description=category.get('description', ''))
             db.session.add(c)
             db.session.flush()
         else:
@@ -52,8 +50,7 @@ def get_widget(sender, categories, **kwargs):
     return {
         'slug': 'category',
         'name': '分类',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'),
-                                all_category=all_category, category_ids=category_ids)
+        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), all_category=all_category, category_ids=category_ids)
     }
 
 
@@ -87,15 +84,10 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             templates.append(jsonify(result))
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Category.query.order_by(Category.name) \
-            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Category.query.order_by(Category.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         categories = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(
-            render_template(current_plugin.template_path('list.html'), category_instance=current_plugin,
-                            categories=categories,
-                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        templates.append(render_template(current_plugin.template_path('list.html'), category_instance=current_plugin, categories=categories, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(current_plugin.template_path('list.js.html')))
 
 

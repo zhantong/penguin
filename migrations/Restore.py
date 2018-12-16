@@ -14,8 +14,7 @@ class Restore:
 
     def process_admin(self, admins):
         for admin in admins:
-            a = User.create(role=Role.admin(), username=admin['username'], name=admin['name'], email=admin['email'],
-                            member_since=datetime.utcfromtimestamp(admin['member_since']), password='123456')
+            a = User.create(role=Role.admin(), username=admin['username'], name=admin['name'], email=admin['email'], member_since=datetime.utcfromtimestamp(admin['member_since']), password='123456')
             db.session.add(a)
         db.session.flush()
 

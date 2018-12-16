@@ -41,14 +41,10 @@ def dispatch(request, templates, scripts, meta, **kwargs):
             templates.append(jsonify(result))
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Tag.query.order_by(Tag.name) \
-            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         tags = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(
-            render_template(current_plugin.template_path('list.html'), tag_instance=current_plugin, tags=tags,
-                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        templates.append(render_template(current_plugin.template_path('list.html'), tag_instance=current_plugin, tags=tags, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(current_plugin.template_path('list.js.html')))
 
 
@@ -101,10 +97,8 @@ def get_widget(sender, tags, **kwargs):
     return {
         'slug': 'tag',
         'name': '标签',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'),
-                                all_tag_name=all_tag_name),
-        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'),
-                              tag_names=tag_names)
+        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), all_tag_name=all_tag_name),
+        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'), tag_names=tag_names)
     }
 
 

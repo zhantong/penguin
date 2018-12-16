@@ -17,8 +17,7 @@ def index():
     right_widgets.append(Plugin.Signal.send('comment', 'get_widget_latest_comments'))
     main_widgets.append(Plugin.Signal.send('article', 'get_widget_article_list', request=request))
 
-    return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets,
-                           right_widgets=right_widgets)
+    return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 
 
 @main.errorhandler(404)

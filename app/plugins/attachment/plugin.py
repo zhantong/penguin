@@ -15,14 +15,12 @@ current_plugin = Plugin.current_plugin()
 
 @Plugin.Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
-    current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif',
-                               value_type='str_list')
+    current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
 @current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
-                                meta={'plugin': current_plugin.slug})
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
@@ -36,8 +34,7 @@ def attachment_static(filename):
 def show_attachment(filename):
     attachment = Attachment.query.filter_by(filename=filename).first()
     path = attachment.file_path
-    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path,
-                               as_attachment=True, attachment_filename=attachment.original_filename)
+    return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path, as_attachment=True, attachment_filename=attachment.original_filename)
 
 
 @admin.route('/upload', methods=['POST'])
@@ -54,8 +51,7 @@ def upload():
             'message': '未选择上传文件'
         })
     filename = file.filename
-    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in \
-            current_plugin.get_setting_value_this('allowed_upload_file_extensions'):
+    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in current_plugin.get_setting_value_this('allowed_upload_file_extensions'):
         return jsonify({
             'code': 3,
             'message': '禁止上传的文件类型'
@@ -65,8 +61,7 @@ def upload():
     abs_file_path = os.path.join(current_app.config['TEMP_FOLDER'], random_filename)
     os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
     file.save(abs_file_path)
-    attachment = Attachment.create(abs_file_path, original_filename=filename, file_extension=extension,
-                                   mime=file.mimetype)
+    attachment = Attachment.create(abs_file_path, original_filename=filename, file_extension=extension, mime=file.mimetype)
     db.session.add(attachment)
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
@@ -95,12 +90,7 @@ def delete_upload(id):
 def restore(sender, attachments, directory, attachment_restored, **kwargs):
     restored_attachments = []
     for attachment in attachments:
-        a = Attachment.create(file_path=os.path.join(directory,
-                                                     attachment['file_path'] if attachment['file_path'][0] != '/' else
-                                                     attachment['file_path'][1:]),
-                              original_filename=attachment['original_filename'],
-                              file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(),
-                              mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']))
+        a = Attachment.create(file_path=os.path.join(directory, attachment['file_path'] if attachment['file_path'][0] != '/' else attachment['file_path'][1:]), original_filename=attachment['original_filename'], file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(), mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']))
         db.session.add(a)
         db.session.flush()
         restored_attachments.append(a)
@@ -113,8 +103,6 @@ def get_widget(sender, attachments, meta, **kwargs):
     return {
         'slug': 'attachment',
         'name': '附件',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'),
-                                attachments=attachments),
-        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'),
-                              meta=meta)
+        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), attachments=attachments),
+        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'), meta=meta)
     }

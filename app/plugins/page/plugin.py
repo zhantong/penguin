@@ -30,17 +30,11 @@ def show_page(slug):
         left_widgets = []
         right_widgets = []
         cookies_to_set = {}
-        widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session,
-                                                      comments=page.comments, meta={'type': 'page', 'page_id': page.id})
-        Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request,
-                           cookies_to_set=cookies_to_set)
+        widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session, comments=page.comments, meta={'type': 'page', 'page_id': page.id})
+        Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
         if page.template is not None:
-            page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template,
-                                                json_params=json.loads(page.body))
-        resp = make_response(render_template(current_plugin.template_path('page.html'), page=page,
-                                             widget_rendered_comments=widget_rendered_comments,
-                                             left_widgets=left_widgets, right_widgets=right_widgets,
-                                             get_pages=get_pages))
+            page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body))
+        resp = make_response(render_template(current_plugin.template_path('page.html'), page=page, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)
         return resp
@@ -59,9 +53,7 @@ def show_page(slug):
         styles = []
         scripts.append(page['script'])
         styles.append(page['style'])
-        resp = make_response(render_template(current_plugin.template_path('dynamic_page.html'), page=page,
-                                             left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts,
-                                             styles=styles))
+        resp = make_response(render_template(current_plugin.template_path('dynamic_page.html'), page=page, left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts, styles=styles))
         return resp
 
 
@@ -70,10 +62,7 @@ def restore(sender, data, directory, **kwargs):
     if 'page' in data:
         pages = data['page']
         for page in pages:
-            p = Page(title=page['title'], slug=page['slug'], body=page['body'],
-                     timestamp=datetime.utcfromtimestamp(page['timestamp']), status=page['version']['status'],
-                     repository_id=page['version']['repository_id'],
-                     author=User.query.filter_by(username=page['author']).one())
+            p = Page(title=page['title'], slug=page['slug'], body=page['body'], timestamp=datetime.utcfromtimestamp(page['timestamp']), status=page['version']['status'], repository_id=page['version']['repository_id'], author=User.query.filter_by(username=page['author']).one())
             db.session.add(p)
             db.session.flush()
             if 'comments' in page:
@@ -148,19 +137,14 @@ def get_admin_page_list(sender, params, **kwargs):
     page = 1
     if 'page' in params:
         page = int(params['page'])
-    query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(
-        Page.version_timestamp.desc())
+    query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(Page.version_timestamp.desc())
     query = {'query': query}
     current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids,
-                                pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                            'url_for': current_plugin.url_for},
-                                get_pages=get_pages,
-                                url_for=current_plugin.url_for),
+        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_pages=get_pages, url_for=current_plugin.url_for),
         'js': render_template(current_plugin.template_path('list.js.html'))
     }
 
@@ -177,9 +161,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = page.repository_id
-        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author,
-                        comments=page.comments, attachments=page.attachments, repository_id=repository_id,
-                        status='published')
+        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, comments=page.comments, attachments=page.attachments, repository_id=repository_id, status='published')
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'template':
@@ -198,12 +180,9 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=page.template_id))
 
-        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments,
-                                          meta={'type': 'page', 'page_id': page.id}))
-        templates.append(
-            render_template(current_plugin.template_path('edit.html'), page=page, widgets=widgets))
-        scripts.append(
-            render_template(current_plugin.template_path('edit.js.html'), page=page, widgets=widgets))
+        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments, meta={'type': 'page', 'page_id': page.id}))
+        templates.append(render_template(current_plugin.template_path('edit.html'), page=page, widgets=widgets))
+        scripts.append(render_template(current_plugin.template_path('edit.js.html'), page=page, widgets=widgets))
         csss.append(render_template(current_plugin.template_path('edit.css.html'), widgets=widgets))
 
 

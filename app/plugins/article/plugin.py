@@ -31,19 +31,13 @@ def show_article(number):
     left_widgets = []
     right_widgets = []
     cookies_to_set = {}
-    widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session,
-                                                  comments=article.comments,
-                                                  meta={'type': 'article', 'article_id': article.id})
+    widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session, comments=article.comments, meta={'type': 'article', 'article_id': article.id})
     left_widgets.append(Plugin.Signal.send('toc', 'get_widget', article=article))
     left_widgets.append(Plugin.Signal.send('prev_next_articles', 'get_widget', article=article))
-    Plugin.Signal.send('view_count', 'viewing', repository_id=article.repository_id, request=request,
-                       cookies_to_set=cookies_to_set)
+    Plugin.Signal.send('view_count', 'viewing', repository_id=article.repository_id, request=request, cookies_to_set=cookies_to_set)
     if article.template is not None:
-        article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template,
-                                               json_params=json.loads(article.body))
-    resp = make_response(current_plugin.render_template('article.html', article=article,
-                                                        widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
-                                                        right_widgets=right_widgets, get_articles=get_articles))
+        article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template, json_params=json.loads(article.body))
+    resp = make_response(current_plugin.render_template('article.html', article=article, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
@@ -54,10 +48,7 @@ def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']
         for article in articles:
-            a = Article(title=article['title'], body=article['body'],
-                        timestamp=datetime.utcfromtimestamp(article['timestamp']),
-                        author=User.query.filter_by(username=article['author']).one(),
-                        repository_id=article['version']['repository_id'], status=article['version']['status'])
+            a = Article(title=article['title'], body=article['body'], timestamp=datetime.utcfromtimestamp(article['timestamp']), author=User.query.filter_by(username=article['author']).one(), repository_id=article['version']['repository_id'], status=article['version']['status'])
             db.session.add(a)
             db.session.flush()
             if 'comments' in article:
@@ -68,12 +59,10 @@ def restore(sender, data, directory, **kwargs):
                     a.body = a.body.replace(attachment['file_path'], '/attachments/' + attachment_name)
                     db.session.flush()
 
-                a.attachments = Plugin.Signal.send('attachment', 'restore', attachments=article['attachments'],
-                                                   directory=directory, attachment_restored=attachment_restored)
+                a.attachments = Plugin.Signal.send('attachment', 'restore', attachments=article['attachments'], directory=directory, attachment_restored=attachment_restored)
                 db.session.flush()
             if 'view_count' in article:
-                Plugin.Signal.send('view_count', 'restore', repository_id=a.repository_id,
-                                   count=article['view_count'])
+                Plugin.Signal.send('view_count', 'restore', repository_id=a.repository_id, count=article['view_count'])
             if 'categories' in article:
                 a.categories = Plugin.Signal.send('category', 'restore', categories=article['categories'])
                 db.session.flush()
@@ -147,19 +136,14 @@ def get_admin_widget_article_list(sender, params, **kwargs):
     page = 1
     if 'page' in params:
         page = int(params['page'])
-    query = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(
-        Article.version_timestamp.desc())
+    query = db.session.query(Article.repository_id).group_by(Article.repository_id).order_by(Article.version_timestamp.desc())
     query = {'query': query}
     current_plugin.signal.send_this('filter', query=query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': current_plugin.render_template('list.html', repository_ids=repository_ids,
-                                               pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                                           'url_for': current_plugin.url_for},
-                                               get_articles=get_articles,
-                                               url_for=current_plugin.url_for),
+        'html': current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_articles=get_articles, url_for=current_plugin.url_for),
         'js': current_plugin.render_template('list.js.html')
     }
 
@@ -175,9 +159,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = article.repository_id
-        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author,
-                              comments=article.comments, attachments=article.attachments, repository_id=repository_id,
-                              status='published')
+        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, comments=article.comments, attachments=article.attachments, repository_id=repository_id, status='published')
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'category':
@@ -199,14 +181,11 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', article=article))
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=article.template_id))
-        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments,
-                                          meta={'type': 'article', 'article_id': article.id}))
+        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments, meta={'type': 'article', 'article_id': article.id}))
         widgets.append(Plugin.Signal.send('category', 'get_widget', categories=article.categories))
         widgets.append(Plugin.Signal.send('tag', 'get_widget', tags=article.tags))
-        templates.append(
-            current_plugin.render_template('edit.html', article=article, widgets=widgets))
-        scripts.append(
-            current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
+        templates.append(current_plugin.render_template('edit.html', article=article, widgets=widgets))
+        scripts.append(current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
         csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
 
 
@@ -253,9 +232,7 @@ def get_widget_article_list(sender, request, **kwargs):
     return {
         'slug': 'article_list',
         'name': '文章列表',
-        'html': current_plugin.render_template('widget_article_list', 'widget.html',
-                                               articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
-                                               request_params=request.args)
+        'html': current_plugin.render_template('widget_article_list', 'widget.html', articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination, request_params=request.args)
     }
 
 
@@ -333,8 +310,7 @@ def dynamic_page(sender, **kwargs):
     return {
         'title': '文章目录',
         'slug': 'list',
-        'html': current_plugin.render_template('dynamic_page_contents', 'contents.html',
-                                               articles=articles),
+        'html': current_plugin.render_template('dynamic_page_contents', 'contents.html', articles=articles),
         'script': current_plugin.render_template('dynamic_page_contents', 'contents.js.html'),
         'style': ''
     }

@@ -14,8 +14,7 @@ def get_widget(sender, current_template_id, **kwargs):
     return {
         'slug': 'template',
         'name': '模板',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'),
-                                all_templates=all_templates, current_template=current_template),
+        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), all_templates=all_templates, current_template=current_template),
         'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'))
     }
 
@@ -49,15 +48,10 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             templates.append(jsonify(result))
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Template.query.order_by(Template.name) \
-            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Template.query.order_by(Template.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         the_templates = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(
-            render_template(current_plugin.template_path('list.html'), template_instance=current_plugin,
-                            templates=the_templates,
-                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        templates.append(render_template(current_plugin.template_path('list.html'), template_instance=current_plugin, templates=the_templates, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
         scripts.append(render_template(current_plugin.template_path('list.js.html')))
 
 

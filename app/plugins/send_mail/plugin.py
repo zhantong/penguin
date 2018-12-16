@@ -20,8 +20,7 @@ def deploy(sender, **kwargs):
 
 @current_plugin.route('admin', '/account', '设置账号')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
-                                meta={'plugin': current_plugin.slug})
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 

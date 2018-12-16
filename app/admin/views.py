@@ -22,18 +22,14 @@ def dispatch(path):
     templates = []
     scripts = []
     csss = []
-    meta = {
-        'override_render': False
-    }
-    Plugin.find_plugin(plugin_slug).request(path, request=request, templates=templates, scripts=scripts, csss=csss,
-                                            meta=meta)
+    meta = {'override_render': False}
+    Plugin.find_plugin(plugin_slug).request(path, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
     if meta['override_render']:
         if len(templates) == 0:
             abort(404)
         else:
             return templates[0]
-    return render_template('admin/framework.html', plugins=Plugin.plugins, templates=templates, scripts=scripts,
-                           csss=csss)
+    return render_template('admin/framework.html', plugins=Plugin.plugins, templates=templates, scripts=scripts, csss=csss)
 
 
 @admin.route('/trans-slug')

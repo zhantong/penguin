@@ -36,8 +36,7 @@ def confuse_string():
         js_string += ("'" + item + "'+" + random.randint(0, 2) * ' ')
         r = random.randint(0, 3)
         if r:
-            js_string += ("//" + random.randint(0, 1) * "/*" + rand_str(random.randint(1, 5)) + random.randint(0,
-                                                                                                               1) * "*/" + "\n")
+            js_string += ("//" + random.randint(0, 1) * "/*" + rand_str(random.randint(1, 5)) + random.randint(0, 1) * "*/" + "\n")
         else:
             js_string += ("/*" + "/" * random.randint(0, 2) + rand_str(random.randint(2, 4)) + "*/")
     js_var2 = "l" + rand_str(3)
@@ -52,9 +51,7 @@ def confuse_string():
     for i in range(0, len(l)):
         if random.randint(0, 1):
             result += s[0:l[i]]
-            js_string += (js_var1 + "." + "/*" + random.randint(0, 2) * "/" +
-                          rand_str(random.randint(3, 5)) + "*/" + "substr(0, " +
-                          str(l[i]) + ") +" + random.randint(0, 2) * " ")
+            js_string += (js_var1 + "." + "/*" + random.randint(0, 2) * "/" + rand_str(random.randint(3, 5)) + "*/" + "substr(0, " + str(l[i]) + ") +" + random.randint(0, 2) * " ")
         else:
             r = random.randint(-100, 30)
             result += str(l[i] + r)

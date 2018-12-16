@@ -47,13 +47,7 @@ def is_authorized():
         client_secret = current_plugin.get_setting_value_this('client_secret')
         if refresh_token == '':
             return False
-        with urllib.request.urlopen(token_url,
-                                    data=urllib.parse.urlencode({'client_id': client_id,
-                                                                 'grant_type': 'refresh_token',
-                                                                 'scope': scope,
-                                                                 'refresh_token': refresh_token,
-                                                                 'redirect_uri': redirect_url,
-                                                                 'client_secret': client_secret}).encode()) as f:
+        with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'refresh_token', 'scope': scope, 'refresh_token': refresh_token, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
             result = json.loads(f.read().decode())
             current_plugin.set_setting('access_token', value=result['access_token'])
             current_plugin.set_setting('token_type', value=result['token_type'])
@@ -67,8 +61,7 @@ def is_authorized():
 
 @current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug,
-                                meta={'plugin': current_plugin.slug})
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
@@ -81,10 +74,7 @@ def login(meta, templates, **kwargs):
     redirect_url = current_plugin.get_setting_value_this('redirect_url')
 
     meta['override_render'] = True
-    templates.append(redirect(
-        authorize_url + '?' + urllib.parse.urlencode(
-            {'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query',
-             'scope': scope})))
+    templates.append(redirect(authorize_url + '?' + urllib.parse.urlencode({'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query', 'scope': scope})))
 
 
 @current_plugin.route('admin', '/authorize')
@@ -96,11 +86,7 @@ def authorize(request, meta, templates, **kwargs):
     client_secret = current_plugin.get_setting_value_this('client_secret')
 
     code = request.args['code']
-    with urllib.request.urlopen(token_url,
-                                data=urllib.parse.urlencode({'client_id': client_id,
-                                                             'grant_type': 'authorization_code', 'scope': scope,
-                                                             'code': code, 'redirect_uri': redirect_url,
-                                                             'client_secret': client_secret}).encode()) as f:
+    with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'authorization_code', 'scope': scope, 'code': code, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
         result = json.loads(f.read().decode())
         current_plugin.set_setting('access_token', value=result['access_token'])
         current_plugin.set_setting('token_type', value=result['token_type'])
@@ -122,8 +108,7 @@ def me(templates, **kwargs):
             me = None
     else:
         me = None
-    templates.append(render_template(current_plugin.template_path('me.html'), me=me,
-                                     login_url=current_plugin.url_for('/login')))
+    templates.append(render_template(current_plugin.template_path('me.html'), me=me, login_url=current_plugin.url_for('/login')))
 
 
 @Plugin.Signal.connect('comment', 'comment_submitted')
@@ -135,18 +120,13 @@ def comment_submitted(sender, comment, **kwargs):
     comment_info = get_comment_show_info(comment)
     if comment.parent == 0:
         recipient = 'zhantong1994@163.com'
-        body = render_template(current_plugin.template_path('message_to_author.html'),
-                               comment_info=comment_info, author_name=comment.author.name,
-                               author_body=comment.body_html)
+        body = render_template(current_plugin.template_path('message_to_author.html'), comment_info=comment_info, author_name=comment.author.name, author_body=comment.body_html)
     else:
         parent_comment = Comment.query.get(comment.parent).first()
         recipient = parent_comment.author.email
         if recipient is None or recipient == '':
             return
-        body = render_template(current_plugin.template_path('message_to_recipient.html'),
-                               comment_info=comment_info, recipient_name=parent_comment.author.name,
-                               author_name=comment.author.name, author_body=comment.body_html,
-                               recipient_body=parent_comment.body_html)
+        body = render_template(current_plugin.template_path('message_to_recipient.html'), comment_info=comment_info, recipient_name=parent_comment.author.name, author_name=comment.author.name, author_body=comment.body_html, recipient_body=parent_comment.body_html)
     subject = '[' + comment_info['title'] + '] ' + '一文有新的评论'
 
     redis_url = current_app.config['REDIS_URL']
@@ -164,9 +144,7 @@ def send_mail(recipient, subject, body, message_id):
         return
     token_type = current_plugin.get_setting_value_this('token_type')
     access_token = current_plugin.get_setting_value_this('access_token')
-    request = urllib.request.Request(api_base_url + '/me/messages', data=json.dumps(
-        {'subject': subject, 'body': {'contentType': 'HTML', 'content': body},
-         'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
+    request = urllib.request.Request(api_base_url + '/me/messages', data=json.dumps({'subject': subject, 'body': {'contentType': 'HTML', 'content': body}, 'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
     request.add_header('Authorization', token_type + ' ' + access_token)
     request.add_header('Content-Type', 'application/json')
     with urllib.request.urlopen(request) as f:
@@ -217,14 +195,9 @@ def list_messages(request, templates, scripts, meta, **kwargs):
                 fq.requeue(job_id)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Message.query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'),
-                                            error_out=False)
+        pagination = Message.query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         messages = pagination.items
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()
-        templates.append(
-            render_template(current_plugin.template_path('list.html'), messages=messages,
-                            queue=queue,
-                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': current_plugin.url_for}))
+        templates.append(render_template(current_plugin.template_path('list.html'), messages=messages, queue=queue, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
         scripts.append(render_template(current_plugin.template_path('list.js.html')))

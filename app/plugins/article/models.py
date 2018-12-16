@@ -56,8 +56,7 @@ class Article(db.Model):
     author = db.relationship('User', backref='articles')
     categories = db.relationship('Category', secondary=article_category_association_table, backref='articles')
     tags = db.relationship("Tag", secondary=article_tag_association_table, backref='articles')
-    comments = db.relationship('Comment', secondary=article_comment_association_table,
-                               backref=backref('article', uselist=False))
+    comments = db.relationship('Comment', secondary=article_comment_association_table, backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
     template = db.relationship('Template', backref='articles')

@@ -72,8 +72,7 @@ def submit_comment():
 
 
 def get_comment_show_info(comment):
-    return current_plugin.signal.send_this('get_comment_show_info', comment=comment,
-                                           anchor='comment-' + str(comment.id))
+    return current_plugin.signal.send_this('get_comment_show_info', comment=comment, anchor='comment-' + str(comment.id))
 
 
 def delete(comment_id):
@@ -97,15 +96,9 @@ def list_tags(request, templates, scripts, meta, **kwargs):
             templates.append(jsonify(result))
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Comment.query.order_by(desc(Comment.timestamp)) \
-            .paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Comment.query.order_by(desc(Comment.timestamp)).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         comments = pagination.items
-        templates.append(
-            render_template(current_plugin.template_path('list.html'), comment_instance=current_plugin,
-                            comments=comments,
-                            get_comment_show_info=get_comment_show_info,
-                            pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {},
-                                        'url_for': current_plugin.url_for}))
+        templates.append(render_template(current_plugin.template_path('list.html'), comment_instance=current_plugin, comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
         scripts.append(render_template(current_plugin.template_path('list.js.html'), meta=meta))
 
 
@@ -115,10 +108,8 @@ def get_rendered_comments(sender, session, comments, meta, **kwargs):
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
     return {
-        'html': render_template(current_plugin.template_path('comment.html'), comments=comments, meta=meta,
-                                ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
-        'script': render_template(current_plugin.template_path('comment.js.html'), meta=meta,
-                                  ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
+        'html': render_template(current_plugin.template_path('comment.html'), comments=comments, meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
+        'script': render_template(current_plugin.template_path('comment.js.html'), meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
     }
 
 
@@ -131,13 +122,10 @@ def restore(sender, comments, **kwargs):
             if type(comment['author']) is str:
                 author = User.query.filter_by(name=comment['author']).one()
             else:
-                author = User.create(role=Role.guest(), name=comment['author']['name'],
-                                     email=comment['author']['email'],
-                                     member_since=datetime.utcfromtimestamp(comment['author']['member_since']))
+                author = User.create(role=Role.guest(), name=comment['author']['name'], email=comment['author']['email'], member_since=datetime.utcfromtimestamp(comment['author']['member_since']))
                 db.session.add(author)
                 db.session.flush()
-            c = Comment.create(body=comment['body'], timestamp=datetime.utcfromtimestamp(comment['timestamp']),
-                               ip=comment['ip'], agent=comment['agent'], parent=parent, author=author)
+            c = Comment.create(body=comment['body'], timestamp=datetime.utcfromtimestamp(comment['timestamp']), ip=comment['ip'], agent=comment['agent'], parent=parent, author=author)
             db.session.add(c)
             db.session.flush()
             restored_comments.append(c)
@@ -153,7 +141,6 @@ def get_widget_latest_comments(sender, **kwargs):
     return {
         'slug': 'latest_comments',
         'name': '最近回复',
-        'html': render_template(current_plugin.template_path('widget_latest_comments', 'widget.html'),
-                                comments=comments, get_comment_show_info=get_comment_show_info),
+        'html': render_template(current_plugin.template_path('widget_latest_comments', 'widget.html'), comments=comments, get_comment_show_info=get_comment_show_info),
         'is_html_as_list': True
     }

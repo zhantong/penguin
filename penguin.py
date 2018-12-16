@@ -68,8 +68,7 @@ def show_signals():
             func_type = type(func)
             if func_type is blinker._utilities.annotatable_weakref:
                 func = func()
-            print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ',
-                  inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
+            print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ', inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
 
 
 @app.cli.command()

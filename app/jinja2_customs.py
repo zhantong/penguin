@@ -49,5 +49,6 @@ def custom(app):
 
             return custom_navbar
 
-        return dict(custom_navbar=custom_navbar, get_setting=Plugin.get_setting,
+        return dict(custom_navbar=custom_navbar,
+                    get_setting=Plugin.get_setting,
                     get_setting_value=Plugin.get_setting_value)

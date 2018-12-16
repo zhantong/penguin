@@ -34,8 +34,7 @@ class Attachment(db.Model):
         for param in ['id', 'mime', 'timestamp']:
             if eval(param) is not None:
                 filter_kwargs[param] = eval(param)
-        return Attachment(original_filename=original_filename, filename=random_filename, file_path=relative_file_path,
-                          file_extension=file_extension, **filter_kwargs)
+        return Attachment(original_filename=original_filename, filename=random_filename, file_path=relative_file_path, file_extension=file_extension, **filter_kwargs)
 
     @staticmethod
     def on_change_file_path(target, value, oldvalue, initiator):

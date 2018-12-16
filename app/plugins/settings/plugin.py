@@ -14,8 +14,7 @@ def deploy(sender, **kwargs):
 
 @current_plugin.route('admin', '/settings', '通用')
 def general(templates, scripts, **kwargs):
-    widget = current_plugin.signal.send_this('get_widget_list', category=current_plugin.slug,
-                                             meta={'plugin': current_plugin.slug})
+    widget = current_plugin.signal.send_this('get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
@@ -45,8 +44,7 @@ def get_widget_list(sender, category, meta, **kwargs):
     return {
         'slug': 'settings',
         'name': '设置',
-        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), settings=settings,
-                                category=category, meta=meta),
+        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), settings=settings, category=category, meta=meta),
         'script': render_template(current_plugin.template_path('widget_list', 'widget.js.html'))
     }
 
