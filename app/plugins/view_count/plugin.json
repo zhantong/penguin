@@ -1,5 +1,11 @@
 {
   "id": "view_count",
   "name": "阅读计数",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "signals": [
+    {
+      "name": "get_rendered_view_count",
+      "return_type": "single"
+    }
+  ]
 }

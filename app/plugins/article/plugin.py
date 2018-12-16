@@ -340,3 +340,8 @@ def render_tag_items(article):
 @current_plugin.context_func
 def render_num_comments(article):
     return Plugin.Signal.send('comment', 'get_rendered_num_comments', comments=article.comments)
+
+
+@current_plugin.context_func
+def render_view_count(article):
+    return Plugin.Signal.send('view_count', 'get_rendered_view_count', view_count=article.get_view_count())

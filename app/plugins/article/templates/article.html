@@ -64,8 +64,7 @@
             {{ render_num_comments(article)|safe }}
         </li>
         <li>
-            <i class="fa fa-heart fa-fw" title="阅读量"></i>
-            <span class="badge">{{ article.get_view_count() }}</span>
+            {{ render_view_count(article)|safe }}
         </li>
         <li>
             <i class="fa fa-archive fa-fw" title="历史版本"></i>

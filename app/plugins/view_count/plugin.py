@@ -39,3 +39,8 @@ def restore(sender, repository_id, count, **kwargs):
         view_count = ViewCount(repository_id=repository_id, count=count)
         db.session.add(view_count)
         db.session.flush()
+
+
+@current_plugin.signal.connect_this('get_rendered_view_count')
+def get_rendered_view_count(sender, view_count, **kwargs):
+    return current_plugin.render_template('view_count.html', view_count=view_count)
