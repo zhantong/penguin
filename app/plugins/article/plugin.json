@@ -22,6 +22,10 @@
     {
       "name": "get_widget_submit",
       "return_type": "single"
+    },
+    {
+      "name": "markdown2_extra",
+      "return_type": "list"
     }
   ]
 }

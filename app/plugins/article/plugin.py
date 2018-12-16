@@ -10,6 +10,8 @@ import json
 from .. import plugin
 import os.path
 from uuid import uuid4
+import markdown2
+import re
 
 current_plugin = Plugin.current_plugin()
 
@@ -345,3 +347,18 @@ def render_num_comments(article):
 @current_plugin.context_func
 def render_view_count(article):
     return Plugin.Signal.send('view_count', 'get_rendered_view_count', view_count=article.get_view_count())
+
+
+RE_HTML_TAGS = re.compile(r'<[^<]+?>')
+
+
+def on_changed_article_body(target, value, oldvalue, initiator):
+    if target.template is None:
+        extras = current_plugin.signal.send_this('markdown2_extra')
+        html = markdown2.markdown(value, extras=extras)
+        target.body_html = html
+        target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+        current_plugin.signal.send_this('after_markdown_converted', article=target, html=html)
+
+
+db.event.listen(Article.body, 'set', on_changed_article_body)

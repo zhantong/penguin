@@ -2,13 +2,9 @@ from ... import db
 from jieba.analyse.analyzer import ChineseAnalyzer
 from random import randint
 from datetime import datetime
-import markdown2
-import re
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
 from ..models import Plugin
-
-RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
 def random_number():
@@ -69,17 +65,7 @@ class Article(db.Model):
     def query_published():
         return Article.query.filter_by(status='published')
 
-    @staticmethod
-    def on_changed_body(target, value, oldvalue, initiator):
-        if target.template is None:
-            markdown_html = markdown2.markdown(value)
-            target.body_html = markdown_html
-            target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
-
     def get_view_count(self):
         count = {}
         Plugin.Signal.send('view_count', 'get_count', repository_id=self.repository_id, count=count)
         return count['count']
-
-
-db.event.listen(Article.body, 'set', Article.on_changed_body)
