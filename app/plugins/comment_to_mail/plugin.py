@@ -1,4 +1,4 @@
-from flask import current_app, redirect, render_template
+from flask import current_app, redirect
 from ...extensions import db
 from ..models import Plugin
 import urllib.request
@@ -108,7 +108,7 @@ def me(templates, **kwargs):
             me = None
     else:
         me = None
-    templates.append(render_template(current_plugin.template_path('me.html'), me=me, login_url=current_plugin.url_for('/login')))
+    templates.append(current_plugin.render_template('me.html', me=me, login_url=current_plugin.url_for('/login')))
 
 
 @Plugin.Signal.connect('comment', 'comment_submitted')
@@ -120,13 +120,13 @@ def comment_submitted(sender, comment, **kwargs):
     comment_info = get_comment_show_info(comment)
     if comment.parent == 0:
         recipient = 'zhantong1994@163.com'
-        body = render_template(current_plugin.template_path('message_to_author.html'), comment_info=comment_info, author_name=comment.author.name, author_body=comment.body_html)
+        body = current_plugin.render_template('message_to_author.html', comment_info=comment_info, author_name=comment.author.name, author_body=comment.body_html)
     else:
         parent_comment = Comment.query.get(comment.parent).first()
         recipient = parent_comment.author.email
         if recipient is None or recipient == '':
             return
-        body = render_template(current_plugin.template_path('message_to_recipient.html'), comment_info=comment_info, recipient_name=parent_comment.author.name, author_name=comment.author.name, author_body=comment.body_html, recipient_body=parent_comment.body_html)
+        body = current_plugin.render_template('message_to_recipient.html', comment_info=comment_info, recipient_name=parent_comment.author.name, author_name=comment.author.name, author_body=comment.body_html, recipient_body=parent_comment.body_html)
     subject = '[' + comment_info['title'] + '] ' + '一文有新的评论'
 
     redis_url = current_app.config['REDIS_URL']
@@ -199,5 +199,5 @@ def list_messages(request, templates, scripts, meta, **kwargs):
         messages = pagination.items
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()
-        templates.append(render_template(current_plugin.template_path('list.html'), messages=messages, queue=queue, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
-        scripts.append(render_template(current_plugin.template_path('list.js.html')))
+        templates.append(current_plugin.render_template('list.html', messages=messages, queue=queue, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
+        scripts.append(current_plugin.render_template('list.js.html'))

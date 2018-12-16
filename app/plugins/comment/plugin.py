@@ -1,6 +1,6 @@
 from ...models import db, User, Role
 from ..comment.models import Comment
-from flask import flash, request, jsonify, render_template, session
+from flask import flash, request, jsonify, session
 from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
@@ -98,8 +98,8 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         page = request.args.get('page', 1, type=int)
         pagination = Comment.query.order_by(desc(Comment.timestamp)).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         comments = pagination.items
-        templates.append(render_template(current_plugin.template_path('list.html'), comment_instance=current_plugin, comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
-        scripts.append(render_template(current_plugin.template_path('list.js.html'), meta=meta))
+        templates.append(current_plugin.render_template('list.html', comment_instance=current_plugin, comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
+        scripts.append(current_plugin.render_template('list.js.html', meta=meta))
 
 
 @current_plugin.signal.connect_this('get_widget_rendered_comments')
@@ -108,8 +108,8 @@ def get_rendered_comments(sender, session, comments, meta, **kwargs):
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
     return {
-        'html': render_template(current_plugin.template_path('comment.html'), comments=comments, meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
-        'script': render_template(current_plugin.template_path('comment.js.html'), meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
+        'html': current_plugin.render_template('comment.html', comments=comments, meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
+        'script': current_plugin.render_template('comment.js.html', meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
     }
 
 
@@ -141,6 +141,6 @@ def get_widget_latest_comments(sender, **kwargs):
     return {
         'slug': 'latest_comments',
         'name': '最近回复',
-        'html': render_template(current_plugin.template_path('widget_latest_comments', 'widget.html'), comments=comments, get_comment_show_info=get_comment_show_info),
+        'html': current_plugin.render_template('widget_latest_comments', 'widget.html', comments=comments, get_comment_show_info=get_comment_show_info),
         'is_html_as_list': True
     }

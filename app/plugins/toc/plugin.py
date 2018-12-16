@@ -1,4 +1,3 @@
-from flask import render_template
 from ..models import Plugin
 
 current_plugin = Plugin.current_plugin()
@@ -9,7 +8,7 @@ def get_widget(sender, article, **kwargs):
     return {
         'slug': 'toc',
         'name': '文章目录',
-        'html': render_template(current_plugin.template_path('widget_content_toc.html'), article=article),
-        'script': render_template(current_plugin.template_path('widget_script_toc.html')),
-        'style': render_template(current_plugin.template_path('widget_style_toc.html'))
+        'html': current_plugin.render_template('widget_content_toc.html', article=article),
+        'script': current_plugin.render_template('widget_script_toc.html'),
+        'style': current_plugin.render_template('widget_style_toc.html')
     }

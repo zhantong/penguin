@@ -1,6 +1,6 @@
 from ..models import Plugin
 from ...main import main
-from flask import render_template, url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
+from flask import url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
 from datetime import datetime
 from ...models import db, User
 from .models import Page
@@ -34,7 +34,7 @@ def show_page(slug):
         Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
         if page.template is not None:
             page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body))
-        resp = make_response(render_template(current_plugin.template_path('page.html'), page=page, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages))
+        resp = make_response(current_plugin.render_template('page.html', page=page, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)
         return resp
@@ -53,7 +53,7 @@ def show_page(slug):
         styles = []
         scripts.append(page['script'])
         styles.append(page['style'])
-        resp = make_response(render_template(current_plugin.template_path('dynamic_page.html'), page=page, left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts, styles=styles))
+        resp = make_response(current_plugin.render_template('dynamic_page.html', page=page, left_widgets=left_widgets, right_widgets=right_widgets, scripts=scripts, styles=styles))
         return resp
 
 
@@ -144,8 +144,8 @@ def get_admin_page_list(sender, params, **kwargs):
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'html': render_template(current_plugin.template_path('list.html'), repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_pages=get_pages, url_for=current_plugin.url_for),
-        'js': render_template(current_plugin.template_path('list.js.html'))
+        'html': current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_pages=get_pages, url_for=current_plugin.url_for),
+        'js': current_plugin.render_template('list.js.html')
     }
 
 
@@ -181,9 +181,9 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=page.template_id))
 
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments, meta={'type': 'page', 'page_id': page.id}))
-        templates.append(render_template(current_plugin.template_path('edit.html'), page=page, widgets=widgets))
-        scripts.append(render_template(current_plugin.template_path('edit.js.html'), page=page, widgets=widgets))
-        csss.append(render_template(current_plugin.template_path('edit.css.html'), widgets=widgets))
+        templates.append(current_plugin.render_template('edit.html', page=page, widgets=widgets))
+        scripts.append(current_plugin.render_template('edit.js.html', page=page, widgets=widgets))
+        csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
 
 
 @Plugin.Signal.connect('comment', 'on_new_comment')
@@ -253,7 +253,7 @@ def get_widget_submit(sender, page, **kwargs):
     return {
         'slug': 'submit',
         'name': '发布',
-        'html': render_template(current_plugin.template_path('widget_submit', 'widget.html')),
-        'footer': render_template(current_plugin.template_path('widget_submit', 'footer.html')),
-        'js': render_template(current_plugin.template_path('widget_submit', 'widget.js.html'), page=page)
+        'html': current_plugin.render_template('widget_submit', 'widget.html'),
+        'footer': current_plugin.render_template('widget_submit', 'footer.html'),
+        'js': current_plugin.render_template('widget_submit', 'widget.js.html', page=page)
     }

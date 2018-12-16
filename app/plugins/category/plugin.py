@@ -1,6 +1,6 @@
 from ...models import db
 from .models import Category
-from flask import flash, render_template, jsonify, redirect
+from flask import flash, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
 
@@ -13,7 +13,7 @@ def get_widget_list(sender, end_point, count_func, **kwargs):
     return {
         'slug': 'category',
         'name': '分类',
-        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), all_category=all_category, end_point=end_point, count_func=count_func),
+        'html': current_plugin.render_template('widget_list', 'widget.html', all_category=all_category, end_point=end_point, count_func=count_func),
         'is_html_as_list': True
     }
 
@@ -50,7 +50,7 @@ def get_widget(sender, categories, **kwargs):
     return {
         'slug': 'category',
         'name': '分类',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), all_category=all_category, category_ids=category_ids)
+        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_category=all_category, category_ids=category_ids)
     }
 
 
@@ -87,8 +87,8 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         pagination = Category.query.order_by(Category.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         categories = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(render_template(current_plugin.template_path('list.html'), category_instance=current_plugin, categories=categories, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
-        scripts.append(render_template(current_plugin.template_path('list.js.html')))
+        templates.append(current_plugin.render_template('list.html', category_instance=current_plugin, categories=categories, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        scripts.append(current_plugin.render_template('list.js.html'))
 
 
 @current_plugin.route('admin', '/edit', None)
@@ -98,7 +98,7 @@ def edit_tag(request, templates, meta, **kwargs):
         category = None
         if id is not None:
             category = Category.query.get(id)
-        templates.append(render_template(current_plugin.template_path('edit.html'), category=category))
+        templates.append(current_plugin.render_template('edit.html', category=category))
     else:
         id = request.form.get('id', type=int)
         if id is None:
@@ -129,4 +129,4 @@ def filter(sender, query, params, join_db=Category, **kwargs):
 
 @current_plugin.signal.connect_this('get_rendered_category_items')
 def get_rendered_category_items(sender, categories, **kwargs):
-    return render_template(current_plugin.template_path('category_items.html'), categories=categories)
+    return current_plugin.render_template('category_items.html', categories=categories)

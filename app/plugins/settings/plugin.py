@@ -1,5 +1,5 @@
 from ..models import Plugin
-from flask import render_template, request, jsonify
+from flask import request, jsonify
 from .models import Settings
 from ...admin import admin
 
@@ -44,8 +44,8 @@ def get_widget_list(sender, category, meta, **kwargs):
     return {
         'slug': 'settings',
         'name': '设置',
-        'html': render_template(current_plugin.template_path('widget_list', 'widget.html'), settings=settings, category=category, meta=meta),
-        'script': render_template(current_plugin.template_path('widget_list', 'widget.js.html'))
+        'html': current_plugin.render_template('widget_list', 'widget.html', settings=settings, category=category, meta=meta),
+        'script': current_plugin.render_template('widget_list', 'widget.js.html')
     }
 
 

@@ -2,7 +2,7 @@ from ...models import db
 from .models import Attachment
 from ...admin import admin
 from ...main import main
-from flask import request, jsonify, current_app, url_for, send_from_directory, render_template
+from flask import request, jsonify, current_app, url_for, send_from_directory
 import os.path
 import uuid
 from .. import plugin
@@ -103,6 +103,6 @@ def get_widget(sender, attachments, meta, **kwargs):
     return {
         'slug': 'attachment',
         'name': '附件',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), attachments=attachments),
-        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'), meta=meta)
+        'html': current_plugin.render_template('widget_edit_article', 'widget.html', attachments=attachments),
+        'js': current_plugin.render_template('widget_edit_article', 'widget.js.html', meta=meta)
     }

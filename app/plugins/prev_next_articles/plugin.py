@@ -1,5 +1,4 @@
 from ..article.models import Article
-from flask import render_template
 from ..models import Plugin
 
 current_plugin = Plugin.current_plugin()
@@ -17,6 +16,6 @@ def get_widget(sender, article, **kwargs):
     return {
         'slug': 'prev_next_articles',
         'name': '上一篇/下一篇文章',
-        'html': render_template(current_plugin.template_path('widget_content.html'), prev_next_articles=prev_next_articles),
+        'html': current_plugin.render_template('widget_content.html', prev_next_articles=prev_next_articles),
         'is_html_as_list': True
     }

@@ -1,6 +1,6 @@
 from ...models import db
 from .models import Tag
-from flask import flash, render_template, jsonify, redirect
+from flask import flash, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
 
@@ -44,8 +44,8 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         tags = pagination.items
         custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(render_template(current_plugin.template_path('list.html'), tag_instance=current_plugin, tags=tags, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
-        scripts.append(render_template(current_plugin.template_path('list.js.html')))
+        templates.append(current_plugin.render_template('list.html', tag_instance=current_plugin, tags=tags, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        scripts.append(current_plugin.render_template('list.js.html'))
 
 
 @current_plugin.route('admin', '/edit', None)
@@ -55,7 +55,7 @@ def edit_tag(request, templates, meta, **kwargs):
         tag = None
         if id is not None:
             tag = Tag.query.get(id)
-        templates.append(render_template(current_plugin.template_path('edit.html'), tag=tag))
+        templates.append(current_plugin.render_template('edit.html', tag=tag))
     else:
         id = request.form.get('id', type=int)
         if id is None:
@@ -97,8 +97,8 @@ def get_widget(sender, tags, **kwargs):
     return {
         'slug': 'tag',
         'name': '标签',
-        'html': render_template(current_plugin.template_path('widget_edit_article', 'widget.html'), all_tag_name=all_tag_name),
-        'js': render_template(current_plugin.template_path('widget_edit_article', 'widget.js.html'), tag_names=tag_names)
+        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_tag_name=all_tag_name),
+        'js': current_plugin.render_template('widget_edit_article', 'widget.js.html', tag_names=tag_names)
     }
 
 
