@@ -2,7 +2,4 @@
 {% for category in categories %}
     {% set category_info=category.get_info() %}
     <a class="badge badge-secondary" href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
-    {% if not loop.last %}
-        ,
-    {% endif %}
 {% endfor %}
