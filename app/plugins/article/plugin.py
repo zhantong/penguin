@@ -43,7 +43,7 @@ def show_article(number):
                                                json_params=json.loads(article.body))
     resp = make_response(render_template(current_plugin.template_path('article.html'), article=article,
                                          widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets,
-                                         right_widgets=right_widgets, get_articles=get_articles))
+                                         right_widgets=right_widgets, get_articles=get_articles, get_rendered_category_items=get_rendered_category_items))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
@@ -255,7 +255,7 @@ def get_widget_article_list(sender, request, **kwargs):
         'name': '文章列表',
         'html': render_template(current_plugin.template_path('widget_article_list', 'widget.html'),
                                 articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination,
-                                request_params=request.args)
+                                request_params=request.args, get_rendered_category_items=get_rendered_category_items)
     }
 
 
@@ -349,3 +349,7 @@ def get_widget_submit(sender, article, **kwargs):
         'footer': render_template(current_plugin.template_path('widget_submit', 'footer.html')),
         'js': render_template(current_plugin.template_path('widget_submit', 'widget.js.html'), article=article)
     }
+
+
+def get_rendered_category_items(article):
+    return Plugin.Signal.send('category', 'get_rendered_category_items', categories=article.categories)

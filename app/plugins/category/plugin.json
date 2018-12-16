@@ -22,6 +22,10 @@
     {
       "name": "get_widget",
       "return_type": "single"
+    },
+    {
+      "name": "get_rendered_category_items",
+      "return_type": "single"
     }
   ]
 }

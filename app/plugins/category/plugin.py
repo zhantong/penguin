@@ -133,3 +133,8 @@ def new_tag(templates, meta, **kwargs):
 def filter(sender, query, params, join_db=Category, **kwargs):
     if 'category' in params and params['category'] != '':
         query['query'] = query['query'].join(join_db).filter(Category.slug == params['category'])
+
+
+@current_plugin.signal.connect_this('get_rendered_category_items')
+def get_rendered_category_items(sender, categories, **kwargs):
+    return render_template(current_plugin.template_path('category_items.html'), categories=categories)

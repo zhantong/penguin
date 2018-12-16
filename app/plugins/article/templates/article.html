@@ -55,14 +55,7 @@
             {{ moment(article.timestamp).format('L') }}
         </li>
         <li>
-            <i class="fa fa-bookmark fa-fw" title="分类"></i>
-            {% for category in article.categories %}
-                {% set category_info=category.get_info() %}
-                <a href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
-                {% if not loop.last %}
-                    ,
-                {% endif %}
-            {% endfor %}
+            {{ get_rendered_category_items(article)|safe }}
         </li>
         <li>
             <i class="fa fa-tag fa-fw" title="标签"></i>

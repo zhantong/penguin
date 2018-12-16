@@ -27,14 +27,7 @@
                             <span class="badge badge-pill badge-secondary">{{ article.get_view_count() }}</span>
                         </li>
                         <li class="list-inline-item">
-                            <i class="fa fa-bookmark fa-fw" title="分类"></i>
-                            {% for category in article.categories %}
-                                {% set category_info=category.get_info() %}
-                                <a class="badge badge-secondary" href="{{ category_info['url'] }}">{{ category_info['name'] }}</a>
-                                {% if not loop.last %}
-                                    ,
-                                {% endif %}
-                            {% endfor %}
+                            {{ get_rendered_category_items(article)|safe }}
                         </li>
                         <li class="list-inline-item">
                             <i class="fa fa-comment fa-fw" title="评论数"></i>
