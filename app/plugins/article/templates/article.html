@@ -61,8 +61,7 @@
             {{ render_tag_items(article)|safe }}
         </li>
         <li>
-            <i class="fa fa-comment fa-fw" title="评论数"></i>
-            <span class="badge">{{ article.comments|length }}</span>
+            {{ render_num_comments(article)|safe }}
         </li>
         <li>
             <i class="fa fa-heart fa-fw" title="阅读量"></i>

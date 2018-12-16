@@ -144,3 +144,8 @@ def get_widget_latest_comments(sender, **kwargs):
         'html': current_plugin.render_template('widget_latest_comments', 'widget.html', comments=comments, get_comment_show_info=get_comment_show_info),
         'is_html_as_list': True
     }
+
+
+@current_plugin.signal.connect_this('get_rendered_num_comments')
+def get_rendered_tag_items(sender, comments, **kwargs):
+    return current_plugin.render_template('num_comments.html', comments=comments)

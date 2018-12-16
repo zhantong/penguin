@@ -335,3 +335,8 @@ def render_category_items(article):
 @current_plugin.context_func
 def render_tag_items(article):
     return Plugin.Signal.send('tag', 'get_rendered_tag_items', tags=article.tags)
+
+
+@current_plugin.context_func
+def render_num_comments(article):
+    return Plugin.Signal.send('comment', 'get_rendered_num_comments', comments=article.comments)

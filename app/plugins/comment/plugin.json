@@ -18,6 +18,10 @@
     {
       "name": "get_widget_rendered_comments",
       "return_type": "single"
+    },
+    {
+      "name": "get_rendered_num_comments",
+      "return_type": "single"
     }
   ]
 }
