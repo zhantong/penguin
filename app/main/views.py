@@ -5,6 +5,7 @@ from ..plugins.models import Plugin
 current_plugin = Plugin.current_plugin()
 
 current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
+current_plugin.signal.declare_signal('widget', return_type='list')
 
 
 @main.route('/')
@@ -12,8 +13,8 @@ def index():
     left_widgets = []
     right_widgets = []
     main_widgets = []
-
-    left_widgets.append(Plugin.Signal.send('article', 'get_widget_category_list'))
+    widgets = current_plugin.signal.send_this('widget', end_point='.index')
+    left_widgets.extend(widgets)
     right_widgets.append(Plugin.Signal.send('comment', 'get_widget_latest_comments'))
     main_widgets.append(Plugin.Signal.send('article', 'get_widget_article_list', request=request))
 

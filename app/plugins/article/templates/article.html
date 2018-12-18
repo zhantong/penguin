@@ -6,10 +6,7 @@
 {% block metas %}
     {{ super() }}
     <meta name="description" content="{{ article.body_abstract[:100]|replace('\n',' ') }}"/>
-    {% set keywords=[] %}
-    {% for category in article.categories %}
-        {% do keywords.append(category.get_info()['name']) %}
-    {% endfor %}
+    {% set keywords=header_keywords %}
     {% for tag in article.tags %}
         {% do keywords.append(tag.get_info()['name']) %}
     {% endfor %}
@@ -54,9 +51,11 @@
             <i class="fa fa-calendar fa-fw" title="发表时间"></i>
             {{ moment(article.timestamp).format('L') }}
         </li>
-        <li>
-            {{ render_category_items(article)|safe }}
-        </li>
+        {% for meta in metas %}
+            <li>
+                {{ meta|safe }}
+            </li>
+        {% endfor %}
         <li>
             {{ render_tag_items(article)|safe }}
         </li>

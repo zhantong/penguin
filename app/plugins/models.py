@@ -49,6 +49,14 @@ class Plugin:
                     return result[0][1]
                 if return_type == 'list':
                     return [item[1] for item in result]
+                if return_type == 'merged_list':
+                    items = []
+                    for item in result:
+                        if type(item[1]) is list:
+                            items.extend(item[1])
+                        else:
+                            items.append(item[1])
+                    return items
                 if return_type == 'single_not_none':
                     for item in result:
                         if item[1] is not None:

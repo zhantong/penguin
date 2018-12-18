@@ -4,10 +4,6 @@
   "show_in_sidebar": true,
   "signals": [
     {
-      "name": "get_widget_category_list",
-      "return_type": "single"
-    },
-    {
       "name": "get_widget_article_list",
       "return_type": "single"
     },
@@ -25,6 +21,26 @@
     },
     {
       "name": "markdown2_extra",
+      "return_type": "list"
+    },
+    {
+      "name": "meta",
+      "return_type": "list"
+    },
+    {
+      "name": "header_keyword",
+      "return_type": "merged_list"
+    },
+    {
+      "name": "edit_widget",
+      "return_type": "list"
+    },
+    {
+      "name": "admin_article_list_url",
+      "return_type": "single"
+    },
+    {
+      "name": "custom_list_column",
       "return_type": "list"
     }
   ]

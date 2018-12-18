@@ -1,0 +1,6 @@
+{% for category in article.categories %}
+    <a href="{{ admin_article_list_url(category=category.slug) }}">{{ category.name }}</a>
+    {% if not loop.last %}
+        ,
+    {% endif %}
+{% endfor %}

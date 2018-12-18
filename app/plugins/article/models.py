@@ -17,10 +17,6 @@ def random_number():
     return rand
 
 
-article_category_association_table = Table('article_category_association', db.Model.metadata,
-                                           Column('article_id', Integer, ForeignKey('articles.id')),
-                                           Column('category_id', Integer, ForeignKey('categories.id'))
-                                           )
 article_tag_association_table = Table('article_tag_association', db.Model.metadata,
                                       Column('article_id', Integer, ForeignKey('articles.id')),
                                       Column('tag_id', Integer, ForeignKey('tags.id'))
@@ -50,7 +46,6 @@ class Article(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('User', backref='articles')
-    categories = db.relationship('Category', secondary=article_category_association_table, backref='articles')
     tags = db.relationship("Tag", secondary=article_tag_association_table, backref='articles')
     comments = db.relationship('Comment', secondary=article_comment_association_table, backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')

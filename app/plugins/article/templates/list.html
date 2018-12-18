@@ -5,7 +5,9 @@
         <th>标题</th>
         <th>作者</th>
         <th>时间</th>
-        <th>分类</th>
+        {% for column in custom_columns %}
+            <th>{{ column['title'] }}</th>
+        {% endfor %}
         <th>标签</th>
         <th>状态</th>
         <th>版本时间</th>
@@ -19,16 +21,10 @@
             <tr {% if not loop.first %} class="success" {% endif %}>
                 <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }}</a></td>
                 <td>{{ article.author.name }}</td>
-                <td>{{ moment(article.timestamp).format('L') }}
-                <td>
-                    {% for category in article.categories %}
-                        {% set category_info=category.get_info() %}
-                        <a href="{{ url_for('/list', **category_info['url_params']) }}">{{ category_info['name'] }}</a>
-                        {% if not loop.last %}
-                            ,
-                        {% endif %}
-                    {% endfor %}
-                </td>
+                <td>{{ moment(article.timestamp).format('L') }}</td>
+                {% for column in custom_columns %}
+                    <td>{{ column['item']['content'](article)|safe }}</td>
+                {% endfor %}
                 <td>
                     {% for tag in article.tags %}
                         {% set tag_info=tag.get_info() %}

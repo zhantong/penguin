@@ -26,9 +26,11 @@
                             <i class="fa fa-heart fa-fw" title="阅读量"></i>
                             <span class="badge badge-pill badge-secondary">{{ article.get_view_count() }}</span>
                         </li>
-                        <li class="list-inline-item">
-                            {{ render_category_items(article)|safe }}
-                        </li>
+                        {% for meta in get_metas(article) %}
+                            <li class="list-inline-item">
+                                {{ meta|safe }}
+                            </li>
+                        {% endfor %}
                         <li class="list-inline-item">
                             {{ render_num_comments(article)|safe }}
                         </li>
