@@ -1,0 +1,6 @@
+{% for tag in article.tags %}
+    <a href="{{ admin_article_list_url(tag=tag.slug) }}">{{ tag.name }}</a>
+    {% if not loop.last %}
+        ,
+    {% endif %}
+{% endfor %}

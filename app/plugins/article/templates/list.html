@@ -8,7 +8,6 @@
         {% for column in custom_columns %}
             <th>{{ column['title'] }}</th>
         {% endfor %}
-        <th>标签</th>
         <th>状态</th>
         <th>版本时间</th>
         <th>操作</th>
@@ -25,15 +24,6 @@
                 {% for column in custom_columns %}
                     <td>{{ column['item']['content'](article)|safe }}</td>
                 {% endfor %}
-                <td>
-                    {% for tag in article.tags %}
-                        {% set tag_info=tag.get_info() %}
-                        <a href="{{ url_for('/list', **tag_info['url_params']) }}">{{ tag_info['name'] }}</a>
-                        {% if not loop.last %}
-                            ,
-                        {% endif %}
-                    {% endfor %}
-                </td>
                 <td>
 
                     <div class="dropdown">

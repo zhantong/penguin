@@ -26,10 +26,20 @@ def restore_tags(sender, tags, **kwargs):
     return restored_tags
 
 
+@Plugin.Signal.connect('article', 'restore')
+def article_restore(sender, article, data, **kwargs):
+    if 'tags' in data:
+        article.tags = current_plugin.signal.send_this('restore', tags=data['tags'])
+
+
 @Plugin.Signal.connect('app', 'restore')
 def global_restore(sender, data, **kwargs):
     if 'tag' in data:
         current_plugin.signal.send_this('restore', tags=data['tag'], restored_tags=[])
+
+
+def admin_article_list_url(**kwargs):
+    return Plugin.Signal.send('article', 'admin_article_list_url', params=kwargs)
 
 
 @current_plugin.route('admin', '/list', '管理标签')
@@ -43,8 +53,7 @@ def dispatch(request, templates, scripts, meta, **kwargs):
         page = request.args.get('page', 1, type=int)
         pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         tags = pagination.items
-        custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(current_plugin.render_template('list.html', tag_instance=current_plugin, tags=tags, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        templates.append(current_plugin.render_template('list.html', tag_instance=current_plugin, tags=tags, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, admin_article_list_url=admin_article_list_url))
         scripts.append(current_plugin.render_template('list.js.html'))
 
 
@@ -90,10 +99,10 @@ def delete(tag_id):
     }
 
 
-@current_plugin.signal.connect_this('get_widget')
-def get_widget(sender, tags, **kwargs):
+@Plugin.Signal.connect('article', 'edit_widget')
+def article_edit_widget(sender, article, **kwargs):
     all_tag_name = [tag.name for tag in Tag.query.all()]
-    tag_names = [tag.name for tag in tags]
+    tag_names = [tag.name for tag in article.tags]
     return {
         'slug': 'tag',
         'name': '标签',
@@ -102,30 +111,49 @@ def get_widget(sender, tags, **kwargs):
     }
 
 
-@current_plugin.signal.connect_this('set_widget')
-def set_widget(sender, js_data, **kwargs):
-    tags = []
-    tag_names = []
-    for item in js_data:
-        if item['name'] == 'tag_name':
-            tag_names.append(item['value'])
-    tag_names = set(tag_names)
-    for tag_name in tag_names:
-        tag = Tag.query.filter_by(name=tag_name).first()
-        if tag is None:
-            tag = Tag(name=tag_name, slug=slugify(tag_name))
-            db.session.add(tag)
-            db.session.flush()
-        tags.append(tag)
-    return tags
+@Plugin.Signal.connect('article', 'submit_edit_widget')
+def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
+    if slug == 'tag':
+        tags = []
+        tag_names = []
+        for item in js_data:
+            if item['name'] == 'tag_name':
+                tag_names.append(item['value'])
+        tag_names = set(tag_names)
+        for tag_name in tag_names:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if tag is None:
+                tag = Tag(name=tag_name, slug=slugify(tag_name))
+                db.session.add(tag)
+                db.session.flush()
+            tags.append(tag)
+        article.tags = tags
 
 
-@current_plugin.signal.connect_this('filter')
-def filter(sender, query, params, join_db=Tag, **kwargs):
+@Plugin.Signal.connect('article', 'filter')
+def article_filter(sender, query, params, Article, **kwargs):
     if 'tag' in params and params['tag'] != '':
-        query['query'] = query['query'].join(join_db).filter(Tag.slug == params['tag'])
+        query['query'] = query['query'].join(Article.tags).filter(Tag.slug == params['tag'])
 
 
-@current_plugin.signal.connect_this('get_rendered_tag_items')
-def get_rendered_tag_items(sender, tags, **kwargs):
-    return current_plugin.render_template('tag_items.html', tags=tags)
+@Plugin.Signal.connect('article', 'meta')
+def article_meta(sender, article, **kwargs):
+    return current_plugin.render_template('tag_items.html', tags=article.tags)
+
+
+@Plugin.Signal.connect('article', 'custom_list_column')
+def article_custom_list_column(sender, **kwargs):
+    def content_func(article):
+        return current_plugin.render_template('admin_tag_items.html', article=article, admin_article_list_url=admin_article_list_url)
+
+    return {
+        'title': '标签',
+        'item': {
+            'content': content_func,
+        }
+    }
+
+
+@Plugin.Signal.connect('article', 'header_keyword')
+def article_header_keyword(sender, article, **kwargs):
+    return [tag.name for tag in article.tags]

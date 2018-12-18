@@ -1,5 +1,11 @@
 from ... import db
 from flask import url_for
+from sqlalchemy import Table, Column, Integer, ForeignKey
+
+association_table = Table('tag_article_association', db.Model.metadata,
+                          Column('tag_id', Integer, ForeignKey('tags.id')),
+                          Column('article_id', Integer, ForeignKey('articles.id'))
+                          )
 
 
 class Tag(db.Model):
@@ -8,6 +14,8 @@ class Tag(db.Model):
     name = db.Column(db.String(200))
     slug = db.Column(db.String(200))
     description = db.Column(db.Text)
+
+    articles = db.relationship('Article', secondary=association_table, backref='tags')
 
     @staticmethod
     def create(id=None, name=None, slug=None, description=None):

@@ -72,9 +72,6 @@ def restore(sender, data, directory, **kwargs):
             if 'view_count' in article:
                 Plugin.Signal.send('view_count', 'restore', repository_id=a.repository_id, count=article['view_count'])
             current_plugin.signal.send_this('restore', article=a, data=article)
-            if 'tags' in article:
-                a.tags = Plugin.Signal.send('tag', 'restore', tags=article['tags'])
-                db.session.flush()
 
 
 @Plugin.Signal.connect('comment', 'get_comment_show_info')
@@ -170,8 +167,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             current_plugin.signal.send_this('submit_edit_widget', slug=slug, js_data=js_data, article=new_article)
-            if slug == 'tag':
-                new_article.tags = Plugin.Signal.send('tag', 'set_widget', js_data=js_data)
             if slug == 'template':
                 new_article.template = Plugin.Signal.send('template', 'set_widget', js_data=js_data)
         db.session.add(new_article)
@@ -189,7 +184,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=article.template_id))
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments, meta={'type': 'article', 'article_id': article.id}))
         widgets.extend(current_plugin.signal.send_this('edit_widget', article=article))
-        widgets.append(Plugin.Signal.send('tag', 'get_widget', tags=article.tags))
         templates.append(current_plugin.render_template('edit.html', article=article, widgets=widgets))
         scripts.append(current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
         csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
@@ -238,7 +232,6 @@ def filter(query, params):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
     current_plugin.signal.send_this('filter', query=query, params=params, Article=Article)
-    Plugin.Signal.send('tag', 'filter', query=query, params=params, join_db=Article.tags)
     Plugin.Signal.send('template', 'filter', query=query, params=params, join_db=Article.template)
 
 
@@ -253,23 +246,6 @@ def get_navbar_item(sender, **kwargs):
 @current_plugin.signal.connect_this('admin_article_list_url')
 def admin_article_list_url(sender, params, **kwargs):
     return current_plugin.url_for('/list', **params)
-
-
-@Plugin.Signal.connect('tag', 'custom_list_column')
-def tag_custom_list_column(sender, **kwargs):
-    def name_func(tag):
-        return len(tag.articles)
-
-    def link_func(tag):
-        return current_plugin.url_for('/list', **tag.get_info()['url_params'])
-
-    return {
-        'title': '文章数',
-        'item': {
-            'name': name_func,
-            'link': link_func
-        }
-    }
 
 
 @Plugin.Signal.connect('template', 'custom_list_column')
@@ -310,11 +286,6 @@ def get_widget_submit(sender, article, **kwargs):
         'footer': current_plugin.render_template('widget_submit', 'footer.html'),
         'js': current_plugin.render_template('widget_submit', 'widget.js.html', article=article)
     }
-
-
-@current_plugin.context_func
-def render_tag_items(article):
-    return Plugin.Signal.send('tag', 'get_rendered_tag_items', tags=article.tags)
 
 
 @current_plugin.context_func
