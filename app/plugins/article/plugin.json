@@ -42,6 +42,22 @@
     {
       "name": "custom_list_column",
       "return_type": "list"
+    },
+    {
+      "name": "article_url",
+      "return_type": "single"
+    },
+    {
+      "name": "show_article_widget",
+      "return_type": "list"
+    },
+    {
+      "name": "get_article",
+      "return_type": "single"
+    },
+    {
+      "name": "custom_contents_column",
+      "return_type": "list"
     }
   ]
 }

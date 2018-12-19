@@ -6,7 +6,6 @@ import markdown2
 import re
 from ...models import User
 from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import backref
 from random import randint
 from ..models import Plugin
 
@@ -23,8 +22,6 @@ def random_number():
     return rand
 
 
-page_comment_association_table = Table('page_comment_association', db.Model.metadata, Column('page_id', Integer, ForeignKey('pages.id')), Column('comment_id', Integer, ForeignKey('comments.id'), unique=True))
-
 page_attachment_association_table = Table('page_attachment_association', db.Model.metadata, Column('page_id', Integer, ForeignKey('pages.id')), Column('attachment_id', Integer, ForeignKey('attachments.id')))
 
 
@@ -40,7 +37,6 @@ class Page(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship(User, backref='pages')
-    comments = db.relationship('Comment', secondary=page_comment_association_table, backref=backref('page', uselist=False))
     attachments = db.relationship('Attachment', secondary=page_attachment_association_table, backref='pages')
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
     template = db.relationship('Template', backref='pages')

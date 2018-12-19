@@ -53,9 +53,6 @@
             </li>
         {% endfor %}
         <li>
-            {{ render_num_comments(article)|safe }}
-        </li>
-        <li>
             {{ render_view_count(article)|safe }}
         </li>
         <li>
@@ -93,7 +90,9 @@
     <article class="post">
         {{ article.body_html | safe }}
     </article>
-    {{ widget_rendered_comments['html']|safe }}
+    {% for widget in after_article_widgets %}
+        {{ widget['html']|safe }}
+    {% endfor %}
 {% endblock %}
 
 {% block sidebar_left %}
@@ -116,5 +115,9 @@
             {{ widget['script']|safe }}
         {% endif %}
     {% endfor %}
-    {{ widget_rendered_comments['script']|safe }}
+    {% for widget in after_article_widgets %}
+        {% if 'script' in widget %}
+            {{ widget['script']|safe }}
+        {% endif %}
+    {% endfor %}
 {% endblock %}

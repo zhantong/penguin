@@ -18,6 +18,22 @@
     {
       "name": "get_widget_submit",
       "return_type": "single"
+    },
+    {
+      "name": "get_page",
+      "return_type": "single"
+    },
+    {
+      "name": "show_page_widget",
+      "return_type": "list"
+    },
+    {
+      "name": "page_url",
+      "return_type": "single"
+    },
+    {
+      "name": "meta",
+      "return_type": "list"
     }
   ]
 }

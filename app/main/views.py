@@ -14,8 +14,11 @@ def index():
     right_widgets = []
     main_widgets = []
     widgets = current_plugin.signal.send_this('widget', end_point='.index')
-    left_widgets.extend(widgets)
-    right_widgets.append(Plugin.Signal.send('comment', 'get_widget_latest_comments'))
+    for widget in widgets:
+        if widget['slug'] == 'category':
+            left_widgets.append(widget)
+        elif widget['slug'] == 'latest_comments':
+            right_widgets.append(widget)
     main_widgets.append(Plugin.Signal.send('article', 'get_widget_article_list', request=request))
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)

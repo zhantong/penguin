@@ -36,16 +36,20 @@ def show_article(number):
     article = article.first_or_404()
     left_widgets = []
     right_widgets = []
+    after_article_widgets = []
     cookies_to_set = {}
     metas = get_metas(article)
     header_keywords = current_plugin.signal.send_this('header_keyword', article=article)
-    widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session, comments=article.comments, meta={'type': 'article', 'article_id': article.id})
+    widgets = current_plugin.signal.send_this('show_article_widget', session=session, article=article)
+    for widget in widgets:
+        if widget['slug'] == 'comment':
+            after_article_widgets.append(widget)
     left_widgets.append(Plugin.Signal.send('toc', 'get_widget', article=article))
     left_widgets.append(Plugin.Signal.send('prev_next_articles', 'get_widget', article=article))
     Plugin.Signal.send('view_count', 'viewing', repository_id=article.repository_id, request=request, cookies_to_set=cookies_to_set)
     if article.template is not None:
         article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template, json_params=json.loads(article.body))
-    resp = make_response(current_plugin.render_template('article.html', article=article, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))
+    resp = make_response(current_plugin.render_template('article.html', article=article, after_article_widgets=after_article_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
@@ -59,9 +63,6 @@ def restore(sender, data, directory, **kwargs):
             a = Article(title=article['title'], body=article['body'], timestamp=datetime.utcfromtimestamp(article['timestamp']), author=User.query.filter_by(username=article['author']).one(), repository_id=article['version']['repository_id'], status=article['version']['status'])
             db.session.add(a)
             db.session.flush()
-            if 'comments' in article:
-                a.comments = Plugin.Signal.send('comment', 'restore', comments=article['comments'])
-                db.session.flush()
             if 'attachments' in article:
                 def attachment_restored(attachment, attachment_name):
                     a.body = a.body.replace(attachment['file_path'], '/attachments/' + attachment_name)
@@ -74,13 +75,9 @@ def restore(sender, data, directory, **kwargs):
             current_plugin.signal.send_this('restore', article=a, data=article)
 
 
-@Plugin.Signal.connect('comment', 'get_comment_show_info')
-def get_comment_show_info(sender, comment, anchor, **kwargs):
-    if comment.article is not None:
-        return {
-            'title': comment.article.title,
-            'url': url_for('main.show_article', number=comment.article.number, _anchor=anchor)
-        }
+@current_plugin.signal.connect_this('article_url')
+def article_url(sender, article, anchor, **kwargs):
+    return url_for('main.show_article', number=article.number, _anchor=anchor)
 
 
 @current_plugin.signal.connect_this('article_list_url')
@@ -163,7 +160,8 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = article.repository_id
-        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, comments=article.comments, attachments=article.attachments, repository_id=repository_id, status='published')
+        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, attachments=article.attachments, repository_id=repository_id, status='published')
+        current_plugin.signal.send_this('duplicate', old_article=article, new_article=new_article)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             current_plugin.signal.send_this('submit_edit_widget', slug=slug, js_data=js_data, article=new_article)
@@ -194,13 +192,9 @@ def cleanup_temp_article():
     db.session.commit()
 
 
-@Plugin.Signal.connect('comment', 'on_new_comment')
-def on_new_comment(sender, comment, meta, **kwargs):
-    if 'type' in meta and meta['type'] == 'article':
-        article_id = int(meta['article_id'])
-        article = Article.query.get(article_id)
-        article.comments.append(comment)
-        db.session.commit()
+@current_plugin.signal.connect_this('get_article')
+def get_article(sender, article_id, **kwargs):
+    return Article.query.get(article_id)
 
 
 @Plugin.Signal.connect('attachment', 'on_new_attachment')
@@ -224,7 +218,7 @@ def get_widget_article_list(sender, request, **kwargs):
     return {
         'slug': 'article_list',
         'name': '文章列表',
-        'html': current_plugin.render_template('widget_article_list', 'widget.html', articles=articles, get_comment_show_info=get_comment_show_info, pagination=pagination, request_params=request.args, get_metas=get_metas)
+        'html': current_plugin.render_template('widget_article_list', 'widget.html', articles=articles, pagination=pagination, request_params=request.args, get_metas=get_metas)
     }
 
 
@@ -268,10 +262,11 @@ def template_custom_list_column(sender, **kwargs):
 @Plugin.Signal.connect('page', 'dynamic_page')
 def dynamic_page(sender, **kwargs):
     articles = Article.query_published().order_by(Article.timestamp.desc()).all()
+    custom_columns = current_plugin.signal.send_this('custom_contents_column')
     return {
         'title': '文章目录',
         'slug': 'list',
-        'html': current_plugin.render_template('dynamic_page_contents', 'contents.html', articles=articles),
+        'html': current_plugin.render_template('dynamic_page_contents', 'contents.html', articles=articles, custom_columns=custom_columns),
         'script': current_plugin.render_template('dynamic_page_contents', 'contents.js.html'),
         'style': ''
     }
@@ -286,11 +281,6 @@ def get_widget_submit(sender, article, **kwargs):
         'footer': current_plugin.render_template('widget_submit', 'footer.html'),
         'js': current_plugin.render_template('widget_submit', 'widget.js.html', article=article)
     }
-
-
-@current_plugin.context_func
-def render_num_comments(article):
-    return Plugin.Signal.send('comment', 'get_rendered_num_comments', comments=article.comments)
 
 
 @current_plugin.context_func

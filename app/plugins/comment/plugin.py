@@ -63,6 +63,14 @@ def submit_comment():
     comment = Comment(body=body, parent=parent, author=author, ip=ip, agent=agent)
     db.session.add(comment)
     db.session.commit()
+    if 'article_id' in meta:
+        article = Plugin.Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article.comments.append(comment)
+        db.session.commit()
+    elif 'page_id' in meta:
+        page = Plugin.Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page.comments.append(comment)
+        db.session.commit()
     current_plugin.signal.send_this('on_new_comment', comment=comment, meta=meta)
     current_plugin.signal.send_this('comment_submitted', comment=comment)
     return jsonify({
@@ -72,7 +80,16 @@ def submit_comment():
 
 
 def get_comment_show_info(comment):
-    return current_plugin.signal.send_this('get_comment_show_info', comment=comment, anchor='comment-' + str(comment.id))
+    if comment.article is not None:
+        return {
+            'title': comment.article.title,
+            'url': Plugin.Signal.send('article', 'article_url', article=comment.article, anchor='comment-' + str(comment.id))
+        }
+    if comment.page is not None:
+        return {
+            'title': comment.page.title,
+            'url': Plugin.Signal.send('page', 'page_url', page=comment.page, anchor='comment-' + str(comment.id))
+        }
 
 
 def delete(comment_id):
@@ -102,19 +119,35 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         scripts.append(current_plugin.render_template('list.js.html', meta=meta))
 
 
-@current_plugin.signal.connect_this('get_widget_rendered_comments')
-def get_rendered_comments(sender, session, comments, meta, **kwargs):
-    comments = format_comments(comments)
+def show_widget(session, comments, meta):
     js_str, true_str = confuse_string()
     session['js_captcha'] = true_str
     return {
-        'html': current_plugin.render_template('comment.html', comments=comments, meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
+        'slug': 'comment',
+        'html': current_plugin.render_template('comment.html', comments=comments, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA),
         'script': current_plugin.render_template('comment.js.html', meta=meta, ENABLE_TENCENT_CAPTCHA=ENABLE_TENCENT_CAPTCHA, js_captcha_str=js_str)
     }
 
 
-@current_plugin.signal.connect_this('restore')
-def restore(sender, comments, **kwargs):
+@Plugin.Signal.connect('article', 'show_article_widget')
+def show_article_widget(sender, session, article, **kwargs):
+    meta = {
+        'article_id': article.id
+    }
+    comments = format_comments(article.comments)
+    return show_widget(session, comments, meta)
+
+
+@Plugin.Signal.connect('page', 'show_page_widget')
+def show_page_widget(sender, session, page, **kwargs):
+    meta = {
+        'page_id': page.id
+    }
+    comments = format_comments(page.comments)
+    return show_widget(session, comments, meta)
+
+
+def restore(comments):
     restored_comments = []
 
     def process_comments(comments, parent=0):
@@ -135,8 +168,20 @@ def restore(sender, comments, **kwargs):
     return restored_comments
 
 
-@current_plugin.signal.connect_this('get_widget_latest_comments')
-def get_widget_latest_comments(sender, **kwargs):
+@Plugin.Signal.connect('article', 'restore')
+def article_restore(sender, article, data, **kwargs):
+    if 'comments' in data:
+        article.comments = restore(data['comments'])
+
+
+@Plugin.Signal.connect('page', 'restore')
+def page_restore(sender, page, data, **kwargs):
+    if 'comments' in data:
+        page.comments = restore(data['comments'])
+
+
+@Plugin.Signal.connect('main', 'widget')
+def main_widget(sender, end_point, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     return {
         'slug': 'latest_comments',
@@ -149,3 +194,36 @@ def get_widget_latest_comments(sender, **kwargs):
 @current_plugin.signal.connect_this('get_rendered_num_comments')
 def get_rendered_tag_items(sender, comments, **kwargs):
     return current_plugin.render_template('num_comments.html', comments=comments)
+
+
+@Plugin.Signal.connect('article', 'duplicate')
+def article_duplicate(sender, old_article, new_article, **kwargs):
+    new_article.comments = old_article.comments
+
+
+@Plugin.Signal.connect('page', 'duplicate')
+def article_duplicate(sender, old_page, new_page, **kwargs):
+    new_page.comments = old_page.comments
+
+
+@Plugin.Signal.connect('article', 'meta')
+def article_meta(sender, article, **kwargs):
+    return current_plugin.render_template('num_comments.html', comments=article.comments)
+
+
+@Plugin.Signal.connect('page', 'meta')
+def article_meta(sender, page, **kwargs):
+    return current_plugin.render_template('num_comments.html', comments=page.comments)
+
+
+@Plugin.Signal.connect('article', 'custom_contents_column')
+def article_custom_contents_column(sender, **kwargs):
+    def content_func(article):
+        return current_plugin.render_template('article_contents_item.html', comments=article.comments)
+
+    return {
+        'title': '评论',
+        'item': {
+            'content': content_func,
+        }
+    }

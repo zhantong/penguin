@@ -3,7 +3,9 @@
     <tr class="small">
         <th>发表时间<i class="fa fa-sort fa-fw"></i></th>
         <th>标题</th>
-        <th>评论<i class="fa fa-sort fa-fw"></i></th>
+        {% for column in custom_columns %}
+            <th>{{ column['title'] }}<i class="fa fa-sort fa-fw"></i></th>
+        {% endfor %}
         <th>阅读<i class="fa fa-sort fa-fw"></i></th>
     </tr>
     </thead>
@@ -15,9 +17,9 @@
             <td>
                 <a href="{{ url_for('main.show_article', number=article.number) }}">{{ article.title }}</a>
             </td>
-            <td>
-                <span class="badge" title="评论量">{{ article.comments|length }}</span>
-            </td>
+            {% for column in custom_columns %}
+                <td>{{ column['item']['content'](article)|safe }}</td>
+            {% endfor %}
             <td>
                 <span class="badge" title="阅读量">{{ article.get_view_count() }}</span>
             </td>

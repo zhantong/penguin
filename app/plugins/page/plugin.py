@@ -29,12 +29,17 @@ def show_page(slug):
     if page is not None:
         left_widgets = []
         right_widgets = []
+        after_page_widgets = []
         cookies_to_set = {}
-        widget_rendered_comments = Plugin.Signal.send('comment', 'get_widget_rendered_comments', session=session, comments=page.comments, meta={'type': 'page', 'page_id': page.id})
+        metas = current_plugin.signal.send_this('meta', page=page)
+        widgets = current_plugin.signal.send_this('show_page_widget', session=session, page=page)
+        for widget in widgets:
+            if widget['slug'] == 'comment':
+                after_page_widgets.append(widget)
         Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
         if page.template is not None:
             page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body))
-        resp = make_response(current_plugin.render_template('page.html', page=page, widget_rendered_comments=widget_rendered_comments, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages))
+        resp = make_response(current_plugin.render_template('page.html', page=page, after_page_widgets=after_page_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages, metas=metas))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)
         return resp
@@ -65,20 +70,14 @@ def restore(sender, data, directory, **kwargs):
             p = Page(title=page['title'], slug=page['slug'], body=page['body'], timestamp=datetime.utcfromtimestamp(page['timestamp']), status=page['version']['status'], repository_id=page['version']['repository_id'], author=User.query.filter_by(username=page['author']).one())
             db.session.add(p)
             db.session.flush()
-            if 'comments' in page:
-                p.comments = Plugin.Signal.send('comment', 'restore', comments=page['comments'])
-                db.session.flush()
+            current_plugin.signal.send_this('restore', page=p, data=page)
             if 'view_count' in page:
                 Plugin.Signal.send('view_count', 'restore', repository_id=p.repository_id, count=page['view_count'])
 
 
-@Plugin.Signal.connect('comment', 'get_comment_show_info')
-def get_comment_show_info(sender, comment, anchor, **kwargs):
-    if comment.page is not None:
-        return {
-            'title': comment.page.title,
-            'url': url_for('main.show_page', slug=comment.page.slug, _anchor=anchor)
-        }
+@current_plugin.signal.connect_this('page_url')
+def page_url(sender, page, anchor, **kwargs):
+    return url_for('main.show_page', slug=page.slug, _anchor=anchor)
 
 
 def delete(page_id):
@@ -161,7 +160,8 @@ def edit_page(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = page.repository_id
-        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, comments=page.comments, attachments=page.attachments, repository_id=repository_id, status='published')
+        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, attachments=page.attachments, repository_id=repository_id, status='published')
+        current_plugin.signal.send_this('duplicate', old_page=page, new_page=new_page)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             if slug == 'template':
@@ -186,13 +186,9 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
 
 
-@Plugin.Signal.connect('comment', 'on_new_comment')
-def on_new_comment(sender, comment, meta, **kwargs):
-    if 'type' in meta and meta['type'] == 'page':
-        page_id = int(meta['page_id'])
-        page = Page.query.get(page_id)
-        page.comments.append(comment)
-        db.session.commit()
+@current_plugin.signal.connect_this('get_page')
+def get_article(sender, page_id, **kwargs):
+    return Page.query.get(page_id)
 
 
 @Plugin.Signal.connect('attachment', 'on_new_attachment')

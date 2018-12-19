@@ -15,6 +15,12 @@ class Comment(db.Model):
     parent = db.Column(db.Integer)
     author = db.relationship('User', backref='comments')
 
+    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
+    page_id = db.Column(db.Integer, db.ForeignKey('pages.id'))
+
+    article = db.relationship('Article', backref='comments')
+    page = db.relationship('Page', backref='comments')
+
     @staticmethod
     def create(id=None, body=None, body_html=None, timestamp=None, ip=None, agent=None, parent=None, author=None):
         filter_kwargs = {}

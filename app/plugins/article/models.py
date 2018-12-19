@@ -3,7 +3,6 @@ from jieba.analyse.analyzer import ChineseAnalyzer
 from random import randint
 from datetime import datetime
 from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import backref
 from ..models import Plugin
 
 
@@ -16,11 +15,6 @@ def random_number():
         rand = randint(the_min, the_max)
     return rand
 
-
-article_comment_association_table = Table('article_comment_association', db.Model.metadata,
-                                          Column('article_id', Integer, ForeignKey('articles.id')),
-                                          Column('comment_id', Integer, ForeignKey('comments.id'), unique=True)
-                                          )
 
 article_attachment_association_table = Table('article_attachment_association', db.Model.metadata,
                                              Column('article_id', Integer, ForeignKey('articles.id')),
@@ -41,7 +35,6 @@ class Article(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('User', backref='articles')
-    comments = db.relationship('Comment', secondary=article_comment_association_table, backref=backref('article', uselist=False))
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
     template = db.relationship('Template', backref='articles')

@@ -40,10 +40,11 @@
             <i class="fa fa-calendar fa-fw" title="发表时间"></i>
             {{ moment(page.timestamp).format('L') }}
         </li>
-        <li>
-            <i class="fa fa-comment fa-fw" title="评论数"></i>
-            <span class="badge">{{ page.comments|length }}</span>
-        </li>
+        {% for meta in metas %}
+            <li>
+                {{ meta|safe }}
+            </li>
+        {% endfor %}
         <li>
             <i class="fa fa-heart fa-fw" title="阅读量"></i>
             <span class="badge">{{ page.get_view_count() }}</span>
@@ -83,7 +84,9 @@
     <article class="post">
         {{ page.body_html | safe }}
     </article>
-    {{ widget_rendered_comments['html']|safe }}
+    {% for widget in after_page_widgets %}
+        {{ widget['html']|safe }}
+    {% endfor %}
 {% endblock %}
 
 {% block sidebar_left %}
@@ -97,5 +100,9 @@
     {% for script in scripts %}
         {{ script|safe }}
     {% endfor %}
-    {{ widget_rendered_comments['script']|safe }}
+    {% for widget in after_page_widgets %}
+        {% if 'script' in widget %}
+            {{ widget['script']|safe }}
+        {% endif %}
+    {% endfor %}
 {% endblock %}
