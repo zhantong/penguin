@@ -36,7 +36,7 @@ def show_page(slug):
         for widget in widgets:
             if widget['slug'] == 'comment':
                 after_page_widgets.append(widget)
-        Plugin.Signal.send('view_count', 'viewing', repository_id=page.repository_id, request=request, cookies_to_set=cookies_to_set)
+        current_plugin.signal.send_this('on_showing_article', page=page, request=request, cookies_to_set=cookies_to_set)
         if page.template is not None:
             page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body))
         resp = make_response(current_plugin.render_template('page.html', page=page, after_page_widgets=after_page_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages, metas=metas))

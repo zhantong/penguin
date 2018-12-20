@@ -44,9 +44,11 @@ def show_article(number):
     for widget in widgets:
         if widget['slug'] == 'comment':
             after_article_widgets.append(widget)
-    left_widgets.append(Plugin.Signal.send('toc', 'get_widget', article=article))
-    left_widgets.append(Plugin.Signal.send('prev_next_articles', 'get_widget', article=article))
-    Plugin.Signal.send('view_count', 'viewing', repository_id=article.repository_id, request=request, cookies_to_set=cookies_to_set)
+        if widget['slug'] == 'toc':
+            left_widgets.append(widget)
+        if widget['slug'] == 'prev_next_articles':
+            left_widgets.append(widget)
+    current_plugin.signal.send_this('on_showing_article', article=article, request=request, cookies_to_set=cookies_to_set)
     if article.template is not None:
         article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template, json_params=json.loads(article.body))
     resp = make_response(current_plugin.render_template('article.html', article=article, after_article_widgets=after_article_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))

@@ -5,8 +5,8 @@ from ...models import db
 current_plugin = Plugin.current_plugin()
 
 
-@current_plugin.signal.connect_this('get_widget')
-def get_widget(sender, article, **kwargs):
+@Plugin.Signal.connect('article', 'show_article_widget')
+def show_article_widget(sender, article, **kwargs):
     return {
         'slug': 'toc',
         'name': '文章目录',

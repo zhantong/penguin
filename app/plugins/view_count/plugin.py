@@ -6,8 +6,7 @@ from ..models import Plugin
 current_plugin = Plugin.current_plugin()
 
 
-@current_plugin.signal.connect_this('viewing')
-def viewing(sender, repository_id, request, cookies_to_set, **kwargs):
+def viewing(repository_id, request, cookies_to_set):
     view_count_repository_ids = request.cookies.get('view_count_repository_ids')
     if view_count_repository_ids is None:
         view_count_repository_ids = []
@@ -23,6 +22,16 @@ def viewing(sender, repository_id, request, cookies_to_set, **kwargs):
         db.session.commit()
         view_count_repository_ids.append(repository_id)
         cookies_to_set['view_count_repository_ids'] = json.dumps(view_count_repository_ids)
+
+
+@Plugin.Signal.connect('article', 'on_showing_article')
+def on_showing_article(sender, article, request, cookies_to_set, **kwargs):
+    viewing(article.repository_id, request, cookies_to_set)
+
+
+@Plugin.Signal.connect('page', 'on_showing_page')
+def on_showing_article(sender, page, request, cookies_to_set, **kwargs):
+    viewing(page.repository_id, request, cookies_to_set)
 
 
 @current_plugin.signal.connect_this('get_count')
