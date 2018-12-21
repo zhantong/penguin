@@ -8,6 +8,8 @@ import json
 from uuid import uuid4
 from .. import plugin
 import os.path
+import re
+import markdown2
 
 current_plugin = Plugin.current_plugin()
 
@@ -37,8 +39,7 @@ def show_page(slug):
             if widget['slug'] == 'comment':
                 after_page_widgets.append(widget)
         current_plugin.signal.send_this('on_showing_article', page=page, request=request, cookies_to_set=cookies_to_set)
-        if page.template is not None:
-            page.body_html = Plugin.Signal.send('template', 'render_template', template=page.template, json_params=json.loads(page.body))
+        current_plugin.signal.send_this('modify_page_when_showing', page=page)
         resp = make_response(current_plugin.render_template('page.html', page=page, after_page_widgets=after_page_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages, metas=metas))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)
@@ -138,7 +139,7 @@ def get_admin_page_list(sender, params, **kwargs):
         page = int(params['page'])
     query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(Page.version_timestamp.desc())
     query = {'query': query}
-    current_plugin.signal.send_this('filter', query=query, params=request.args)
+    filter(query, params=request.args)
     query = query['query']
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
@@ -164,8 +165,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         current_plugin.signal.send_this('duplicate', old_page=page, new_page=new_page)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
-            if slug == 'template':
-                new_page.template = Plugin.Signal.send('template', 'set_widget', js_data=js_data)
+            current_plugin.signal.send_this('submit_edit_widget', slug=slug, js_data=js_data, page=new_page)
         db.session.add(new_page)
         db.session.commit()
     else:
@@ -178,8 +178,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
             db.session.commit()
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
-        widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=page.template_id))
-
+        widgets.extend(current_plugin.signal.send_this('edit_widget', page=page))
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments, meta={'type': 'page', 'page_id': page.id}))
         templates.append(current_plugin.render_template('edit.html', page=page, widgets=widgets))
         scripts.append(current_plugin.render_template('edit.js.html', page=page, widgets=widgets))
@@ -222,26 +221,8 @@ def get_navbar_item(sender, **kwargs):
     }
 
 
-@current_plugin.signal.connect_this('filter')
-def filter(sender, query, params, **kwargs):
-    Plugin.Signal.send('template', 'filter', query=query, params=params, join_db=Page.template)
-
-
-@Plugin.Signal.connect('template', 'custom_list_column')
-def template_custom_list_column(sender, **kwargs):
-    def name_func(template):
-        return len(template.pages)
-
-    def link_func(template):
-        return current_plugin.url_for('/list', **template.get_info()['url_params'])
-
-    return {
-        'title': '页面数',
-        'item': {
-            'name': name_func,
-            'link': link_func
-        }
-    }
+def filter(query, params):
+    current_plugin.signal.send_this('filter', query=query, params=params, Page=Page)
 
 
 @current_plugin.signal.connect_this('get_widget_submit')
@@ -253,3 +234,21 @@ def get_widget_submit(sender, page, **kwargs):
         'footer': current_plugin.render_template('widget_submit', 'footer.html'),
         'js': current_plugin.render_template('widget_submit', 'widget.js.html', page=page)
     }
+
+
+@current_plugin.signal.connect_this('admin_page_list_url')
+def admin_page_list_url(sender, params, **kwargs):
+    return current_plugin.url_for('/list', **params)
+
+
+RE_HTML_TAGS = re.compile(r'<[^<]+?>')
+
+
+def on_changed_article_body(target, value, oldvalue, initiator):
+    if current_plugin.signal.send_this('should_compile_markdown_when_body_change', page=target):
+        html = markdown2.markdown(value)
+        target.body_html = html
+        target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
+
+
+db.event.listen(Page.body, 'set', on_changed_article_body)

@@ -3,28 +3,47 @@ from .models import Template
 from flask import flash, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
+import json
 
 current_plugin = Plugin.current_plugin()
 
 
-@current_plugin.signal.connect_this('get_widget')
-def get_widget(sender, current_template_id, **kwargs):
+def get_widget(template):
     all_templates = Template.query.all()
-    current_template = Template.query.filter_by(id=current_template_id).first()
     return {
         'slug': 'template',
         'name': '模板',
-        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_templates=all_templates, current_template=current_template),
+        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_templates=all_templates, template=template),
         'js': current_plugin.render_template('widget_edit_article', 'widget.js.html')
     }
 
 
-@current_plugin.signal.connect_this('set_widget')
-def set_widget(sender, js_data, **kwargs):
-    for item in js_data:
-        if item['name'] == 'template-id':
-            if item['value'] != '':
-                return Template.query.get(int(item['value']))
+@Plugin.Signal.connect('article', 'edit_widget')
+def article_edit_widget(sender, article, **kwargs):
+    return get_widget(article.template)
+
+
+@Plugin.Signal.connect('page', 'edit_widget')
+def page_edit_widget(sender, page, **kwargs):
+    return get_widget(page.template)
+
+
+@Plugin.Signal.connect('article', 'submit_edit_widget')
+def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
+    if slug == 'template':
+        for item in js_data:
+            if item['name'] == 'template-id':
+                if item['value'] != '':
+                    article.template = Template.query.get(int(item['value']))
+
+
+@Plugin.Signal.connect('page', 'submit_edit_widget')
+def page_submit_edit_widget(sender, slug, js_data, page, **kwargs):
+    if slug == 'template':
+        for item in js_data:
+            if item['name'] == 'template-id':
+                if item['value'] != '':
+                    page.template = Template.query.get(int(item['value']))
 
 
 def delete(template_id):
@@ -39,6 +58,14 @@ def delete(template_id):
     }
 
 
+def admin_article_list_url(**kwargs):
+    return Plugin.Signal.send('article', 'admin_article_list_url', params=kwargs)
+
+
+def admin_page_list_url(**kwargs):
+    return Plugin.Signal.send('page', 'admin_page_list_url', params=kwargs)
+
+
 @current_plugin.route('admin', '/list', '管理模板')
 def list_tags(request, templates, scripts, meta, **kwargs):
     if request.method == 'POST':
@@ -50,8 +77,7 @@ def list_tags(request, templates, scripts, meta, **kwargs):
         page = request.args.get('page', 1, type=int)
         pagination = Template.query.order_by(Template.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         the_templates = pagination.items
-        custom_columns = current_plugin.signal.send_this('custom_list_column')
-        templates.append(current_plugin.render_template('list.html', template_instance=current_plugin, templates=the_templates, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, custom_columns=custom_columns))
+        templates.append(current_plugin.render_template('list.html', template_instance=current_plugin, templates=the_templates, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url))
         scripts.append(current_plugin.render_template('list.js.html'))
 
 
@@ -93,7 +119,34 @@ def render(sender, template, json_params, **kwargs):
     return template.render(**params)
 
 
-@current_plugin.signal.connect_this('filter')
-def filter(sender, query, params, join_db=Template, **kwargs):
+@Plugin.Signal.connect('article', 'filter')
+def article_filter(sender, query, params, Article, **kwargs):
     if 'template' in params and params['template'] != '':
-        query['query'] = query['query'].join(join_db).filter(Template.slug == params['template'])
+        query['query'] = query['query'].join(Article.template).filter(Template.slug == params['template'])
+
+
+@Plugin.Signal.connect('page', 'filter')
+def page_filter(sender, query, params, Page, **kwargs):
+    if 'template' in params and params['template'] != '':
+        query['query'] = query['query'].join(Page.template).filter(Template.slug == params['template'])
+
+
+@Plugin.Signal.connect('article', 'modify_article_when_showing')
+def modify_article_when_showing(sender, article, **kwargs):
+    if article.template is not None:
+        template = Jinja2Tempalte(article.template.body)
+        params = {json_param[0]: eval(json_param[1]) for json_param in json.loads(article.body).items()}
+        article.body_html = template.render(**params)
+
+
+@Plugin.Signal.connect('page', 'modify_page_when_showing')
+def modify_page_when_showing(sender, page, **kwargs):
+    if page.template is not None:
+        template = Jinja2Tempalte(page.template.body)
+        params = {json_param[0]: eval(json_param[1]) for json_param in json.loads(page.body).items()}
+        page.body_html = template.render(**params)
+
+
+@Plugin.Signal.connect('article', 'should_compile_markdown_when_body_change')
+def article_should_compile_markdown_when_body_change(sender, article, **kwargs):
+    return article.template is None

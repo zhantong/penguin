@@ -49,8 +49,7 @@ def show_article(number):
         if widget['slug'] == 'prev_next_articles':
             left_widgets.append(widget)
     current_plugin.signal.send_this('on_showing_article', article=article, request=request, cookies_to_set=cookies_to_set)
-    if article.template is not None:
-        article.body_html = Plugin.Signal.send('template', 'render_template', template=article.template, json_params=json.loads(article.body))
+    current_plugin.signal.send_this('modify_article_when_showing', article=article)
     resp = make_response(current_plugin.render_template('article.html', article=article, after_article_widgets=after_article_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
@@ -167,8 +166,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
             current_plugin.signal.send_this('submit_edit_widget', slug=slug, js_data=js_data, article=new_article)
-            if slug == 'template':
-                new_article.template = Plugin.Signal.send('template', 'set_widget', js_data=js_data)
         db.session.add(new_article)
         db.session.commit()
     else:
@@ -181,7 +178,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             db.session.commit()
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', article=article))
-        widgets.append(Plugin.Signal.send('template', 'get_widget', current_template_id=article.template_id))
         widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments, meta={'type': 'article', 'article_id': article.id}))
         widgets.extend(current_plugin.signal.send_this('edit_widget', article=article))
         templates.append(current_plugin.render_template('edit.html', article=article, widgets=widgets))
@@ -228,7 +224,6 @@ def filter(query, params):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
     current_plugin.signal.send_this('filter', query=query, params=params, Article=Article)
-    Plugin.Signal.send('template', 'filter', query=query, params=params, join_db=Article.template)
 
 
 @current_plugin.signal.connect_this('get_navbar_item')
@@ -242,23 +237,6 @@ def get_navbar_item(sender, **kwargs):
 @current_plugin.signal.connect_this('admin_article_list_url')
 def admin_article_list_url(sender, params, **kwargs):
     return current_plugin.url_for('/list', **params)
-
-
-@Plugin.Signal.connect('template', 'custom_list_column')
-def template_custom_list_column(sender, **kwargs):
-    def name_func(template):
-        return len(template.articles)
-
-    def link_func(template):
-        return current_plugin.url_for('/list', **template.get_info()['url_params'])
-
-    return {
-        'title': '文章数',
-        'item': {
-            'name': name_func,
-            'link': link_func
-        }
-    }
 
 
 @Plugin.Signal.connect('page', 'dynamic_page')
@@ -294,7 +272,7 @@ RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
 def on_changed_article_body(target, value, oldvalue, initiator):
-    if target.template is None:
+    if current_plugin.signal.send_this('should_compile_markdown_when_body_change', article=target):
         extras = current_plugin.signal.send_this('markdown2_extra')
         html = markdown2.markdown(value, extras=extras)
         target.body_html = html

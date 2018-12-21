@@ -46,6 +46,8 @@ class Plugin:
             if 'return_type' in Plugin.Signal.signals[signal_name]:
                 return_type = Plugin.Signal.signals[signal_name]['return_type']
                 if return_type == 'single':
+                    if len(result) == 0 and Plugin.Signal.signals[signal_name]['default'] is not None:
+                        return Plugin.Signal.signals[signal_name]['default']
                     return result[0][1]
                 if return_type == 'list':
                     return [item[1] for item in result]
@@ -65,11 +67,12 @@ class Plugin:
         def send_this(self, name, **kwargs):
             return Plugin.Signal.send(self.outer_class.slug, name, **kwargs)
 
-        def declare_signal(self, name, return_type=None):
+        def declare_signal(self, name, return_type=None, default=None):
             signal_name = self.outer_class.slug + '.' + name
             if signal_name not in Plugin.Signal.signals:
                 Plugin.Signal.signals[signal_name] = {}
             Plugin.Signal.signals[signal_name]['return_type'] = return_type
+            Plugin.Signal.signals[signal_name]['default'] = default
 
     @staticmethod
     def find_plugin(slug):

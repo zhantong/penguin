@@ -34,6 +34,23 @@
     {
       "name": "meta",
       "return_type": "list"
+    },
+    {
+      "name": "edit_widget",
+      "return_type": "list"
+    },
+    {
+      "name": "admin_page_list_url",
+      "return_type": "single"
+    },
+    {
+      "name": "should_compile_markdown_when_body_change",
+      "return_type": "single",
+      "default": "true"
+    },
+    {
+      "name": "markdown2_extra",
+      "return_type": "list"
     }
   ]
 }

@@ -36,8 +36,6 @@ class Article(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('User', backref='articles')
     attachments = db.relationship('Attachment', secondary=article_attachment_association_table, backref='articles')
-    template_id = db.Column(db.Integer, db.ForeignKey('templates.id'))
-    template = db.relationship('Template', backref='articles')
     repository_id = db.Column(db.String)
     status = db.Column(db.String(200), default='')
     version_remark = db.Column(db.String(), default='')

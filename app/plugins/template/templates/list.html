@@ -4,9 +4,8 @@
     <tr>
         <th>名称</th>
         <th>别名</th>
-        {% for column in custom_columns %}
-            <th>{{ column['title'] }}</th>
-        {% endfor %}
+        <th>文章数</th>
+        <th>页面数</th>
         <th>操作</th>
     </tr>
     </thead>
@@ -15,9 +14,8 @@
         <tr>
             <td><a href="{{ template_instance.url_for('/edit', id=template.id) }}">{{ template.name }}</a></td>
             <td>{{ template.slug }}</td>
-            {% for column in custom_columns %}
-                <td><a href="{{ column['item']['link'](template) }}">{{ column['item']['name'](template) }}</a></td>
-            {% endfor %}
+            <td><a href="{{ admin_article_list_url(template=template.slug) }}">{{ template.articles|length }}</a></td>
+            <td><a href="{{ admin_page_list_url(template=template.slug) }}">{{ template.pages|length }}</a></td>
             <td>
                 <button type="button" class="btn btn-danger template-item" data-id="{{ template.id }}">删除</button>
             </td>
