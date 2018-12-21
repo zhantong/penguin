@@ -25,7 +25,7 @@
             timestamp: $('#article-timestamp').val()
         };
         var widgets = {};
-        $('.panel[data-widget-slug]').each(function (i, panel) {
+        $('.card[data-widget-slug]').each(function (i, panel) {
             widgets[$(this).data('widget-slug')] = $(this).find('select, textarea, input').serializeArray();
         });
         data['widgets'] = JSON.stringify(widgets);

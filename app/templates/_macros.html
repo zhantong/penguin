@@ -80,7 +80,7 @@
 {% endmacro %}
 
 {% macro render_card(slug,title,body=None,footer=None,content_before=None,content_after=None) %}
-    <div class="card mb-3">
+    <div class="card mb-3" data-widget-slug="{{ slug }}">
         <div class="card-header" id="card-{{ slug }}-heading">
             <a data-toggle="collapse" data-target="#card-collapse-{{ slug }}" aria-expanded="true" aria-controls="card-collapse-{{ slug }}">
                 {{ title }}
