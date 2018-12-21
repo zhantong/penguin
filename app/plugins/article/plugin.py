@@ -71,8 +71,6 @@ def restore(sender, data, directory, **kwargs):
 
                 a.attachments = Plugin.Signal.send('attachment', 'restore', attachments=article['attachments'], directory=directory, attachment_restored=attachment_restored)
                 db.session.flush()
-            if 'view_count' in article:
-                Plugin.Signal.send('view_count', 'restore', repository_id=a.repository_id, count=article['view_count'])
             current_plugin.signal.send_this('restore', article=a, data=article)
 
 
@@ -261,11 +259,6 @@ def get_widget_submit(sender, article, **kwargs):
         'footer': current_plugin.render_template('widget_submit', 'footer.html'),
         'js': current_plugin.render_template('widget_submit', 'widget.js.html', article=article)
     }
-
-
-@current_plugin.context_func
-def render_view_count(article):
-    return Plugin.Signal.send('view_count', 'get_rendered_view_count', view_count=article.get_view_count())
 
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')

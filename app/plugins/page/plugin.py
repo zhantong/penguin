@@ -38,7 +38,7 @@ def show_page(slug):
         for widget in widgets:
             if widget['slug'] == 'comment':
                 after_page_widgets.append(widget)
-        current_plugin.signal.send_this('on_showing_article', page=page, request=request, cookies_to_set=cookies_to_set)
+        current_plugin.signal.send_this('on_showing_page', page=page, request=request, cookies_to_set=cookies_to_set)
         current_plugin.signal.send_this('modify_page_when_showing', page=page)
         resp = make_response(current_plugin.render_template('page.html', page=page, after_page_widgets=after_page_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages, metas=metas))
         for key, value in cookies_to_set.items():
@@ -72,8 +72,6 @@ def restore(sender, data, directory, **kwargs):
             db.session.add(p)
             db.session.flush()
             current_plugin.signal.send_this('restore', page=p, data=page)
-            if 'view_count' in page:
-                Plugin.Signal.send('view_count', 'restore', repository_id=p.repository_id, count=page['view_count'])
 
 
 @current_plugin.signal.connect_this('page_url')

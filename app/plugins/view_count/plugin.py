@@ -34,15 +34,7 @@ def on_showing_article(sender, page, request, cookies_to_set, **kwargs):
     viewing(page.repository_id, request, cookies_to_set)
 
 
-@current_plugin.signal.connect_this('get_count')
-def get_count(sender, repository_id, count, **kwargs):
-    view_count = ViewCount.query.filter_by(repository_id=repository_id).first()
-    if view_count is not None:
-        count['count'] = view_count.count
-
-
-@current_plugin.signal.connect_this('restore')
-def restore(sender, repository_id, count, **kwargs):
+def restore(repository_id, count):
     view_count = ViewCount.query.filter_by(repository_id=repository_id).first()
     if view_count is None:
         view_count = ViewCount(repository_id=repository_id, count=count)
@@ -50,6 +42,42 @@ def restore(sender, repository_id, count, **kwargs):
         db.session.flush()
 
 
-@current_plugin.signal.connect_this('get_rendered_view_count')
-def get_rendered_view_count(sender, view_count, **kwargs):
-    return current_plugin.render_template('view_count.html', view_count=view_count)
+@Plugin.Signal.connect('article', 'restore')
+def article_restore(sender, article, data, **kwargs):
+    if 'view_count' in data:
+        restore(article.repository_id, data['view_count'])
+
+
+@Plugin.Signal.connect('page', 'restore')
+def page_restore(sender, page, data, **kwargs):
+    if 'view_count' in data:
+        restore(page.repository_id, data['view_count'])
+
+
+def get_rendered_view_count(repository_id):
+    view_count = ViewCount.query.filter_by(repository_id=repository_id).first()
+    if view_count is not None:
+        return current_plugin.render_template('view_count.html', view_count=view_count.count)
+
+
+@Plugin.Signal.connect('article', 'meta')
+def article_meta(sender, article, **kwargs):
+    return get_rendered_view_count(article.repository_id)
+
+
+@Plugin.Signal.connect('page', 'meta')
+def page_meta(sender, page, **kwargs):
+    return get_rendered_view_count(page.repository_id)
+
+
+@Plugin.Signal.connect('article', 'custom_contents_column')
+def article_custom_contents_column(sender, **kwargs):
+    def content_func(article):
+        return current_plugin.render_template('article_contents_item.html', view_count=ViewCount.query.filter_by(repository_id=article.repository_id).first().count)
+
+    return {
+        'title': '阅读',
+        'item': {
+            'content': content_func,
+        }
+    }

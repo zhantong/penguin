@@ -44,8 +44,3 @@ class Article(db.Model):
     @staticmethod
     def query_published():
         return Article.query.filter_by(status='published')
-
-    def get_view_count(self):
-        count = {}
-        Plugin.Signal.send('view_count', 'get_count', repository_id=self.repository_id, count=count)
-        return count['count']

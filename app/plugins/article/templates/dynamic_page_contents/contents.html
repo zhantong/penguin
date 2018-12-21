@@ -6,7 +6,6 @@
         {% for column in custom_columns %}
             <th>{{ column['title'] }}<i class="fa fa-sort fa-fw"></i></th>
         {% endfor %}
-        <th>阅读<i class="fa fa-sort fa-fw"></i></th>
     </tr>
     </thead>
     {% for article in articles %}
@@ -20,9 +19,6 @@
             {% for column in custom_columns %}
                 <td>{{ column['item']['content'](article)|safe }}</td>
             {% endfor %}
-            <td>
-                <span class="badge" title="阅读量">{{ article.get_view_count() }}</span>
-            </td>
         </tr>
     {% endfor %}
 </table>
