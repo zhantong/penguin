@@ -22,10 +22,6 @@
                             <i class="fa fa-calendar fa-fw"></i>
                             {{ moment(article.timestamp).format('L') }}
                         </li>
-                        <li class="list-inline-item">
-                            <i class="fa fa-heart fa-fw" title="阅读量"></i>
-                            <span class="badge badge-pill badge-secondary">{{ article.get_view_count() }}</span>
-                        </li>
                         {% for meta in get_metas(article) %}
                             <li class="list-inline-item">
                                 {{ meta|safe }}

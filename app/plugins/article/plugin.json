@@ -62,7 +62,7 @@
     {
       "name": "should_compile_markdown_when_body_change",
       "return_type": "single",
-      "default": "true"
+      "default": true
     }
   ]
 }

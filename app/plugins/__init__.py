@@ -25,4 +25,4 @@ def pre_load_plugins():
             plugin = Plugin(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'])
             if 'signals' in config:
                 for signal in config['signals']:
-                    plugin.signal.declare_signal(signal['name'], signal['return_type'])
+                    plugin.signal.declare_signal(signal['name'], signal['return_type'], default=signal.get('default', None))
