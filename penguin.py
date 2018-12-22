@@ -73,7 +73,7 @@ def show_signals():
 
 @app.cli.command()
 def show_signals_new():
-    signals = Plugin.Signal.signals
+    signals = Plugin.Signal._signals
     for signal, value in signals.items():
         print(signal)
         for name, value in value.items():

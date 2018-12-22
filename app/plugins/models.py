@@ -10,7 +10,7 @@ class Plugin:
     plugins = {}
 
     class Signal:
-        signals = {}
+        _signals = {}
 
         def __init__(self, outer_class):
             self.outer_class = outer_class
@@ -19,22 +19,22 @@ class Plugin:
         def connect(plugin_name, name):
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             signal_name = plugin_name + '.' + name
-            if signal_name not in Plugin.Signal.signals:
-                Plugin.Signal.signals[signal_name] = {}
-            if 'connect' not in Plugin.Signal.signals[signal_name]:
-                Plugin.Signal.signals[signal_name]['connect'] = []
-            Plugin.Signal.signals[signal_name]['connect'].append(caller)
+            if signal_name not in Plugin.Signal._signals:
+                Plugin.Signal._signals[signal_name] = {}
+            if 'connect' not in Plugin.Signal._signals[signal_name]:
+                Plugin.Signal._signals[signal_name]['connect'] = []
+            Plugin.Signal._signals[signal_name]['connect'].append(caller)
             signal = blinker.signal(signal_name)
             return signal.connect
 
         def connect_this(self, name):
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             signal_name = self.outer_class.slug + '.' + name
-            if signal_name not in Plugin.Signal.signals:
-                Plugin.Signal.signals[signal_name] = {}
-            if 'connect' not in Plugin.Signal.signals[signal_name]:
-                Plugin.Signal.signals[signal_name]['connect'] = []
-            Plugin.Signal.signals[signal_name]['connect'].append(caller)
+            if signal_name not in Plugin.Signal._signals:
+                Plugin.Signal._signals[signal_name] = {}
+            if 'connect' not in Plugin.Signal._signals[signal_name]:
+                Plugin.Signal._signals[signal_name]['connect'] = []
+            Plugin.Signal._signals[signal_name]['connect'].append(caller)
             signal = blinker.signal(signal_name)
             return signal.connect
 
@@ -43,11 +43,11 @@ class Plugin:
             signal_name = plugin_name + '.' + name
             signal = blinker.signal(signal_name)
             result = signal.send(**kwargs)
-            if 'return_type' in Plugin.Signal.signals[signal_name]:
-                return_type = Plugin.Signal.signals[signal_name]['return_type']
+            if 'return_type' in Plugin.Signal._signals[signal_name]:
+                return_type = Plugin.Signal._signals[signal_name]['return_type']
                 if return_type == 'single':
-                    if len(result) == 0 and Plugin.Signal.signals[signal_name]['default'] is not None:
-                        return Plugin.Signal.signals[signal_name]['default']
+                    if len(result) == 0 and Plugin.Signal._signals[signal_name]['default'] is not None:
+                        return Plugin.Signal._signals[signal_name]['default']
                     return result[0][1]
                 if return_type == 'list':
                     return [item[1] for item in result]
@@ -69,10 +69,10 @@ class Plugin:
 
         def declare_signal(self, name, return_type=None, default=None):
             signal_name = self.outer_class.slug + '.' + name
-            if signal_name not in Plugin.Signal.signals:
-                Plugin.Signal.signals[signal_name] = {}
-            Plugin.Signal.signals[signal_name]['return_type'] = return_type
-            Plugin.Signal.signals[signal_name]['default'] = default
+            if signal_name not in Plugin.Signal._signals:
+                Plugin.Signal._signals[signal_name] = {}
+            Plugin.Signal._signals[signal_name]['return_type'] = return_type
+            Plugin.Signal._signals[signal_name]['default'] = default
 
     @staticmethod
     def find_plugin(slug):
