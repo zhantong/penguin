@@ -3,9 +3,7 @@ from datetime import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
 from ...utils import slugify
 from ...models import User
-from sqlalchemy import Table, Column, Integer, ForeignKey
 from random import randint
-from ..models import Plugin
 
 
 def random_number():
@@ -16,9 +14,6 @@ def random_number():
     while Page.query.filter_by(number=rand).first() is not None:
         rand = randint(the_min, the_max)
     return rand
-
-
-page_attachment_association_table = Table('page_attachment_association', db.Model.metadata, Column('page_id', Integer, ForeignKey('pages.id')), Column('attachment_id', Integer, ForeignKey('attachments.id')))
 
 
 class Page(db.Model):
@@ -33,7 +28,6 @@ class Page(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship(User, backref='pages')
-    attachments = db.relationship('Attachment', secondary=page_attachment_association_table, backref='pages')
     repository_id = db.Column(db.String)
     status = db.Column(db.String(200), default='')
     version_remark = db.Column(db.String(), default='')

@@ -159,7 +159,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = page.repository_id
-        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, attachments=page.attachments, repository_id=repository_id, status='published')
+        new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, repository_id=repository_id, status='published')
         current_plugin.signal.send_this('duplicate', old_page=page, new_page=new_page)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
@@ -177,7 +177,6 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
         widgets.extend(current_plugin.signal.send_this('edit_widget', page=page))
-        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=page.attachments, meta={'type': 'page', 'page_id': page.id}))
         templates.append(current_plugin.render_template('edit.html', page=page, widgets=widgets))
         scripts.append(current_plugin.render_template('edit.js.html', page=page, widgets=widgets))
         csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
@@ -186,15 +185,6 @@ def edit_page(request, templates, scripts, csss, **kwargs):
 @current_plugin.signal.connect_this('get_page')
 def get_article(sender, page_id, **kwargs):
     return Page.query.get(page_id)
-
-
-@Plugin.Signal.connect('attachment', 'on_new_attachment')
-def on_new_attachment(sender, attachment, meta, **kwargs):
-    if 'type' in meta and meta['type'] == 'page':
-        page_id = int(meta['page_id'])
-        page = Page.query.get(page_id)
-        page.attachments.append(attachment)
-        db.session.commit()
 
 
 @current_plugin.signal.connect_this('get_navbar_item')

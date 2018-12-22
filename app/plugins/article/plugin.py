@@ -64,14 +64,7 @@ def restore(sender, data, directory, **kwargs):
             a = Article(title=article['title'], body=article['body'], timestamp=datetime.utcfromtimestamp(article['timestamp']), author=User.query.filter_by(username=article['author']).one(), repository_id=article['version']['repository_id'], status=article['version']['status'])
             db.session.add(a)
             db.session.flush()
-            if 'attachments' in article:
-                def attachment_restored(attachment, attachment_name):
-                    a.body = a.body.replace(attachment['file_path'], '/attachments/' + attachment_name)
-                    db.session.flush()
-
-                a.attachments = Plugin.Signal.send('attachment', 'restore', attachments=article['attachments'], directory=directory, attachment_restored=attachment_restored)
-                db.session.flush()
-            current_plugin.signal.send_this('restore', article=a, data=article)
+            current_plugin.signal.send_this('restore', article=a, data=article, directory=directory)
 
 
 @current_plugin.signal.connect_this('article_url')
@@ -159,7 +152,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             repository_id = str(uuid4())
         else:
             repository_id = article.repository_id
-        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, attachments=article.attachments, repository_id=repository_id, status='published')
+        new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status='published')
         current_plugin.signal.send_this('duplicate', old_article=article, new_article=new_article)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
@@ -176,7 +169,6 @@ def edit_article(request, templates, scripts, csss, **kwargs):
             db.session.commit()
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', article=article))
-        widgets.append(Plugin.Signal.send('attachment', 'get_widget', attachments=article.attachments, meta={'type': 'article', 'article_id': article.id}))
         widgets.extend(current_plugin.signal.send_this('edit_widget', article=article))
         templates.append(current_plugin.render_template('edit.html', article=article, widgets=widgets))
         scripts.append(current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
@@ -191,15 +183,6 @@ def cleanup_temp_article():
 @current_plugin.signal.connect_this('get_article')
 def get_article(sender, article_id, **kwargs):
     return Article.query.get(article_id)
-
-
-@Plugin.Signal.connect('attachment', 'on_new_attachment')
-def on_new_attachment(sender, attachment, meta, **kwargs):
-    if 'type' in meta and meta['type'] == 'article':
-        article_id = int(meta['article_id'])
-        article = Article.query.get(article_id)
-        article.attachments.append(attachment)
-        db.session.commit()
 
 
 @current_plugin.signal.connect_this('get_widget_article_list')

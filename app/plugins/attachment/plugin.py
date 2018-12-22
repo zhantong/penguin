@@ -65,7 +65,14 @@ def upload():
     db.session.add(attachment)
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
-    current_plugin.signal.send_this('on_new_attachment', attachment=attachment, meta=meta)
+    if 'article_id' in meta:
+        article = Plugin.Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article.attachments.append(attachment)
+        db.session.commit()
+    if 'page_id' in meta:
+        page = Plugin.Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page.attachments.append(attachment)
+        db.session.commit()
     return jsonify({
         'code': 0,
         'message': '上传成功',
@@ -86,23 +93,49 @@ def delete_upload(id):
     })
 
 
-@current_plugin.signal.connect_this('restore')
-def restore(sender, attachments, directory, attachment_restored, **kwargs):
-    restored_attachments = []
-    for attachment in attachments:
-        a = Attachment.create(file_path=os.path.join(directory, attachment['file_path'] if attachment['file_path'][0] != '/' else attachment['file_path'][1:]), original_filename=attachment['original_filename'], file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(), mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']))
-        db.session.add(a)
-        db.session.flush()
-        restored_attachments.append(a)
-        attachment_restored(attachment, a.filename)
-    return restored_attachments
+@Plugin.Signal.connect('article', 'restore')
+def article_restore(sender, article, data, directory, **kwargs):
+    if 'attachments' in data:
+        restored_attachments = []
+        for attachment in data['attachments']:
+            a = Attachment.create(file_path=os.path.join(directory, attachment['file_path'] if attachment['file_path'][0] != '/' else attachment['file_path'][1:]), original_filename=attachment['original_filename'], file_extension=attachment['original_filename'].rsplit('.', 1)[1].lower(), mime=attachment['mime'], timestamp=datetime.utcfromtimestamp(attachment['timestamp']))
+            db.session.add(a)
+            db.session.flush()
+            restored_attachments.append(a)
+            article.body = a.body.replace(attachment['file_path'], '/attachments/' + a.filename)
+        article.attachments = restored_attachments
 
 
-@current_plugin.signal.connect_this('get_widget')
-def get_widget(sender, attachments, meta, **kwargs):
+def get_widget(attachments, meta):
     return {
         'slug': 'attachment',
         'name': '附件',
         'html': current_plugin.render_template('widget_edit_article', 'widget.html', attachments=attachments),
         'js': current_plugin.render_template('widget_edit_article', 'widget.js.html', meta=meta)
     }
+
+
+@Plugin.Signal.connect('article', 'edit_widget')
+def article_edit_widget(sender, article, **kwargs):
+    meta = {
+        'article_id': article.id
+    }
+    return get_widget(article.attachments, meta)
+
+
+@Plugin.Signal.connect('page', 'edit_widget')
+def page_edit_widget(sender, page, **kwargs):
+    meta = {
+        'page_id': page.id
+    }
+    return get_widget(page.attachments, meta)
+
+
+@Plugin.Signal.connect('article', 'duplicate')
+def article_duplicate(sender, old_article, new_article, **kwargs):
+    new_article.attachments = old_article.attachments
+
+
+@Plugin.Signal.connect('page', 'duplicate')
+def page_duplicate(sender, old_page, new_page, **kwargs):
+    new_page.attachments = old_page.attachments

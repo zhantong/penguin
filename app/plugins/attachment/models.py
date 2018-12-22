@@ -5,6 +5,16 @@ import os.path
 from ...utils import md5
 import uuid
 import shutil
+from sqlalchemy import Table, Column, Integer, ForeignKey
+
+attachment_article_association_table = Table('attachment_article_association', db.Model.metadata,
+                                             Column('attachment_id', Integer, ForeignKey('attachments.id')),
+                                             Column('article_id', Integer, ForeignKey('articles.id'))
+                                             )
+attachment_page_association_table = Table('attachment_page_association', db.Model.metadata,
+                                          Column('attachment_id', Integer, ForeignKey('attachments.id')),
+                                          Column('page_id', Integer, ForeignKey('pages.id'))
+                                          )
 
 
 class Attachment(db.Model):
@@ -18,6 +28,9 @@ class Attachment(db.Model):
     mime = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     md5 = db.Column(db.String(32))
+
+    articles = db.relationship('Article', secondary=attachment_article_association_table, backref='attachments')
+    pages = db.relationship('Page', secondary=attachment_page_association_table, backref='attachments')
 
     @staticmethod
     def create(file_path, original_filename, file_extension, id=None, mime=None, timestamp=None):
