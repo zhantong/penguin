@@ -43,19 +43,13 @@
 
     <h1>{{ article.title }}</h1>
     <ul class="meta list-inline">
-        <li>
-            <i class="fa fa-calendar fa-fw" title="发表时间"></i>
-            {{ moment(article.timestamp).format('L') }}
-        </li>
         {% for meta in metas %}
             <li>
                 {{ meta|safe }}
             </li>
         {% endfor %}
         <li>
-            <i class="fa fa-archive fa-fw" title="历史版本"></i>
-            <a role="button" data-toggle="collapse" href="#collapse-versions" aria-expanded="false"
-               aria-controls="collapse-versions">历史版本</a>
+
         </li>
     </ul>
     <div class="panel panel-default collapse" id="collapse-versions">

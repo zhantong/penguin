@@ -257,3 +257,8 @@ def on_changed_article_body(target, value, oldvalue, initiator):
 
 
 db.event.listen(Article.body, 'set', on_changed_article_body)
+
+
+@current_plugin.signal.connect_this('meta')
+def meta_publish_datetime(sender, article, **kwargs):
+    return current_plugin.render_template('meta_publish_datetime.html', datetime=article.timestamp)
