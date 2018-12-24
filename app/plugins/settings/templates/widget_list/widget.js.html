@@ -26,6 +26,14 @@
                     location.reload();
                 }
             });
+        });
+        $('.fa-arrow-up').click(function (event) {
+            var e = $(this).parent();
+            e.prev().insertAfter(e);
+        });
+        $('.fa-arrow-down').click(function (event) {
+            var e = $(this).parent();
+            e.next().insertBefore(e);
         })
     })
 </script>
