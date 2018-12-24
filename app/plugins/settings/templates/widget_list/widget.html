@@ -1,15 +1,26 @@
 <form id="settings-form" class="form-horizontal">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="_category" value="{{ category }}"/>
     {% for key,value in meta.items() %}
         <input type="hidden" name="_meta_{{ key }}" value="{{ value }}"/>
     {% endfor %}
     {% for setting in settings %}
-        <div class="form-group">
+        <div class="form-group setting" data-slug="{{ setting['slug'] }}" data-value-type="{{ setting['value_type'] }}">
             <label class="col-md-4">{{ setting['name'] }}</label>
             <div class="col-md-8">
-                <input name="{{ setting['slug'] }}" type="text" class="form-control"
-                       value="{{ setting['value'] if setting['value'] else '' }}">
+                {% if setting['value_type']=='signal' %}
+                    {% for subscriber_key in setting.get_value_self()['subscribers_order'] %}
+                        {% set subscriber=setting.get_value_self()['subscribers'][subscriber_key] %}
+                        <div class="form-check">
+                            <input class="form-check-input" name="subscriber_key" type="checkbox" value="{{ subscriber_key }}" {% if subscriber['is_on'] %} checked {% endif %}>
+                            <label class="form-check-label">
+                                {{ subscriber['file'] }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <input name="{{ setting['slug'] }}" type="text" class="form-control"
+                           value="{{ setting['value'] if setting['value'] else '' }}">
+                {% endif %}
             </div>
         </div>
     {% endfor %}

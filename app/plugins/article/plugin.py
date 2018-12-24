@@ -262,3 +262,10 @@ db.event.listen(Article.body, 'set', on_changed_article_body)
 @current_plugin.signal.connect_this('meta')
 def meta_publish_datetime(sender, article, **kwargs):
     return current_plugin.render_template('meta_publish_datetime.html', datetime=article.timestamp)
+
+
+@current_plugin.route('admin', '/settings', '设置')
+def account(request, templates, scripts, **kwargs):
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])

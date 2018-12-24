@@ -4,15 +4,28 @@
             e.preventDefault();
             var $theForm = $(this);
 
+            var settings = {};
+            $('.setting').each(function (i, panel) {
+                console.log($(this).data('slug'));
+                console.log($(this).find('select, textarea, input').serializeArray());
+                settings[$(this).data('slug')] = $(this).find('select, textarea, input').serializeArray();
+            });
+            var data = {
+                settings: JSON.stringify(settings),
+                category: '{{ category }}'
+            };
+            console.log(data);
             $.ajax({
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                },
                 type: 'POST',
                 url: '{{ url_for('.submit_settings') }}',
-                data: $theForm.serialize(),
+                data: data,
                 success: function (msg) {
                     location.reload();
                 }
             });
-
         })
     })
 </script>

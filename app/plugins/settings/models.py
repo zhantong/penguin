@@ -1,5 +1,6 @@
 from ... import db
 from datetime import datetime
+import json
 
 
 class Settings(db.Model):
@@ -18,12 +19,17 @@ class Settings(db.Model):
     def get_value(slug, category='penguin'):
         item = Settings.query.filter_by(slug=slug, category=category).first()
         if item is not None:
-            if item.value_type is None:
-                return item.value
-            if item.value_type == 'str_list':
-                return item.value.split()
-            return eval(item.value_type)(item.value)
+            return item.get_value_self()
         return None
+
+    def get_value_self(self):
+        if self.value_type is None:
+            return self.value
+        if self.value_type == 'str_list':
+            return self.value.split()
+        if self.value_type == 'signal':
+            return json.loads(self.value)
+        return eval(self.value_type)(self.value)
 
     @staticmethod
     def get(slug, category='settings'):

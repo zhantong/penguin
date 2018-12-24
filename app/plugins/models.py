@@ -17,37 +17,53 @@ class Plugin:
 
         @staticmethod
         def connect(plugin_name, name):
-            caller = inspect.getframeinfo(inspect.stack()[1][0])
+            def decorator(func):
+                func_name = func.__name__
+                func_file = inspect.getsourcefile(func)
+
+                if 'receivers' not in Plugin.Signal._signals[signal_name]:
+                    Plugin.Signal._signals[signal_name]['receivers'] = {}
+                Plugin.Signal._signals[signal_name]['receivers'][func_file + '|' + func_name] = {
+                    'func': func,
+                    'func_name': func_name,
+                    'func_file': func_file
+                }
+                signal = blinker.signal(signal_name)
+                signal.connect(func)
+
             signal_name = plugin_name + '.' + name
             if signal_name not in Plugin.Signal._signals:
                 Plugin.Signal._signals[signal_name] = {}
-            if 'connect' not in Plugin.Signal._signals[signal_name]:
-                Plugin.Signal._signals[signal_name]['connect'] = []
-            Plugin.Signal._signals[signal_name]['connect'].append(caller)
-            signal = blinker.signal(signal_name)
-            return signal.connect
+            return decorator
 
         def connect_this(self, name):
-            caller = inspect.getframeinfo(inspect.stack()[1][0])
-            signal_name = self.outer_class.slug + '.' + name
-            if signal_name not in Plugin.Signal._signals:
-                Plugin.Signal._signals[signal_name] = {}
-            if 'connect' not in Plugin.Signal._signals[signal_name]:
-                Plugin.Signal._signals[signal_name]['connect'] = []
-            Plugin.Signal._signals[signal_name]['connect'].append(caller)
-            signal = blinker.signal(signal_name)
-            return signal.connect
+            return Plugin.Signal.connect(self.outer_class.slug, name)
 
         @staticmethod
         def send(plugin_name, name, **kwargs):
             signal_name = plugin_name + '.' + name
-            signal = blinker.signal(signal_name)
-            result = signal.send(**kwargs)
+            signal = Plugin.Signal._signals[signal_name]
+            if not signal.get('managed', False):
+                result = blinker.signal(signal_name).send(**kwargs)
+            else:
+                result = []
+                signal_settings = Plugin.find_plugin(plugin_name).get_setting_value_this(name)
+                if signal_settings is None or 'subscribers_order' not in signal_settings:
+                    if signal['managed_default'] == 'all':
+                        result = blinker.signal(signal_name).send(**kwargs)
+                    elif signal['managed_default'] == 'none':
+                        result = []
+                else:
+                    for subscriber_key in signal_settings['subscribers_order']:
+                        if signal_settings['subscribers'][subscriber_key]['is_on'] and subscriber_key in signal['receivers']:
+                            receiver = signal['receivers'][subscriber_key]['func']
+                            result.append((receiver, receiver(None, **kwargs)))
             if 'return_type' in Plugin.Signal._signals[signal_name]:
                 return_type = Plugin.Signal._signals[signal_name]['return_type']
                 if return_type == 'single':
-                    if len(result) == 0 and Plugin.Signal._signals[signal_name]['default'] is not None:
-                        return Plugin.Signal._signals[signal_name]['default']
+                    default = Plugin.Signal._signals[signal_name].get('default', None)
+                    if len(result) == 0 and default is not None:
+                        return default
                     return result[0][1]
                 if return_type == 'list':
                     return [item[1] for item in result]
@@ -67,16 +83,26 @@ class Plugin:
         def send_this(self, name, **kwargs):
             return Plugin.Signal.send(self.outer_class.slug, name, **kwargs)
 
-        def declare_signal(self, name, return_type=None, default=None):
+        def declare_signal(self, name, **kwargs):
             signal_name = self.outer_class.slug + '.' + name
             if signal_name not in Plugin.Signal._signals:
                 Plugin.Signal._signals[signal_name] = {}
-            Plugin.Signal._signals[signal_name]['return_type'] = return_type
-            Plugin.Signal._signals[signal_name]['default'] = default
+            Plugin.Signal._signals[signal_name].update(**kwargs)
+
+        def get_signal(self, name):
+            return Plugin.Signal._signals[self.outer_class.slug + '.' + name]
+
+        @property
+        def signals(self):
+            signals = {}
+            for signal_name, data in Plugin.Signal._signals.items():
+                if signal_name.startswith(self.outer_class.slug + '.'):
+                    signals[signal_name[len(self.outer_class.slug + '.'):]] = data
+            return signals
 
     @staticmethod
     def find_plugin(slug):
-        return Plugin.plugins[slug]
+        return Plugin.plugins.get(slug, None)
 
     def __init__(self, name, directory, slug=None, show_in_sidebar=True):
         if slug is None:
