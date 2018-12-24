@@ -18,10 +18,6 @@
                 </div>
                 <div class="card-footer">
                     <ul class="list-inline small">
-                        <li class="list-inline-item">
-                            <i class="fa fa-calendar fa-fw"></i>
-                            {{ moment(article.timestamp).format('L') }}
-                        </li>
                         {% for meta in get_metas(article) %}
                             <li class="list-inline-item">
                                 {{ meta|safe }}
