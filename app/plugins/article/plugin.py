@@ -21,10 +21,6 @@ def article_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-def get_metas(article):
-    return current_plugin.signal.send_this('meta', article=article)
-
-
 @main.route('/archives/<int:number>.html')
 def show_article(number):
     def get_articles(repository_id):
@@ -38,7 +34,7 @@ def show_article(number):
     right_widgets = []
     after_article_widgets = []
     cookies_to_set = {}
-    metas = get_metas(article)
+    metas = current_plugin.signal.send_this('meta', article=article)
     header_keywords = current_plugin.signal.send_this('header_keyword', article=article)
     widgets = current_plugin.signal.send_this('show_article_widget', session=session, article=article)
     for widget in widgets:
@@ -187,6 +183,9 @@ def get_article(sender, article_id, **kwargs):
 
 @current_plugin.signal.connect_this('get_widget_article_list')
 def get_widget_article_list(sender, request, **kwargs):
+    def get_metas(article):
+        return current_plugin.signal.send_this('article_list_item_meta', article=article)
+
     page = request.args.get('page', 1, type=int)
     query = Article.query_published().order_by(Article.timestamp.desc())
     query = {'query': query}
@@ -259,9 +258,18 @@ def on_changed_article_body(target, value, oldvalue, initiator):
 db.event.listen(Article.body, 'set', on_changed_article_body)
 
 
+def _meta_publish_datetime(article):
+    return current_plugin.render_template('meta_publish_datetime.html', datetime=article.timestamp)
+
+
 @current_plugin.signal.connect_this('meta')
 def meta_publish_datetime(sender, article, **kwargs):
-    return current_plugin.render_template('meta_publish_datetime.html', datetime=article.timestamp)
+    return _meta_publish_datetime(article)
+
+
+@current_plugin.signal.connect_this('article_list_item_meta')
+def article_list_item_meta(sender, article, **kwargs):
+    return _meta_publish_datetime(article)
 
 
 @current_plugin.route('admin', '/settings', '设置')

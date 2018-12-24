@@ -60,9 +60,18 @@ def get_rendered_view_count(repository_id):
         return current_plugin.render_template('view_count.html', view_count=view_count.count)
 
 
+def _article_meta(article):
+    return get_rendered_view_count(article.repository_id)
+
+
 @Plugin.Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
-    return get_rendered_view_count(article.repository_id)
+    return _article_meta(article)
+
+
+@Plugin.Signal.connect('article', 'article_list_item_meta')
+def article_list_item_meta(sender, article, **kwargs):
+    return _article_meta(article)
 
 
 @Plugin.Signal.connect('page', 'meta')

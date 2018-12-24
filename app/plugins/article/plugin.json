@@ -75,6 +75,12 @@
       "name": "should_compile_markdown_when_body_change",
       "return_type": "single",
       "default": true
+    },
+    {
+      "name": "article_list_item_meta",
+      "return_type": "list",
+      "managed": true,
+      "managed_default": "none"
     }
   ]
 }

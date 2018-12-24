@@ -136,9 +136,18 @@ def article_filter(sender, query, params, Article, **kwargs):
         query['query'] = query['query'].join(Article.tags).filter(Tag.slug == params['tag'])
 
 
+def _article_meta(article):
+    return current_plugin.render_template('tag_items.html', tags=article.tags)
+
+
 @Plugin.Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
-    return current_plugin.render_template('tag_items.html', tags=article.tags)
+    return _article_meta(article)
+
+
+@Plugin.Signal.connect('article', 'article_list_item_meta')
+def article_list_item_meta(sender, article, **kwargs):
+    return _article_meta(article)
 
 
 @Plugin.Signal.connect('article', 'custom_list_column')

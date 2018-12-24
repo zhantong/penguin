@@ -206,9 +206,18 @@ def article_duplicate(sender, old_page, new_page, **kwargs):
     new_page.comments = old_page.comments
 
 
+def _article_meta(article):
+    return current_plugin.render_template('num_comments.html', comments=article.comments)
+
+
 @Plugin.Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
-    return current_plugin.render_template('num_comments.html', comments=article.comments)
+    return _article_meta(article)
+
+
+@Plugin.Signal.connect('article', 'article_list_item_meta')
+def article_list_item_meta(sender, article, **kwargs):
+    return _article_meta(article)
 
 
 @Plugin.Signal.connect('page', 'meta')
