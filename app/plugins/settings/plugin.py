@@ -82,9 +82,13 @@ def submit_settings():
         setting = get_setting_obj(slug, category)
         if setting.value_type == 'signal':
             value = setting.get_value_self()
+            on_set = set()
             for item in data:
                 if item['name'] == 'subscriber_key':
+                    on_set.add(item['value'])
                     value['subscribers'][item['value']]['is_on'] = True
+            for subscriber_key in value['subscribers'].keys():
+                value['subscribers'][subscriber_key]['is_on'] = subscriber_key in on_set
             set_setting(slug, category, value=json.dumps(value))
     return jsonify({
         'code': 0,
