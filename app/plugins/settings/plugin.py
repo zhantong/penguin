@@ -51,18 +51,29 @@ def get_widget_list(sender, category, meta, **kwargs):
             if 'return_type' in data and data['return_type'] == 'list':
                 if plugin.get_setting_this(signal_name) is None:
                     value = {
-                        'subscribers_order': [],
+                        'subscribers_order': {
+                            'main': []
+                        },
                         'subscribers': {}
                     }
                     plugin.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
                 value = plugin.get_setting_value_this(signal_name)
+                if 'custom_list' in data:
+                    if 'main' in value['subscribers_order']:
+                        del value['subscribers_order']['main']
+                    for custom_list_key in data['custom_list'].keys():
+                        if custom_list_key not in value['subscribers_order']:
+                            value['subscribers_order'][custom_list_key] = []
                 for key, info in plugin.signal.signals[signal_name]['receivers'].items():
                     if key not in value['subscribers']:
-                        value['subscribers_order'].append(key)
                         value['subscribers'][key] = {
                             'file': info['func_file'],
-                            'is_on': data['managed_default'] == 'all'
                         }
+                        for custom_list_key, custom_list in value['subscribers_order'].items():
+                            custom_list.append({
+                                'subscriber': key,
+                                'is_on': data['managed_default'] == 'all'
+                            })
                 plugin.set_setting(signal_name, value=json.dumps(value))
 
     settings = Settings.query.filter_by(category=category, visibility='visible').all()
@@ -82,17 +93,17 @@ def submit_settings():
         setting = get_setting_obj(slug, category)
         if setting.value_type == 'signal':
             value = setting.get_value_self()
-            on_set = set()
-            on_list = []
-            for item in data:
-                if item['name'] == 'subscriber_key':
-                    on_set.add(item['value'])
-                    on_list.append(item['value'])
-                    value['subscribers'][item['value']]['is_on'] = True
-            for subscriber_key in value['subscribers'].keys():
-                value['subscribers'][subscriber_key]['is_on'] = subscriber_key in on_set
-            for subscriber_key in on_list[::-1]:
-                value['subscribers_order'].insert(0, value['subscribers_order'].pop(value['subscribers_order'].index(subscriber_key)))
+            on_sets = {}
+            for item in data[::-1]:
+                value['subscribers_order'][item['name']].insert(0, value['subscribers_order'][item['name']].pop(next((index for (index, d) in enumerate(value['subscribers_order'][item['name']]) if d['subscriber'] == item['value']))))
+                value['subscribers_order'][item['name']][0]['is_on'] = True
+                if item['name'] not in on_sets:
+                    on_sets[item['name']] = set()
+                on_sets[item['name']].add(item['value'])
+            for list_name, items in value['subscribers_order'].items():
+                for item in items:
+                    if list_name not in on_sets or item['subscriber'] not in on_sets[list_name]:
+                        item['is_on'] = False
             set_setting(slug, category, value=json.dumps(value))
     return jsonify({
         'code': 0,

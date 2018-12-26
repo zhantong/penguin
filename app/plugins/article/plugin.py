@@ -30,20 +30,13 @@ def show_article(number):
     if 'version' in request.args:
         article = article.filter_by(number=request.args['version'])
     article = article.first_or_404()
-    left_widgets = []
-    right_widgets = []
-    after_article_widgets = []
     cookies_to_set = {}
     metas = current_plugin.signal.send_this('meta', article=article)
     header_keywords = current_plugin.signal.send_this('header_keyword', article=article)
     widgets = current_plugin.signal.send_this('show_article_widget', session=session, article=article)
-    for widget in widgets:
-        if widget['slug'] == 'comment':
-            after_article_widgets.append(widget)
-        if widget['slug'] == 'toc':
-            left_widgets.append(widget)
-        if widget['slug'] == 'prev_next_articles':
-            left_widgets.append(widget)
+    right_widgets = widgets['right']
+    left_widgets = widgets['left']
+    after_article_widgets = widgets['bottom']
     current_plugin.signal.send_this('on_showing_article', article=article, request=request, cookies_to_set=cookies_to_set)
     current_plugin.signal.send_this('modify_article_when_showing', article=article)
     resp = make_response(current_plugin.render_template('article.html', article=article, after_article_widgets=after_article_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))

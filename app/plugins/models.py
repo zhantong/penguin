@@ -54,10 +54,15 @@ class Plugin:
                     elif signal['managed_default'] == 'none':
                         result = []
                 else:
-                    for subscriber_key in signal_settings['subscribers_order']:
-                        if signal_settings['subscribers'][subscriber_key]['is_on'] and subscriber_key in signal['receivers']:
-                            receiver = signal['receivers'][subscriber_key]['func']
-                            result.append((receiver, receiver(None, **kwargs)))
+                    result = {}
+                    for list_name, items in signal_settings['subscribers_order'].items():
+                        result[list_name] = []
+                        for item in items:
+                            if item['is_on'] and item['subscriber'] in signal['receivers']:
+                                receiver = signal['receivers'][item['subscriber']]['func']
+                                result[list_name].append((receiver, receiver(None, **kwargs)))
+                    if 'main' in result and len(result) == 1:
+                        result = result['main']
             if 'return_type' in Plugin.Signal._signals[signal_name]:
                 return_type = Plugin.Signal._signals[signal_name]['return_type']
                 if return_type == 'single':
@@ -66,7 +71,11 @@ class Plugin:
                         return default
                     return result[0][1]
                 if return_type == 'list':
-                    return [item[1] for item in result]
+                    if type(result) is list:
+                        return [item[1] for item in result]
+                    for list_name, items in result.items():
+                        result[list_name] = [item[1] for item in items]
+                    return result
                 if return_type == 'merged_list':
                     items = []
                     for item in result:

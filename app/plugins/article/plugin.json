@@ -59,7 +59,12 @@
       "name": "show_article_widget",
       "return_type": "list",
       "managed": true,
-      "managed_default": "none"
+      "managed_default": "none",
+      "custom_list": {
+        "left": {},
+        "right": {},
+        "bottom": {}
+      }
     },
     {
       "name": "get_article",

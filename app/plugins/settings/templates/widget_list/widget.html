@@ -8,16 +8,19 @@
             <label class="col-md-4">{{ setting['name'] }}</label>
             <div class="col-md-8">
                 {% if setting['value_type']=='signal' %}
-                    {% for subscriber_key in setting.get_value_self()['subscribers_order'] %}
-                        {% set subscriber=setting.get_value_self()['subscribers'][subscriber_key] %}
-                        <div class="form-check">
-                            <input class="form-check-input" name="subscriber_key" type="checkbox" value="{{ subscriber_key }}" {% if subscriber['is_on'] %} checked {% endif %}>
-                            <button type="button" class="btn fa fa-arrow-up p-0"></button>
-                            <button type="button" class="btn fa fa-arrow-down p-0"></button>
-                            <label class="form-check-label">
-                                {{ subscriber['file'] }}
-                            </label>
-                        </div>
+                    {% set value=setting.get_value_self() %}
+                    {% for list_name,items in value['subscribers_order'].items() %}
+                        <label class="col-md-4">List: {{ list_name }}</label>
+                        {% for item in items %}
+                            <div class="form-check">
+                                <input class="form-check-input" name="{{ list_name }}" type="checkbox" value="{{ item['subscriber'] }}" {% if item['is_on'] %} checked {% endif %}>
+                                <button type="button" class="btn fa fa-arrow-up p-0"></button>
+                                <button type="button" class="btn fa fa-arrow-down p-0"></button>
+                                <label class="form-check-label">
+                                    {{ value['subscribers'][item['subscriber']]['file'] }}
+                                </label>
+                            </div>
+                        {% endfor %}
                     {% endfor %}
                 {% else %}
                     <input name="{{ setting['slug'] }}" type="text" class="form-control"
