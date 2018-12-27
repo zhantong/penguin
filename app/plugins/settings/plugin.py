@@ -59,15 +59,13 @@ def get_widget_list(sender, category, meta, **kwargs):
                     plugin.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
                 value = plugin.get_setting_value_this(signal_name)
                 if 'custom_list' in data:
-                    for list_key in value['subscribers_order'].keys():
-                        if list_key not in data['custom_list']:
-                            del value['subscribers_order'][list_key]
+                    value['subscribers_order'] = {list_key: list_value for list_key, list_value in value['subscribers_order'].items() if list_key in data['custom_list']}
                     for custom_list_key in data['custom_list'].keys():
                         if custom_list_key not in value['subscribers_order']:
                             value['subscribers_order'][custom_list_key] = []
                 for list_key in value['subscribers_order'].keys():
                     value['subscribers_order'][list_key] = [item for item in value['subscribers_order'][list_key] if item['subscriber'] in plugin.signal.signals[signal_name]['receivers']]
-                for key, info in plugin.signal.signals[signal_name]['receivers'].items():
+                for key, info in plugin.signal.signals[signal_name].get('receivers', {}).items():
                     if key not in value['subscribers']:
                         value['subscribers'][key] = {
                             'file': info['func_file'],

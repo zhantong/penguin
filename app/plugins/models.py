@@ -42,6 +42,8 @@ class Plugin:
         @staticmethod
         def send(plugin_name, name, **kwargs):
             signal_name = plugin_name + '.' + name
+            if signal_name not in Plugin.Signal._signals:
+                return
             signal = Plugin.Signal._signals[signal_name]
             if not signal.get('managed', False):
                 result = blinker.signal(signal_name).send(**kwargs)
