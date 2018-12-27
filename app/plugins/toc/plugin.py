@@ -1,8 +1,14 @@
 from ..models import Plugin
-from .models import Toc
-from ...models import db
+from .. import plugin
+from flask import send_from_directory
+import os
 
 current_plugin = Plugin.current_plugin()
+
+
+@plugin.route('/toc/static/<path:filename>')
+def toc_static(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
 @Plugin.Signal.connect('article', 'show_article_widget')
@@ -14,14 +20,3 @@ def show_article_widget(sender, article, **kwargs):
         'script': current_plugin.render_template('widget_script_toc.html'),
         'style': current_plugin.render_template('widget_style_toc.html')
     }
-
-
-@Plugin.Signal.connect('article', 'markdown2_extra')
-def markdown2_extra(sender, **kwargs):
-    return 'toc'
-
-
-@Plugin.Signal.connect('article', 'after_markdown_converted')
-def after_markdown_converted(sender, article, html, **kwargs):
-    toc = Toc(toc_html=html.toc_html, article=article)
-    db.session.add(toc)

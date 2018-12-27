@@ -1,7 +1,15 @@
+<script src="{{ url_for('plugin.toc_static', filename='bootstrap-toc-1.0.0/dist/bootstrap-toc.min.js') }}"></script>
 <script>
-    $('#toc ul').addClass('nav bs-docs-sidebar');
-    $('body').scrollspy({
-        target: '#toc',
-        offset: 70
+    $(function () {
+        var navSelector = '#toc';
+        var $myNav = $(navSelector);
+        Toc.init({
+            $nav: $myNav,
+            $scope: $('article')
+        });
+        $('body').scrollspy({
+            target: navSelector,
+            offset: 70
+        });
     });
 </script>
