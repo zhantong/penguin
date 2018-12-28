@@ -3,6 +3,7 @@ from config import config
 import flask_whooshalchemyplus
 from flask_whooshalchemyplus import index_all
 from .extensions import bootstrap, db, login_manager, csrf, moment
+from .plugins.models import Plugin
 
 
 def create_app(config_name):
@@ -36,6 +37,8 @@ def create_app(config_name):
 
     from . import jinja2_customs
     jinja2_customs.custom(app)
+
+    Plugin.Signal.send('penguin', 'create_app', app=app)
 
     flask_whooshalchemyplus.init_app(app)
 

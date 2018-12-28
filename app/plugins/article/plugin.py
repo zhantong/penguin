@@ -199,8 +199,8 @@ def filter(query, params):
     current_plugin.signal.send_this('filter', query=query, params=params, Article=Article)
 
 
-@current_plugin.signal.connect_this('get_navbar_item')
-def get_navbar_item(sender, **kwargs):
+@Plugin.Signal.connect('main', 'navbar_item')
+def navbar_item(sender, **kwargs):
     return {
         'type': 'template',
         'template': current_plugin.render_template('navbar_search', 'navbar.html'),

@@ -187,8 +187,8 @@ def get_article(sender, page_id, **kwargs):
     return Page.query.get(page_id)
 
 
-@current_plugin.signal.connect_this('get_navbar_item')
-def get_navbar_item(sender, **kwargs):
+@Plugin.Signal.connect('main', 'navbar_item')
+def navbar_item(sender, **kwargs):
     pages = Page.query.all()
     more = []
     for page in pages:
@@ -240,3 +240,10 @@ def on_changed_article_body(target, value, oldvalue, initiator):
 
 
 db.event.listen(Page.body, 'set', on_changed_article_body)
+
+
+@current_plugin.route('admin', '/settings', '设置')
+def settings(request, templates, scripts, **kwargs):
+    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])

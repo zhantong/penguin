@@ -6,6 +6,7 @@ current_plugin = Plugin.current_plugin()
 
 current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
 current_plugin.signal.declare_signal('widget', return_type='list')
+current_plugin.signal.declare_signal('navbar_item', return_type='list')
 
 
 @main.route('/')
@@ -34,7 +35,45 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@current_plugin.signal.connect_this('get_navbar_item')
+@Plugin.Signal.connect('penguin', 'create_app')
+def create_app(sender, app, **kwargs):
+    @app.context_processor
+    def context_processor():
+        def custom_navbar():
+            custom_navbar = {
+                'brand': '',
+                'items': [],
+                'templates': []
+            }
+
+            def process_item(item):
+                def insert_item(item):
+                    if item['type'] == 'brand':
+                        custom_navbar['brand'] = item['brand']
+                    elif item['type'] == 'item':
+                        item.pop('type')
+                        custom_navbar['items'].append(item)
+                    elif item['type'] == 'template':
+                        item.pop('type')
+                        custom_navbar['templates'].append(item)
+
+                more = item.pop('more', None)
+                if 'type' in item:
+                    insert_item(item)
+                if more is not None:
+                    for item in more:
+                        insert_item(item)
+
+            navbar_items = current_plugin.signal.send_this('navbar_item')
+            for navbar_item in navbar_items:
+                process_item(navbar_item)
+
+            return custom_navbar
+
+        return dict(custom_navbar=custom_navbar)
+
+
+@current_plugin.signal.connect_this('navbar_item')
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'brand',
