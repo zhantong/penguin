@@ -1,1 +1,19 @@
 <link rel="stylesheet" href="{{ url_for('plugin.toc_static', filename='bootstrap-toc-1.0.0/dist/bootstrap-toc.min.css') }}">
+<style type="text/css">
+    nav[data-toggle='toc'] .nav-link + ul {
+        display: block;
+    }
+
+    nav[data-toggle='toc'] .nav > li > a:hover,
+    nav[data-toggle='toc'] .nav > li > a:focus {
+        color: #343a40;
+        border-left: 1px solid #343a40;
+    }
+
+    nav[data-toggle='toc'] .nav-link.active,
+    nav[data-toggle='toc'] .nav-link.active:hover,
+    nav[data-toggle='toc'] .nav-link.active:focus {
+        color: #343a40;
+        border-left: 2px solid #343a40;
+    }
+</style>
