@@ -1,10 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Flask Server" type="Python.FlaskServer" factoryName="Flask server" singleton="true">
     <option name="additionalOptions" value="--cert cert.pem --key cert.key" />
-    <option name="application" value="app" />
     <option name="flaskDebug" value="true" />
     <module name="penguin" />
-    <option name="target" value="penguin" />
+    <option name="target" value="app" />
     <option name="targetType" value="PYTHON" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
