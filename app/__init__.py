@@ -14,6 +14,7 @@ from zipfile import ZipFile
 from urllib.request import urlopen
 import redis
 from rq import Connection, Worker
+import jinja2
 
 current_plugin = Plugin('penguin', 'penguin', show_in_sidebar=False)
 
@@ -33,9 +34,7 @@ def create_app(config_name=None):
 
     register_blueprints(app)
     register_commands(app)
-
-    from . import jinja2_customs
-    jinja2_customs.custom(app)
+    register_template_context(app)
 
     Plugin.Signal.send('penguin', 'create_app', app=app)
 
@@ -67,6 +66,27 @@ def register_extensions(app):
     login_manager.init_app(app)
     csrf.init_app(app)
     moment.init_app(app)
+
+
+def register_template_context(app):
+    @app.template_test('list')
+    def test_list(l):
+        return isinstance(l, list)
+
+    @app.template_filter('type')
+    def filter_type(t):
+        return type(t)
+
+    app.jinja_loader = jinja2.ChoiceLoader([
+        app.jinja_loader,
+        jinja2.FileSystemLoader(['app/plugins'])
+    ])
+
+    @app.context_processor
+    def context_processor():
+        return dict(
+            get_setting=Plugin.get_setting,
+            get_setting_value=Plugin.get_setting_value)
 
 
 def register_commands(app):
