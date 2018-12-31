@@ -3,7 +3,6 @@ from config import config
 import flask_whooshalchemyplus
 from flask_whooshalchemyplus import index_all
 from .extensions import bootstrap, db, login_manager, csrf, moment
-from .plugins.models import Plugin
 import os
 from app.extensions import db
 from app.models import Role
@@ -17,7 +16,7 @@ from rq import Connection, Worker
 import jinja2
 from .models import Component, Signal
 
-current_plugin = Plugin('penguin', 'penguin', show_in_sidebar=False)
+current_component = Component('penguin', 'penguin', show_in_sidebar=False)
 
 
 def create_app(config_name=None):
@@ -83,6 +82,7 @@ def register_template_context(app):
 
     @app.context_processor
     def context_processor():
+        from .plugins.models import Plugin
         return dict(
             get_setting=Plugin.get_setting,
             get_setting_value=Plugin.get_setting_value)
@@ -119,7 +119,7 @@ def register_commands(app):
 
         Role.insert_roles()
 
-        current_plugin.signal.send_this('deploy')
+        current_component.signal.send_this('deploy')
 
     @app.cli.command()
     @click.option('--file-path', default=None, help='dumped file path')
