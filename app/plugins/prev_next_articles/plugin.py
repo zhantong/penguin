@@ -1,10 +1,11 @@
 from ..article.models import Article
 from ..models import Plugin
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
 
-@Plugin.Signal.connect('article', 'show_article_widget')
+@Signal.connect('article', 'show_article_widget')
 def show_article_widget(sender, article, **kwargs):
     prev_next_articles = []
     prev_article = Article.query_published().filter(Article.timestamp < article.timestamp).order_by(Article.timestamp.desc()).limit(1).first()

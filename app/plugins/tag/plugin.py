@@ -3,6 +3,7 @@ from .models import Tag
 from flask import flash, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -26,20 +27,20 @@ def restore_tags(sender, tags, **kwargs):
     return restored_tags
 
 
-@Plugin.Signal.connect('article', 'restore')
+@Signal.connect('article', 'restore')
 def article_restore(sender, article, data, **kwargs):
     if 'tags' in data:
         article.tags = current_plugin.signal.send_this('restore', tags=data['tags'])
 
 
-@Plugin.Signal.connect('app', 'restore')
+@Signal.connect('app', 'restore')
 def global_restore(sender, data, **kwargs):
     if 'tag' in data:
         current_plugin.signal.send_this('restore', tags=data['tag'], restored_tags=[])
 
 
 def admin_article_list_url(**kwargs):
-    return Plugin.Signal.send('article', 'admin_article_list_url', params=kwargs)
+    return Signal.send('article', 'admin_article_list_url', params=kwargs)
 
 
 @current_plugin.route('admin', '/list', '管理标签')
@@ -99,7 +100,7 @@ def delete(tag_id):
     }
 
 
-@Plugin.Signal.connect('article', 'edit_widget')
+@Signal.connect('article', 'edit_widget')
 def article_edit_widget(sender, article, **kwargs):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in article.tags]
@@ -111,7 +112,7 @@ def article_edit_widget(sender, article, **kwargs):
     }
 
 
-@Plugin.Signal.connect('article', 'submit_edit_widget')
+@Signal.connect('article', 'submit_edit_widget')
 def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
     if slug == 'tag':
         tags = []
@@ -130,7 +131,7 @@ def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
         article.tags = tags
 
 
-@Plugin.Signal.connect('article', 'filter')
+@Signal.connect('article', 'filter')
 def article_filter(sender, query, params, Article, **kwargs):
     if 'tag' in params and params['tag'] != '':
         query['query'] = query['query'].join(Article.tags).filter(Tag.slug == params['tag'])
@@ -140,17 +141,17 @@ def _article_meta(article):
     return current_plugin.render_template('tag_items.html', tags=article.tags)
 
 
-@Plugin.Signal.connect('article', 'meta')
+@Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article', 'article_list_item_meta')
 def article_list_item_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('article', 'custom_list_column')
+@Signal.connect('article', 'custom_list_column')
 def article_custom_list_column(sender, **kwargs):
     def content_func(article):
         return current_plugin.render_template('admin_tag_items.html', article=article, admin_article_list_url=admin_article_list_url)
@@ -163,6 +164,6 @@ def article_custom_list_column(sender, **kwargs):
     }
 
 
-@Plugin.Signal.connect('article', 'header_keyword')
+@Signal.connect('article', 'header_keyword')
 def article_header_keyword(sender, article, **kwargs):
     return [tag.name for tag in article.tags]

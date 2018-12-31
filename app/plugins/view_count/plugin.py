@@ -2,6 +2,7 @@ import json
 from .models import ViewCount
 from ...models import db
 from ..models import Plugin
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -24,12 +25,12 @@ def viewing(repository_id, request, cookies_to_set):
         cookies_to_set['view_count_repository_ids'] = json.dumps(view_count_repository_ids)
 
 
-@Plugin.Signal.connect('article', 'on_showing_article')
+@Signal.connect('article', 'on_showing_article')
 def on_showing_article(sender, article, request, cookies_to_set, **kwargs):
     viewing(article.repository_id, request, cookies_to_set)
 
 
-@Plugin.Signal.connect('page', 'on_showing_page')
+@Signal.connect('page', 'on_showing_page')
 def on_showing_article(sender, page, request, cookies_to_set, **kwargs):
     viewing(page.repository_id, request, cookies_to_set)
 
@@ -42,13 +43,13 @@ def restore(repository_id, count):
         db.session.flush()
 
 
-@Plugin.Signal.connect('article', 'restore')
+@Signal.connect('article', 'restore')
 def article_restore(sender, article, data, **kwargs):
     if 'view_count' in data:
         restore(article.repository_id, data['view_count'])
 
 
-@Plugin.Signal.connect('page', 'restore')
+@Signal.connect('page', 'restore')
 def page_restore(sender, page, data, **kwargs):
     if 'view_count' in data:
         restore(page.repository_id, data['view_count'])
@@ -64,22 +65,22 @@ def _article_meta(article):
     return get_rendered_view_count(article.repository_id)
 
 
-@Plugin.Signal.connect('article', 'meta')
+@Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article', 'article_list_item_meta')
 def article_list_item_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('page', 'meta')
+@Signal.connect('page', 'meta')
 def page_meta(sender, page, **kwargs):
     return get_rendered_view_count(page.repository_id)
 
 
-@Plugin.Signal.connect('article', 'custom_contents_column')
+@Signal.connect('article', 'custom_contents_column')
 def article_custom_contents_column(sender, **kwargs):
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', view_count=ViewCount.query.filter_by(repository_id=article.repository_id).first().count)

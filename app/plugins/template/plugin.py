@@ -4,6 +4,7 @@ from flask import flash, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
 import json
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -18,17 +19,17 @@ def get_widget(template):
     }
 
 
-@Plugin.Signal.connect('article', 'edit_widget')
+@Signal.connect('article', 'edit_widget')
 def article_edit_widget(sender, article, **kwargs):
     return get_widget(article.template)
 
 
-@Plugin.Signal.connect('page', 'edit_widget')
+@Signal.connect('page', 'edit_widget')
 def page_edit_widget(sender, page, **kwargs):
     return get_widget(page.template)
 
 
-@Plugin.Signal.connect('article', 'submit_edit_widget')
+@Signal.connect('article', 'submit_edit_widget')
 def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
     if slug == 'template':
         for item in js_data:
@@ -37,7 +38,7 @@ def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
                     article.template = Template.query.get(int(item['value']))
 
 
-@Plugin.Signal.connect('page', 'submit_edit_widget')
+@Signal.connect('page', 'submit_edit_widget')
 def page_submit_edit_widget(sender, slug, js_data, page, **kwargs):
     if slug == 'template':
         for item in js_data:
@@ -59,11 +60,11 @@ def delete(template_id):
 
 
 def admin_article_list_url(**kwargs):
-    return Plugin.Signal.send('article', 'admin_article_list_url', params=kwargs)
+    return Signal.send('article', 'admin_article_list_url', params=kwargs)
 
 
 def admin_page_list_url(**kwargs):
-    return Plugin.Signal.send('page', 'admin_page_list_url', params=kwargs)
+    return Signal.send('page', 'admin_page_list_url', params=kwargs)
 
 
 @current_plugin.route('admin', '/list', '管理模板')
@@ -119,19 +120,19 @@ def render(sender, template, json_params, **kwargs):
     return template.render(**params)
 
 
-@Plugin.Signal.connect('article', 'filter')
+@Signal.connect('article', 'filter')
 def article_filter(sender, query, params, Article, **kwargs):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Article.template).filter(Template.slug == params['template'])
 
 
-@Plugin.Signal.connect('page', 'filter')
+@Signal.connect('page', 'filter')
 def page_filter(sender, query, params, Page, **kwargs):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Page.template).filter(Template.slug == params['template'])
 
 
-@Plugin.Signal.connect('article', 'modify_article_when_showing')
+@Signal.connect('article', 'modify_article_when_showing')
 def modify_article_when_showing(sender, article, **kwargs):
     if article.template is not None:
         template = Jinja2Tempalte(article.template.body)
@@ -139,7 +140,7 @@ def modify_article_when_showing(sender, article, **kwargs):
         article.body_html = template.render(**params)
 
 
-@Plugin.Signal.connect('page', 'modify_page_when_showing')
+@Signal.connect('page', 'modify_page_when_showing')
 def modify_page_when_showing(sender, page, **kwargs):
     if page.template is not None:
         template = Jinja2Tempalte(page.template.body)
@@ -147,6 +148,6 @@ def modify_page_when_showing(sender, page, **kwargs):
         page.body_html = template.render(**params)
 
 
-@Plugin.Signal.connect('article', 'should_compile_markdown_when_body_change')
+@Signal.connect('article', 'should_compile_markdown_when_body_change')
 def article_should_compile_markdown_when_body_change(sender, article, **kwargs):
     return article.template is None

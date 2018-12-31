@@ -7,11 +7,12 @@ from email.header import Header
 import tempfile
 import smtplib
 import sys
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
 
-@Plugin.Signal.connect('penguin', 'deploy')
+@Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
     current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
     current_plugin.set_setting('password', name='密码', value='', value_type='str')
@@ -20,7 +21,7 @@ def deploy(sender, **kwargs):
 
 @current_plugin.route('admin', '/account', '设置账号')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 

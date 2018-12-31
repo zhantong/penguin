@@ -9,18 +9,19 @@ from .. import plugin
 from datetime import datetime
 import json
 from ..models import Plugin
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
 
-@Plugin.Signal.connect('penguin', 'deploy')
+@Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
     current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
 @current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
@@ -66,11 +67,11 @@ def upload():
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
     if 'article_id' in meta:
-        article = Plugin.Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article = Signal.send('article', 'get_article', article_id=meta['article_id'])
         article.attachments.append(attachment)
         db.session.commit()
     if 'page_id' in meta:
-        page = Plugin.Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page = Signal.send('page', 'get_page', page_id=meta['page_id'])
         page.attachments.append(attachment)
         db.session.commit()
     return jsonify({
@@ -93,7 +94,7 @@ def delete_upload(id):
     })
 
 
-@Plugin.Signal.connect('article', 'restore')
+@Signal.connect('article', 'restore')
 def article_restore(sender, article, data, directory, **kwargs):
     if 'attachments' in data:
         restored_attachments = []
@@ -115,7 +116,7 @@ def get_widget(attachments, meta):
     }
 
 
-@Plugin.Signal.connect('article', 'edit_widget')
+@Signal.connect('article', 'edit_widget')
 def article_edit_widget(sender, article, **kwargs):
     meta = {
         'article_id': article.id
@@ -123,7 +124,7 @@ def article_edit_widget(sender, article, **kwargs):
     return get_widget(article.attachments, meta)
 
 
-@Plugin.Signal.connect('page', 'edit_widget')
+@Signal.connect('page', 'edit_widget')
 def page_edit_widget(sender, page, **kwargs):
     meta = {
         'page_id': page.id
@@ -131,11 +132,11 @@ def page_edit_widget(sender, page, **kwargs):
     return get_widget(page.attachments, meta)
 
 
-@Plugin.Signal.connect('article', 'duplicate')
+@Signal.connect('article', 'duplicate')
 def article_duplicate(sender, old_article, new_article, **kwargs):
     new_article.attachments = old_article.attachments
 
 
-@Plugin.Signal.connect('page', 'duplicate')
+@Signal.connect('page', 'duplicate')
 def page_duplicate(sender, old_page, new_page, **kwargs):
     new_page.attachments = old_page.attachments

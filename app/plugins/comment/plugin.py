@@ -11,6 +11,7 @@ import json
 import urllib.request
 import urllib.parse
 from .js_captcha import confuse_string
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -64,11 +65,11 @@ def submit_comment():
     db.session.add(comment)
     db.session.commit()
     if 'article_id' in meta:
-        article = Plugin.Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article = Signal.send('article', 'get_article', article_id=meta['article_id'])
         article.comments.append(comment)
         db.session.commit()
     elif 'page_id' in meta:
-        page = Plugin.Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page = Signal.send('page', 'get_page', page_id=meta['page_id'])
         page.comments.append(comment)
         db.session.commit()
     current_plugin.signal.send_this('on_new_comment', comment=comment, meta=meta)
@@ -83,12 +84,12 @@ def get_comment_show_info(comment):
     if comment.article is not None:
         return {
             'title': comment.article.title,
-            'url': Plugin.Signal.send('article', 'article_url', article=comment.article, anchor='comment-' + str(comment.id))
+            'url': Signal.send('article', 'article_url', article=comment.article, anchor='comment-' + str(comment.id))
         }
     if comment.page is not None:
         return {
             'title': comment.page.title,
-            'url': Plugin.Signal.send('page', 'page_url', page=comment.page, anchor='comment-' + str(comment.id))
+            'url': Signal.send('page', 'page_url', page=comment.page, anchor='comment-' + str(comment.id))
         }
 
 
@@ -129,7 +130,7 @@ def show_widget(session, comments, meta):
     }
 
 
-@Plugin.Signal.connect('article', 'show_article_widget')
+@Signal.connect('article', 'show_article_widget')
 def show_article_widget(sender, session, article, **kwargs):
     meta = {
         'article_id': article.id
@@ -138,7 +139,7 @@ def show_article_widget(sender, session, article, **kwargs):
     return show_widget(session, comments, meta)
 
 
-@Plugin.Signal.connect('page', 'show_page_widget')
+@Signal.connect('page', 'show_page_widget')
 def show_page_widget(sender, session, page, **kwargs):
     meta = {
         'page_id': page.id
@@ -168,19 +169,19 @@ def restore(comments):
     return restored_comments
 
 
-@Plugin.Signal.connect('article', 'restore')
+@Signal.connect('article', 'restore')
 def article_restore(sender, article, data, **kwargs):
     if 'comments' in data:
         article.comments = restore(data['comments'])
 
 
-@Plugin.Signal.connect('page', 'restore')
+@Signal.connect('page', 'restore')
 def page_restore(sender, page, data, **kwargs):
     if 'comments' in data:
         page.comments = restore(data['comments'])
 
 
-@Plugin.Signal.connect('main', 'widget')
+@Signal.connect('main', 'widget')
 def main_widget(sender, end_point, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     return {
@@ -196,12 +197,12 @@ def get_rendered_tag_items(sender, comments, **kwargs):
     return current_plugin.render_template('num_comments.html', comments=comments)
 
 
-@Plugin.Signal.connect('article', 'duplicate')
+@Signal.connect('article', 'duplicate')
 def article_duplicate(sender, old_article, new_article, **kwargs):
     new_article.comments = old_article.comments
 
 
-@Plugin.Signal.connect('page', 'duplicate')
+@Signal.connect('page', 'duplicate')
 def article_duplicate(sender, old_page, new_page, **kwargs):
     new_page.comments = old_page.comments
 
@@ -210,22 +211,22 @@ def _article_meta(article):
     return current_plugin.render_template('num_comments.html', comments=article.comments)
 
 
-@Plugin.Signal.connect('article', 'meta')
+@Signal.connect('article', 'meta')
 def article_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article', 'article_list_item_meta')
 def article_list_item_meta(sender, article, **kwargs):
     return _article_meta(article)
 
 
-@Plugin.Signal.connect('page', 'meta')
+@Signal.connect('page', 'meta')
 def article_meta(sender, page, **kwargs):
     return current_plugin.render_template('num_comments.html', comments=page.comments)
 
 
-@Plugin.Signal.connect('article', 'custom_contents_column')
+@Signal.connect('article', 'custom_contents_column')
 def article_custom_contents_column(sender, **kwargs):
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', comments=article.comments)

@@ -27,3 +27,6 @@ def pre_load_plugins():
                 for signal in config['signals']:
                     name = signal.pop('name')
                     plugin.signal.declare_signal(name, **signal)
+
+
+load_plugins()

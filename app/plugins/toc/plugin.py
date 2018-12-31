@@ -2,6 +2,7 @@ from ..models import Plugin
 from .. import plugin
 from flask import send_from_directory
 import os
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -11,7 +12,7 @@ def toc_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@Plugin.Signal.connect('article', 'show_article_widget')
+@Signal.connect('article', 'show_article_widget')
 def show_article_widget(sender, article, **kwargs):
     return {
         'slug': 'toc',

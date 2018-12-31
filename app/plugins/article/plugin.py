@@ -12,6 +12,7 @@ import os.path
 from uuid import uuid4
 import markdown2
 import re
+from ..models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -45,7 +46,7 @@ def show_article(number):
     return resp
 
 
-@Plugin.Signal.connect('app', 'restore')
+@Signal.connect('app', 'restore')
 def restore(sender, data, directory, **kwargs):
     if 'article' in data:
         articles = data['article']
@@ -199,7 +200,7 @@ def filter(query, params):
     current_plugin.signal.send_this('filter', query=query, params=params, Article=Article)
 
 
-@Plugin.Signal.connect('main', 'navbar_item')
+@Signal.connect('main', 'navbar_item')
 def navbar_item(sender, **kwargs):
     return {
         'type': 'template',
@@ -212,7 +213,7 @@ def admin_article_list_url(sender, params, **kwargs):
     return current_plugin.url_for('/list', **params)
 
 
-@Plugin.Signal.connect('page', 'dynamic_page')
+@Signal.connect('page', 'dynamic_page')
 def dynamic_page(sender, **kwargs):
     articles = Article.query_published().order_by(Article.timestamp.desc()).all()
     custom_columns = current_plugin.signal.send_this('custom_contents_column')
@@ -267,6 +268,6 @@ def article_list_item_meta(sender, article, **kwargs):
 
 @current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])

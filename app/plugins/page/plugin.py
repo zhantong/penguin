@@ -10,6 +10,7 @@ from .. import plugin
 import os.path
 import re
 import markdown2
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -63,7 +64,7 @@ def show_page(slug):
         return resp
 
 
-@Plugin.Signal.connect('app', 'restore')
+@Signal.connect('app', 'restore')
 def restore(sender, data, directory, **kwargs):
     if 'page' in data:
         pages = data['page']
@@ -187,7 +188,7 @@ def get_article(sender, page_id, **kwargs):
     return Page.query.get(page_id)
 
 
-@Plugin.Signal.connect('main', 'navbar_item')
+@Signal.connect('main', 'navbar_item')
 def navbar_item(sender, **kwargs):
     pages = Page.query.all()
     more = []
@@ -244,6 +245,6 @@ db.event.listen(Page.body, 'set', on_changed_article_body)
 
 @current_plugin.route('admin', '/settings', '设置')
 def settings(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])

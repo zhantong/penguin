@@ -15,6 +15,7 @@ from urllib.request import urlopen
 import redis
 from rq import Connection, Worker
 import jinja2
+from .models import Component, Signal
 
 current_plugin = Plugin('penguin', 'penguin', show_in_sidebar=False)
 
@@ -28,15 +29,12 @@ def create_app(config_name=None):
     config[config_name].init_app(app)
 
     register_extensions(app)
-
-    from .plugins import load_plugins
-    load_plugins()
-
+    register_components(app)
     register_blueprints(app)
     register_commands(app)
     register_template_context(app)
 
-    Plugin.Signal.send('penguin', 'create_app', app=app)
+    Signal.send('penguin', 'create_app', app=app)
 
     flask_whooshalchemyplus.init_app(app)
 
@@ -79,7 +77,8 @@ def register_template_context(app):
 
     app.jinja_loader = jinja2.ChoiceLoader([
         app.jinja_loader,
-        jinja2.FileSystemLoader(['app/plugins'])
+        jinja2.FileSystemLoader(['app/plugins']),
+        jinja2.FileSystemLoader(['app'])
     ])
 
     @app.context_processor
@@ -87,6 +86,30 @@ def register_template_context(app):
         return dict(
             get_setting=Plugin.get_setting,
             get_setting_value=Plugin.get_setting_value)
+
+
+def register_components(app):
+    def load_components():
+        pre_load_components()
+        dirname = os.path.dirname(__file__)
+        for name in os.listdir(dirname):
+            if os.path.isdir(os.path.join(dirname, name)) and not name.startswith('.'):
+                __import__(name, globals=globals(), fromlist=[name], level=1)
+
+    def pre_load_components():
+        dirname = os.path.dirname(__file__)
+        for name in os.listdir(dirname):
+            config_file = os.path.join(dirname, name, 'component.json')
+            if os.path.isfile(config_file):
+                with open(config_file) as f:
+                    config = json.loads(f.read())
+                component = Component(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'])
+                if 'signals' in config:
+                    for signal in config['signals']:
+                        name = signal.pop('name')
+                        component.signal.declare_signal(name, **signal)
+
+    load_components()
 
 
 def register_commands(app):
@@ -137,7 +160,7 @@ def register_commands(app):
 
     @app.cli.command()
     def show_signals_new():
-        signals = Plugin.Signal._signals
+        signals = Signal._signals
         for signal, value in signals.items():
             print(signal)
             for name, value in value.items():

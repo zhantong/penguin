@@ -1,6 +1,7 @@
 from . import main
 from flask import render_template, request, url_for
 from ..plugins.models import Plugin
+from ..models import Signal
 
 current_plugin = Plugin.current_plugin()
 
@@ -20,7 +21,7 @@ def index():
             left_widgets.append(widget)
         elif widget['slug'] == 'latest_comments':
             right_widgets.append(widget)
-    main_widgets.append(Plugin.Signal.send('article', 'get_widget_article_list', request=request))
+    main_widgets.append(Signal.send('article', 'get_widget_article_list', request=request))
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 
@@ -35,7 +36,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@Plugin.Signal.connect('penguin', 'create_app')
+@Signal.connect('penguin', 'create_app')
 def create_app(sender, app, **kwargs):
     @app.context_processor
     def context_processor():

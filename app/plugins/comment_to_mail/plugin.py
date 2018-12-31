@@ -12,13 +12,14 @@ from ..comment.models import Comment
 import redis
 from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
+from ...models import Signal
 
 current_plugin = Plugin.current_plugin()
 
 opener = urllib.request.build_opener()
 
 
-@Plugin.Signal.connect('penguin', 'deploy')
+@Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
     current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
     current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
@@ -61,7 +62,7 @@ def is_authorized():
 
 @current_plugin.route('admin', '/settings', '设置')
 def account(request, templates, scripts, **kwargs):
-    widget = Plugin.Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
@@ -111,7 +112,7 @@ def me(templates, **kwargs):
     templates.append(current_plugin.render_template('me.html', me=me, login_url=current_plugin.url_for('/login')))
 
 
-@Plugin.Signal.connect('comment', 'comment_submitted')
+@Signal.connect('comment', 'comment_submitted')
 def comment_submitted(sender, comment, **kwargs):
     message = Message(comment=comment, status='未发送')
     db.session.add(message)

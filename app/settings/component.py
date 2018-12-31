@@ -1,28 +1,28 @@
-from ..models import Plugin
+from ..models import Component,Signal
 from flask import request, jsonify
 from .models import Settings
-from ...admin import admin
+from ..admin import admin
 import json
 
-current_plugin = Plugin.current_plugin()
+current_component = Component.current_component()
 
 
-@Plugin.Signal.connect('penguin', 'deploy')
+@Signal.connect('penguin', 'deploy')
 def deploy(sender, **kwargs):
-    current_plugin.set_setting('site_name', name='站名', value='Penguin', value_type='str')
-    current_plugin.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
+    current_component.set_setting('site_name', name='站名', value='Penguin', value_type='str')
+    current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
 
-@current_plugin.route('admin', '/settings', '通用')
+@current_component.route('admin', '/settings', '通用')
 def general(templates, scripts, **kwargs):
-    widget = current_plugin.signal.send_this('get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    widget = current_component.signal.send_this('get_widget_list', category=current_component.slug, meta={'plugin': current_component.slug})
     templates.append(widget['html'])
     scripts.append(widget['script'])
 
 
 def get_setting(slug, category=None):
     if category is None:
-        category = current_plugin.slug
+        category = current_component.slug
     return Settings.get(slug, category)
 
 
@@ -32,7 +32,7 @@ def get_setting_obj(slug, category=None):
 
 def get_setting_value(slug, category=None, default=None):
     if category is None:
-        category = current_plugin.slug
+        category = current_component.slug
     value = Settings.get_value(slug, category)
     if value is None:
         value = default
@@ -43,29 +43,29 @@ def set_setting(key, category='settings', **kwargs):
     Settings.set(key, category, **kwargs)
 
 
-@current_plugin.signal.connect_this('get_widget_list')
+@current_component.signal.connect_this('get_widget_list')
 def get_widget_list(sender, category, meta, **kwargs):
-    plugin = Plugin.find_plugin(category)
-    for signal_name, data in plugin.signal.signals.items():
+    component = Component.find_component(category)
+    for signal_name, data in component.signal.signals.items():
         if data.get('managed', False):
             if 'return_type' in data and data['return_type'] == 'list':
-                if plugin.get_setting_this(signal_name) is None:
+                if component.get_setting_this(signal_name) is None:
                     value = {
                         'subscribers_order': {
                             'main': []
                         },
                         'subscribers': {}
                     }
-                    plugin.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
-                value = plugin.get_setting_value_this(signal_name)
+                    component.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
+                value = component.get_setting_value_this(signal_name)
                 if 'custom_list' in data:
                     value['subscribers_order'] = {list_key: list_value for list_key, list_value in value['subscribers_order'].items() if list_key in data['custom_list']}
                     for custom_list_key in data['custom_list'].keys():
                         if custom_list_key not in value['subscribers_order']:
                             value['subscribers_order'][custom_list_key] = []
                 for list_key in value['subscribers_order'].keys():
-                    value['subscribers_order'][list_key] = [item for item in value['subscribers_order'][list_key] if item['subscriber'] in plugin.signal.signals[signal_name]['receivers']]
-                for key, info in plugin.signal.signals[signal_name].get('receivers', {}).items():
+                    value['subscribers_order'][list_key] = [item for item in value['subscribers_order'][list_key] if item['subscriber'] in component.signal.signals[signal_name]['receivers']]
+                for key, info in component.signal.signals[signal_name].get('receivers', {}).items():
                     if key not in value['subscribers']:
                         value['subscribers'][key] = {
                             'file': info['func_file'],
@@ -75,14 +75,14 @@ def get_widget_list(sender, category, meta, **kwargs):
                                 'subscriber': key,
                                 'is_on': data['managed_default'] == 'all'
                             })
-                plugin.set_setting(signal_name, value=json.dumps(value))
+                component.set_setting(signal_name, value=json.dumps(value))
 
     settings = Settings.query.filter_by(category=category, visibility='visible').all()
     return {
         'slug': 'settings',
         'name': '设置',
-        'html': current_plugin.render_template('widget_list', 'widget.html', settings=settings, category=category, meta=meta),
-        'script': current_plugin.render_template('widget_list', 'widget.js.html', category=category)
+        'html': current_component.render_template('widget_list', 'widget.html', settings=settings, category=category, meta=meta),
+        'script': current_component.render_template('widget_list', 'widget.js.html', category=category)
     }
 
 

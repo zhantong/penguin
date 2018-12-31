@@ -1,115 +1,14 @@
 from flask import url_for, render_template
 from urllib.parse import urlencode
 from pathlib import Path
-import blinker
 import inspect
 import os
+from ..models import Signal, Component
 
 
 class Plugin:
     plugins = {}
-
-    class Signal:
-        _signals = {}
-
-        def __init__(self, outer_class):
-            self.outer_class = outer_class
-
-        @staticmethod
-        def connect(plugin_name, name):
-            def decorator(func):
-                func_name = func.__name__
-                func_file = inspect.getsourcefile(func)
-
-                if 'receivers' not in Plugin.Signal._signals[signal_name]:
-                    Plugin.Signal._signals[signal_name]['receivers'] = {}
-                Plugin.Signal._signals[signal_name]['receivers'][func_file + '|' + func_name] = {
-                    'func': func,
-                    'func_name': func_name,
-                    'func_file': func_file
-                }
-                signal = blinker.signal(signal_name)
-                signal.connect(func)
-
-            signal_name = plugin_name + '.' + name
-            if signal_name not in Plugin.Signal._signals:
-                Plugin.Signal._signals[signal_name] = {}
-            return decorator
-
-        def connect_this(self, name):
-            return Plugin.Signal.connect(self.outer_class.slug, name)
-
-        @staticmethod
-        def send(plugin_name, name, **kwargs):
-            signal_name = plugin_name + '.' + name
-            if signal_name not in Plugin.Signal._signals:
-                return
-            signal = Plugin.Signal._signals[signal_name]
-            if not signal.get('managed', False):
-                result = blinker.signal(signal_name).send(**kwargs)
-            else:
-                result = []
-                signal_settings = Plugin.find_plugin(plugin_name).get_setting_value_this(name)
-                if signal_settings is None or 'subscribers_order' not in signal_settings:
-                    if signal['managed_default'] == 'all':
-                        result = blinker.signal(signal_name).send(**kwargs)
-                    elif signal['managed_default'] == 'none':
-                        result = []
-                else:
-                    result = {}
-                    for list_name, items in signal_settings['subscribers_order'].items():
-                        result[list_name] = []
-                        for item in items:
-                            if item['is_on'] and item['subscriber'] in signal['receivers']:
-                                receiver = signal['receivers'][item['subscriber']]['func']
-                                result[list_name].append((receiver, receiver(None, **kwargs)))
-                    if 'main' in result and len(result) == 1:
-                        result = result['main']
-            if 'return_type' in Plugin.Signal._signals[signal_name]:
-                return_type = Plugin.Signal._signals[signal_name]['return_type']
-                if return_type == 'single':
-                    default = Plugin.Signal._signals[signal_name].get('default', None)
-                    if len(result) == 0 and default is not None:
-                        return default
-                    return result[0][1]
-                if return_type == 'list':
-                    if type(result) is list:
-                        return [item[1] for item in result]
-                    for list_name, items in result.items():
-                        result[list_name] = [item[1] for item in items]
-                    return result
-                if return_type == 'merged_list':
-                    items = []
-                    for item in result:
-                        if type(item[1]) is list:
-                            items.extend(item[1])
-                        else:
-                            items.append(item[1])
-                    return items
-                if return_type == 'single_not_none':
-                    for item in result:
-                        if item[1] is not None:
-                            return item[1]
-
-        def send_this(self, name, **kwargs):
-            return Plugin.Signal.send(self.outer_class.slug, name, **kwargs)
-
-        def declare_signal(self, name, **kwargs):
-            signal_name = self.outer_class.slug + '.' + name
-            if signal_name not in Plugin.Signal._signals:
-                Plugin.Signal._signals[signal_name] = {}
-            Plugin.Signal._signals[signal_name].update(**kwargs)
-
-        def get_signal(self, name):
-            return Plugin.Signal._signals[self.outer_class.slug + '.' + name]
-
-        @property
-        def signals(self):
-            signals = {}
-            for signal_name, data in Plugin.Signal._signals.items():
-                if signal_name.startswith(self.outer_class.slug + '.'):
-                    signals[signal_name[len(self.outer_class.slug + '.'):]] = data
-            return signals
+    Component._component_search_scope.append(plugins)
 
     @staticmethod
     def find_plugin(slug):
@@ -126,7 +25,7 @@ class Plugin:
         self.directory = directory
         self.show_in_sidebar = show_in_sidebar
         self.routes = {}
-        self.signal = self.Signal(self)
+        self.signal = Signal(self)
         self.template_context = {}
 
     def route(self, blueprint, rule, name=None, **kwargs):
@@ -162,12 +61,12 @@ class Plugin:
 
     @staticmethod
     def get_setting_value(key, plugin_name=None, default=None):
-        from .settings.plugin import get_setting_value
+        from app.settings import get_setting_value
         return get_setting_value(key, category=plugin_name, default=default)
 
     @staticmethod
     def get_setting(key, plugin_name=None):
-        from .settings.plugin import get_setting
+        from app.settings import get_setting
         return get_setting(key, category=plugin_name)
 
     def get_setting_value_this(self, key, default=None):
@@ -177,7 +76,7 @@ class Plugin:
         return Plugin.get_setting(key, self.slug)
 
     def set_setting(self, key, **kwargs):
-        from .settings.plugin import set_setting
+        from app.settings import set_setting
         return set_setting(key, self.slug, **kwargs)
 
     def render_template(self, *args, **kwargs):
