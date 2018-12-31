@@ -1,0 +1,19 @@
+{
+  "id": "main",
+  "name": "main",
+  "show_in_sidebar": false,
+  "signals": [
+    {
+      "name": "get_navbar_item",
+      "return_type": "single"
+    },
+    {
+      "name": "widget",
+      "return_type": "list"
+    },
+    {
+      "name": "navbar_item",
+      "return_type": "list"
+    }
+  ]
+}

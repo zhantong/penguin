@@ -1,13 +1,9 @@
 from . import main
 from flask import render_template, request, url_for
 from ..plugins.models import Plugin
-from ..models import Signal
+from ..models import Signal, Component
 
-current_plugin = Plugin.current_plugin()
-
-current_plugin.signal.declare_signal('get_navbar_item', return_type='single')
-current_plugin.signal.declare_signal('widget', return_type='list')
-current_plugin.signal.declare_signal('navbar_item', return_type='list')
+current_component = Component.current_component()
 
 
 @main.route('/')
@@ -15,7 +11,7 @@ def index():
     left_widgets = []
     right_widgets = []
     main_widgets = []
-    widgets = current_plugin.signal.send_this('widget', end_point='.index')
+    widgets = current_component.signal.send_this('widget', end_point='.index')
     for widget in widgets:
         if widget['slug'] == 'category':
             left_widgets.append(widget)
@@ -65,7 +61,7 @@ def create_app(sender, app, **kwargs):
                     for item in more:
                         insert_item(item)
 
-            navbar_items = current_plugin.signal.send_this('navbar_item')
+            navbar_items = current_component.signal.send_this('navbar_item')
             for navbar_item in navbar_items:
                 process_item(navbar_item)
 
@@ -74,7 +70,7 @@ def create_app(sender, app, **kwargs):
         return dict(custom_navbar=custom_navbar)
 
 
-@current_plugin.signal.connect_this('navbar_item')
+@current_component.signal.connect_this('navbar_item')
 def get_navbar_item(sender, **kwargs):
     return {
         'type': 'brand',
