@@ -175,8 +175,8 @@ def get_article(sender, article_id, **kwargs):
     return Article.query.get(article_id)
 
 
-@current_plugin.signal.connect_this('get_widget_article_list')
-def get_widget_article_list(sender, request, **kwargs):
+@Signal.connect('main', 'widget')
+def main_widget(sender, request, **kwargs):
     def get_metas(article):
         return current_plugin.signal.send_this('article_list_item_meta', article=article)
 

@@ -13,6 +13,7 @@
       "managed": true,
       "managed_default": "none",
       "custom_list": {
+        "main": {},
         "left": {},
         "right": {}
       }

@@ -8,12 +8,10 @@ current_component = Component.current_component()
 
 @main.route('/')
 def index():
-    main_widgets = []
-    widgets = current_component.signal.send_this('widget', end_point='.index')
+    widgets = current_component.signal.send_this('widget', end_point='.index', request=request)
+    main_widgets = widgets['main']
     left_widgets = widgets['left']
     right_widgets = widgets['right']
-
-    main_widgets.append(Signal.send('article', 'get_widget_article_list', request=request))
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 

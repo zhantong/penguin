@@ -4,10 +4,6 @@
   "show_in_sidebar": true,
   "signals": [
     {
-      "name": "get_widget_article_list",
-      "return_type": "single"
-    },
-    {
       "name": "get_navbar_item",
       "return_type": "single"
     },
