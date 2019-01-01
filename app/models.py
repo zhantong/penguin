@@ -211,8 +211,12 @@ class Component:
         return wrap
 
     def request(self, path, **kwargs):
-        rule = '/' + path.split('/')[1]
-        self.routes[rule].func(**kwargs)
+        rule = '/' + path.split('/')[0]
+        if rule in self.routes:
+            path = path[len(rule):]
+            self.routes[rule].func(path=path, **kwargs)
+        elif '/*' in self.routes:
+            self.routes['/*'].func(path=path, **kwargs)
 
     def url_for(self, rule, **values):
         if len(values) == 0:

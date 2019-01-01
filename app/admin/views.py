@@ -28,7 +28,9 @@ def dispatch(path):
     scripts = []
     csss = []
     meta = {'override_render': False}
-    current_component.signal.send_this('request', path=path, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
+    component_slug = path.split('/')[0]
+    path = path[len(component_slug + '/'):]
+    Component.find_component(component_slug).request(path, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
     if meta['override_render']:
         if len(templates) == 0:
             abort(404)
