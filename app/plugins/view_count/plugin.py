@@ -26,12 +26,12 @@ def viewing(repository_id, request, cookies_to_set):
 
 
 @Signal.connect('article', 'on_showing_article')
-def on_showing_article(sender, article, request, cookies_to_set, **kwargs):
+def on_showing_article(article, request, cookies_to_set, **kwargs):
     viewing(article.repository_id, request, cookies_to_set)
 
 
 @Signal.connect('page', 'on_showing_page')
-def on_showing_article(sender, page, request, cookies_to_set, **kwargs):
+def on_showing_article(page, request, cookies_to_set, **kwargs):
     viewing(page.repository_id, request, cookies_to_set)
 
 
@@ -44,13 +44,13 @@ def restore(repository_id, count):
 
 
 @Signal.connect('article', 'restore')
-def article_restore(sender, article, data, **kwargs):
+def article_restore(article, data, **kwargs):
     if 'view_count' in data:
         restore(article.repository_id, data['view_count'])
 
 
 @Signal.connect('page', 'restore')
-def page_restore(sender, page, data, **kwargs):
+def page_restore(page, data, **kwargs):
     if 'view_count' in data:
         restore(page.repository_id, data['view_count'])
 
@@ -66,22 +66,22 @@ def _article_meta(article):
 
 
 @Signal.connect('article', 'meta')
-def article_meta(sender, article, **kwargs):
+def article_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'article_list_item_meta')
-def article_list_item_meta(sender, article, **kwargs):
+def article_list_item_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('page', 'meta')
-def page_meta(sender, page, **kwargs):
+def page_meta(page, **kwargs):
     return get_rendered_view_count(page.repository_id)
 
 
 @Signal.connect('article', 'custom_contents_column')
-def article_custom_contents_column(sender, **kwargs):
+def article_custom_contents_column(**kwargs):
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', view_count=ViewCount.query.filter_by(repository_id=article.repository_id).first().count)
 

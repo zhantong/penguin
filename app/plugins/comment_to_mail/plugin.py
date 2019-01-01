@@ -20,7 +20,7 @@ opener = urllib.request.build_opener()
 
 
 @Signal.connect('penguin', 'deploy')
-def deploy(sender, **kwargs):
+def deploy(**kwargs):
     current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
     current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
     current_plugin.set_setting('scope', name='Delegated Permissions', value='', value_type='str')
@@ -113,7 +113,7 @@ def me(templates, **kwargs):
 
 
 @Signal.connect('comment', 'comment_submitted')
-def comment_submitted(sender, comment, **kwargs):
+def comment_submitted(comment, **kwargs):
     message = Message(comment=comment, status='未发送')
     db.session.add(message)
     db.session.commit()

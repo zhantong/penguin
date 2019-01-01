@@ -20,17 +20,17 @@ def get_widget(template):
 
 
 @Signal.connect('article', 'edit_widget')
-def article_edit_widget(sender, article, **kwargs):
+def article_edit_widget(article, **kwargs):
     return get_widget(article.template)
 
 
 @Signal.connect('page', 'edit_widget')
-def page_edit_widget(sender, page, **kwargs):
+def page_edit_widget(page, **kwargs):
     return get_widget(page.template)
 
 
 @Signal.connect('article', 'submit_edit_widget')
-def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
+def article_submit_edit_widget(slug, js_data, article, **kwargs):
     if slug == 'template':
         for item in js_data:
             if item['name'] == 'template-id':
@@ -39,7 +39,7 @@ def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
 
 
 @Signal.connect('page', 'submit_edit_widget')
-def page_submit_edit_widget(sender, slug, js_data, page, **kwargs):
+def page_submit_edit_widget(slug, js_data, page, **kwargs):
     if slug == 'template':
         for item in js_data:
             if item['name'] == 'template-id':
@@ -114,26 +114,26 @@ def new_tag(templates, meta, **kwargs):
 
 
 @current_plugin.signal.connect_this('render_template')
-def render(sender, template, json_params, **kwargs):
+def render(template, json_params, **kwargs):
     template = Jinja2Tempalte(template.body)
     params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}
     return template.render(**params)
 
 
 @Signal.connect('article', 'filter')
-def article_filter(sender, query, params, Article, **kwargs):
+def article_filter(query, params, Article, **kwargs):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Article.template).filter(Template.slug == params['template'])
 
 
 @Signal.connect('page', 'filter')
-def page_filter(sender, query, params, Page, **kwargs):
+def page_filter(query, params, Page, **kwargs):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Page.template).filter(Template.slug == params['template'])
 
 
 @Signal.connect('article', 'modify_article_when_showing')
-def modify_article_when_showing(sender, article, **kwargs):
+def modify_article_when_showing(article, **kwargs):
     if article.template is not None:
         template = Jinja2Tempalte(article.template.body)
         params = {json_param[0]: eval(json_param[1]) for json_param in json.loads(article.body).items()}
@@ -141,7 +141,7 @@ def modify_article_when_showing(sender, article, **kwargs):
 
 
 @Signal.connect('page', 'modify_page_when_showing')
-def modify_page_when_showing(sender, page, **kwargs):
+def modify_page_when_showing(page, **kwargs):
     if page.template is not None:
         template = Jinja2Tempalte(page.template.body)
         params = {json_param[0]: eval(json_param[1]) for json_param in json.loads(page.body).items()}
@@ -149,5 +149,5 @@ def modify_page_when_showing(sender, page, **kwargs):
 
 
 @Signal.connect('article', 'should_compile_markdown_when_body_change')
-def article_should_compile_markdown_when_body_change(sender, article, **kwargs):
+def article_should_compile_markdown_when_body_change(article, **kwargs):
     return article.template is None

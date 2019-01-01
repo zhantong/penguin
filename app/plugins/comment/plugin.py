@@ -131,7 +131,7 @@ def show_widget(session, comments, meta):
 
 
 @Signal.connect('article', 'show_article_widget')
-def show_article_widget(sender, session, article, **kwargs):
+def show_article_widget(session, article, **kwargs):
     meta = {
         'article_id': article.id
     }
@@ -140,7 +140,7 @@ def show_article_widget(sender, session, article, **kwargs):
 
 
 @Signal.connect('page', 'show_page_widget')
-def show_page_widget(sender, session, page, **kwargs):
+def show_page_widget(session, page, **kwargs):
     meta = {
         'page_id': page.id
     }
@@ -170,19 +170,19 @@ def restore(comments):
 
 
 @Signal.connect('article', 'restore')
-def article_restore(sender, article, data, **kwargs):
+def article_restore(article, data, **kwargs):
     if 'comments' in data:
         article.comments = restore(data['comments'])
 
 
 @Signal.connect('page', 'restore')
-def page_restore(sender, page, data, **kwargs):
+def page_restore(page, data, **kwargs):
     if 'comments' in data:
         page.comments = restore(data['comments'])
 
 
 @Signal.connect('main', 'widget')
-def main_widget(sender, end_point, **kwargs):
+def main_widget(end_point, **kwargs):
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     return {
         'slug': 'latest_comments',
@@ -193,17 +193,17 @@ def main_widget(sender, end_point, **kwargs):
 
 
 @current_plugin.signal.connect_this('get_rendered_num_comments')
-def get_rendered_tag_items(sender, comments, **kwargs):
+def get_rendered_tag_items(comments, **kwargs):
     return current_plugin.render_template('num_comments.html', comments=comments)
 
 
 @Signal.connect('article', 'duplicate')
-def article_duplicate(sender, old_article, new_article, **kwargs):
+def article_duplicate(old_article, new_article, **kwargs):
     new_article.comments = old_article.comments
 
 
 @Signal.connect('page', 'duplicate')
-def article_duplicate(sender, old_page, new_page, **kwargs):
+def article_duplicate(old_page, new_page, **kwargs):
     new_page.comments = old_page.comments
 
 
@@ -212,22 +212,22 @@ def _article_meta(article):
 
 
 @Signal.connect('article', 'meta')
-def article_meta(sender, article, **kwargs):
+def article_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'article_list_item_meta')
-def article_list_item_meta(sender, article, **kwargs):
+def article_list_item_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('page', 'meta')
-def article_meta(sender, page, **kwargs):
+def article_meta(page, **kwargs):
     return current_plugin.render_template('num_comments.html', comments=page.comments)
 
 
 @Signal.connect('article', 'custom_contents_column')
-def article_custom_contents_column(sender, **kwargs):
+def article_custom_contents_column(**kwargs):
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', comments=article.comments)
 

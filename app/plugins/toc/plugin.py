@@ -13,7 +13,7 @@ def toc_static(filename):
 
 
 @Signal.connect('article', 'show_article_widget')
-def show_article_widget(sender, article, **kwargs):
+def show_article_widget(article, **kwargs):
     return {
         'slug': 'toc',
         'name': '文章目录',

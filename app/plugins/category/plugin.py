@@ -9,7 +9,7 @@ current_plugin = Plugin.current_plugin()
 
 
 @Signal.connect('main', 'widget')
-def main_widget(sender, end_point, **kwargs):
+def main_widget(end_point, **kwargs):
     all_category = Category.query.order_by(Category.name).all()
     return {
         'slug': 'category',
@@ -20,7 +20,7 @@ def main_widget(sender, end_point, **kwargs):
 
 
 @current_plugin.signal.connect_this('restore')
-def restore_categories(sender, categories, **kwargs):
+def restore_categories(categories, **kwargs):
     restored_categories = []
     for category in categories:
         if type(category) is str:
@@ -39,19 +39,19 @@ def restore_categories(sender, categories, **kwargs):
 
 
 @Signal.connect('article', 'restore')
-def article_restore(sender, article, data, **kwargs):
+def article_restore(article, data, **kwargs):
     if 'categories' in data:
         article.categories = current_plugin.signal.send_this('restore', categories=data['categories'])
 
 
 @Signal.connect('app', 'restore')
-def global_restore(sender, data, **kwargs):
+def global_restore(data, **kwargs):
     if 'category' in data:
         return current_plugin.signal.send_this('restore', categories=data['category'])
 
 
 @Signal.connect('article', 'edit_widget')
-def article_edit_widget(sender, article, **kwargs):
+def article_edit_widget(article, **kwargs):
     all_category = Category.query.all()
     category_ids = [category.id for category in article.categories]
     return {
@@ -62,7 +62,7 @@ def article_edit_widget(sender, article, **kwargs):
 
 
 @Signal.connect('article', 'submit_edit_widget')
-def article_submit_edit_widget(sender, slug, js_data, article, **kwargs):
+def article_submit_edit_widget(slug, js_data, article, **kwargs):
     if slug == 'category':
         category_ids = []
         for item in js_data:
@@ -133,7 +133,7 @@ def new_tag(templates, meta, **kwargs):
 
 
 @Signal.connect('article', 'filter')
-def article_filter(sender, query, params, Article, **kwargs):
+def article_filter(query, params, Article, **kwargs):
     if 'category' in params and params['category'] != '':
         query['query'] = query['query'].join(Article.categories).filter(Category.slug == params['category'])
 
@@ -143,22 +143,22 @@ def _article_meta(article):
 
 
 @Signal.connect('article', 'meta')
-def article_meta(sender, article, **kwargs):
+def article_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'article_list_item_meta')
-def article_list_item_meta(sender, article, **kwargs):
+def article_list_item_meta(article, **kwargs):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'header_keyword')
-def article_header_keyword(sender, article, **kwargs):
+def article_header_keyword(article, **kwargs):
     return [category.name for category in article.categories]
 
 
 @Signal.connect('article', 'custom_list_column')
-def article_custom_list_column(sender, **kwargs):
+def article_custom_list_column(**kwargs):
     def content_func(article):
         return current_plugin.render_template('admin_category_items.html', article=article, admin_article_list_url=admin_article_list_url)
 
