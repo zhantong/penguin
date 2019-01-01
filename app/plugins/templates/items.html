@@ -1,0 +1,22 @@
+{% for plugin in plugins.values() %}
+    {% if plugin.show_in_sidebar %}
+        <div class="card-header  bg-secondary" role="tab" id="nav-{{ plugin.slug }}-heading">
+            <a class="text-white" role="button" data-toggle="collapse" href="#nav-{{ plugin.slug }}-collapse"
+               aria-expanded="true" aria-controls="nav-{{ plugin['slug'] }}-collapse">
+                {{ plugin.name }}
+            </a>
+        </div>
+        <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse show" role="tabpanel"
+             aria-labelledby="nav-{{ plugin.slug }}-heading">
+            <ul class="list-group list-group-flush">
+                {% for route in plugin.routes.values() %}
+                    {% if route.name is not none %}
+                        <li class="list-group-item">
+                            <a href="{{ route.path() }}">{{ route.name }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endfor %}

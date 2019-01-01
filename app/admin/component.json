@@ -1,0 +1,11 @@
+{
+  "id": "admin",
+  "name": "admin",
+  "show_in_sidebar": false,
+  "signals": [
+    {
+      "name": "sidebar_item",
+      "return_type": "single"
+    }
+  ]
+}

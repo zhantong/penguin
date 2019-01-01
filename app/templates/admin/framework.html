@@ -21,18 +21,18 @@
                     {% for sidebar in sidebars %}
                         {% include sidebar %}
                     {% endfor %}
-                    {% for plugin in plugins.values() %}
-                        {% if plugin.show_in_sidebar %}
-                            <div class="card-header" role="tab" id="nav-{{ plugin.slug }}-heading">
-                                <a role="button" data-toggle="collapse" href="#nav-{{ plugin.slug }}-collapse"
-                                   aria-expanded="true" aria-controls="nav-{{ plugin['slug'] }}-collapse">
-                                    {{ plugin.name }}
+                    {% for component in components.values() %}
+                        {% if component.show_in_sidebar %}
+                            <div class="card-header" role="tab" id="nav-{{ component.slug }}-heading">
+                                <a role="button" data-toggle="collapse" href="#nav-{{ component.slug }}-collapse"
+                                   aria-expanded="true" aria-controls="nav-{{ component['slug'] }}-collapse">
+                                    {{ component.name }}
                                 </a>
                             </div>
-                            <div id="nav-{{ plugin.slug }}-collapse" class="panel-collapse collapse show" role="tabpanel"
-                                 aria-labelledby="nav-{{ plugin.slug }}-heading">
+                            <div id="nav-{{ component.slug }}-collapse" class="panel-collapse collapse show" role="tabpanel"
+                                 aria-labelledby="nav-{{ component.slug }}-heading">
                                 <ul class="list-group list-group-flush">
-                                    {% for route in plugin.routes.values() %}
+                                    {% for route in component.routes.values() %}
                                         {% if route.name is not none %}
                                             <li class="list-group-item">
                                                 <a href="{{ route.path() }}">{{ route.name }}</a>
@@ -40,6 +40,7 @@
                                         {% endif %}
                                     {% endfor %}
                                 </ul>
+                                {{ get_sidebar_item(component)|safe }}
                             </div>
                         {% endif %}
                     {% endfor %}

@@ -3,6 +3,7 @@ import os.path
 from flask import Blueprint
 import json
 from .models import Plugin
+from . import views
 
 plugin = Blueprint('plugin', __name__)
 
