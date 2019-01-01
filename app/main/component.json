@@ -11,7 +11,11 @@
       "name": "widget",
       "return_type": "list",
       "managed": true,
-      "managed_default": "none"
+      "managed_default": "none",
+      "custom_list": {
+        "left": {},
+        "right": {}
+      }
     },
     {
       "name": "navbar_item",

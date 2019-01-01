@@ -8,15 +8,11 @@ current_component = Component.current_component()
 
 @main.route('/')
 def index():
-    left_widgets = []
-    right_widgets = []
     main_widgets = []
     widgets = current_component.signal.send_this('widget', end_point='.index')
-    for widget in widgets:
-        if widget['slug'] == 'category':
-            left_widgets.append(widget)
-        elif widget['slug'] == 'latest_comments':
-            right_widgets.append(widget)
+    left_widgets = widgets['left']
+    right_widgets = widgets['right']
+
     main_widgets.append(Signal.send('article', 'get_widget_article_list', request=request))
 
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
@@ -83,3 +79,10 @@ def get_navbar_item(sender, **kwargs):
             }
         ]
     }
+
+
+@current_component.route('admin', '/settings', '设置')
+def account(request, templates, scripts, **kwargs):
+    widget = Signal.send('settings', 'get_widget_list', category=current_component.slug, meta={'plugin': current_component.slug})
+    templates.append(widget['html'])
+    scripts.append(widget['script'])
