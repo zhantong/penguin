@@ -15,7 +15,7 @@ current_plugin = Plugin.current_plugin()
 
 
 @Signal.connect('penguin', 'deploy')
-def deploy(**kwargs):
+def deploy():
     current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
@@ -95,7 +95,7 @@ def delete_upload(id):
 
 
 @Signal.connect('article', 'restore')
-def article_restore(article, data, directory, **kwargs):
+def article_restore(article, data, directory):
     if 'attachments' in data:
         restored_attachments = []
         for attachment in data['attachments']:
@@ -117,7 +117,7 @@ def get_widget(attachments, meta):
 
 
 @Signal.connect('article', 'edit_widget')
-def article_edit_widget(article, **kwargs):
+def article_edit_widget(article):
     meta = {
         'article_id': article.id
     }
@@ -125,7 +125,7 @@ def article_edit_widget(article, **kwargs):
 
 
 @Signal.connect('page', 'edit_widget')
-def page_edit_widget(page, **kwargs):
+def page_edit_widget(page):
     meta = {
         'page_id': page.id
     }
@@ -133,10 +133,10 @@ def page_edit_widget(page, **kwargs):
 
 
 @Signal.connect('article', 'duplicate')
-def article_duplicate(old_article, new_article, **kwargs):
+def article_duplicate(old_article, new_article):
     new_article.attachments = old_article.attachments
 
 
 @Signal.connect('page', 'duplicate')
-def page_duplicate(old_page, new_page, **kwargs):
+def page_duplicate(old_page, new_page):
     new_page.attachments = old_page.attachments

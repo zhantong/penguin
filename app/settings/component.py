@@ -8,7 +8,7 @@ current_component = Component.current_component()
 
 
 @Signal.connect('penguin', 'deploy')
-def deploy(**kwargs):
+def deploy():
     current_component.set_setting('site_name', name='站名', value='Penguin', value_type='str')
     current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
@@ -44,7 +44,7 @@ def set_setting(key, category='settings', **kwargs):
 
 
 @current_component.signal.connect_this('get_widget_list')
-def get_widget_list(category, meta, **kwargs):
+def get_widget_list(category, meta):
     component = Component.find_component(category)
     for signal_name, data in component.signal.signals.items():
         if data.get('managed', False):

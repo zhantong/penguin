@@ -47,7 +47,7 @@ def show_article(number):
 
 
 @Signal.connect('app', 'restore')
-def restore(data, directory, **kwargs):
+def restore(data, directory):
     if 'article' in data:
         articles = data['article']
         for article in articles:
@@ -58,12 +58,12 @@ def restore(data, directory, **kwargs):
 
 
 @current_plugin.signal.connect_this('article_url')
-def article_url(article, anchor, **kwargs):
+def article_url(article, anchor):
     return url_for('main.show_article', number=article.number, _anchor=anchor)
 
 
 @current_plugin.signal.connect_this('article_list_url')
-def article_list_url(params, **kwargs):
+def article_list_url(params):
     return url_for('.dispatch', path=current_plugin.slug + '/' + 'list', **params)
 
 
@@ -111,7 +111,7 @@ def article_list(request, templates, meta, scripts, **kwargs):
 
 
 @current_plugin.signal.connect_this('get_admin_article_list')
-def get_admin_widget_article_list(params, **kwargs):
+def get_admin_widget_article_list(params):
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
 
@@ -171,12 +171,12 @@ def cleanup_temp_article():
 
 
 @current_plugin.signal.connect_this('get_article')
-def get_article(article_id, **kwargs):
+def get_article(article_id):
     return Article.query.get(article_id)
 
 
 @Signal.connect('main', 'widget')
-def main_widget(request, **kwargs):
+def main_widget(request):
     def get_metas(article):
         return current_plugin.signal.send_this('article_list_item_meta', article=article)
 
@@ -201,7 +201,7 @@ def filter(query, params):
 
 
 @Signal.connect('main', 'navbar_item')
-def navbar_item(**kwargs):
+def navbar_item():
     return {
         'type': 'template',
         'template': current_plugin.render_template('navbar_search', 'navbar.html'),
@@ -209,12 +209,12 @@ def navbar_item(**kwargs):
 
 
 @current_plugin.signal.connect_this('admin_article_list_url')
-def admin_article_list_url(params, **kwargs):
+def admin_article_list_url(params):
     return current_plugin.url_for('/list', **params)
 
 
 @Signal.connect('page', 'dynamic_page')
-def dynamic_page(**kwargs):
+def dynamic_page():
     articles = Article.query_published().order_by(Article.timestamp.desc()).all()
     custom_columns = current_plugin.signal.send_this('custom_contents_column')
     return {
@@ -227,7 +227,7 @@ def dynamic_page(**kwargs):
 
 
 @current_plugin.signal.connect_this('get_widget_submit')
-def get_widget_submit(article, **kwargs):
+def get_widget_submit(article):
     return {
         'slug': 'submit',
         'name': '发布',
@@ -257,12 +257,12 @@ def _meta_publish_datetime(article):
 
 
 @current_plugin.signal.connect_this('meta')
-def meta_publish_datetime(article, **kwargs):
+def meta_publish_datetime(article):
     return _meta_publish_datetime(article)
 
 
 @current_plugin.signal.connect_this('article_list_item_meta')
-def article_list_item_meta(article, **kwargs):
+def article_list_item_meta(article):
     return _meta_publish_datetime(article)
 
 

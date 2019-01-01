@@ -6,7 +6,7 @@ current_plugin = Plugin.current_plugin()
 
 
 @Signal.connect('article', 'show_article_widget')
-def show_article_widget(article, **kwargs):
+def show_article_widget(article):
     prev_next_articles = []
     prev_article = Article.query_published().filter(Article.timestamp < article.timestamp).order_by(Article.timestamp.desc()).limit(1).first()
     if prev_article is not None:

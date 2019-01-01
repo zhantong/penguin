@@ -101,6 +101,14 @@ class Signal:
     def connect_this(self, name):
         return self.connect(self.outer_class.slug, name)
 
+    @staticmethod
+    def call_receiver_func(func, kwargs):
+        parameters = inspect.signature(func).parameters
+        if 'kwargs' in parameters:
+            return func(**kwargs)
+        pass_params = {key: kwargs[key] for key in parameters.keys()}
+        return func(**pass_params)
+
     @classmethod
     def send(cls, _category, _name, **kwargs):
         from .settings import get_setting_value
@@ -113,12 +121,12 @@ class Signal:
             if return_type == 'single':
                 if len(signal['receivers']) != 1:
                     return cls._signals[signal_name].get('default', None)
-                return next(iter(signal['receivers'].values()))['func'](**kwargs)
+                return cls.call_receiver_func(next(iter(signal['receivers'].values()))['func'], kwargs)
             if return_type == 'list':
                 if not signal.get('managed', False):
                     result = []
                     for receiver in signal['receivers'].values():
-                        result.append(receiver['func'](**kwargs))
+                        result.append(cls.call_receiver_func(receiver['func'], kwargs))
                     return result
                 else:
                     result = []
@@ -126,7 +134,7 @@ class Signal:
                     if signal_settings is None or 'subscribers_order' not in signal_settings:
                         if signal['managed_default'] == 'all':
                             for receiver in signal['receivers'].values():
-                                result.append(receiver['func'](**kwargs))
+                                result.append(cls.call_receiver_func(receiver['func'], kwargs))
                             return result
                         elif signal['managed_default'] == 'none':
                             return []
@@ -137,14 +145,14 @@ class Signal:
                             for item in items:
                                 if item['is_on'] and item['subscriber'] in signal['receivers']:
                                     receiver = signal['receivers'][item['subscriber']]['func']
-                                    result[list_name].append(receiver(**kwargs))
+                                    result[list_name].append(cls.call_receiver_func(receiver, kwargs))
                         if 'main' in result and len(result) == 1:
                             result = result['main']
                         return result
             if return_type == 'merged_list':
                 result = []
                 for receiver in signal['receivers'].values():
-                    item_result = receiver['func'](**kwargs)
+                    item_result = cls.call_receiver_func(receiver['func'], kwargs)
                     if type(item_result) is list:
                         result.extend(item_result)
                     else:
@@ -152,13 +160,13 @@ class Signal:
                 return result
             if return_type == 'single_not_none':
                 for receiver in signal['receivers'].values():
-                    item_result = receiver['func'](**kwargs)
+                    item_result = cls.call_receiver_func(receiver['func'], kwargs)
                     if item_result is not None:
                         return item_result
                 raise ValueError()
         else:
             for receiver in signal['receivers'].values():
-                receiver['func'](**kwargs)
+                cls.call_receiver_func(receiver['func'], kwargs)
 
     def send_this(self, name, **kwargs):
         return self.send(self.outer_class.slug, name, **kwargs)

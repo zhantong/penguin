@@ -27,7 +27,7 @@ def internal_server_error(e):
 
 
 @Signal.connect('penguin', 'create_app')
-def create_app(app, **kwargs):
+def create_app(app):
     @app.context_processor
     def context_processor():
         def custom_navbar():
@@ -65,7 +65,7 @@ def create_app(app, **kwargs):
 
 
 @current_component.signal.connect_this('navbar_item')
-def get_navbar_item(**kwargs):
+def get_navbar_item():
     return {
         'type': 'brand',
         'brand': Plugin.get_setting_value('site_name'),

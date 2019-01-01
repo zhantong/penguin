@@ -65,7 +65,7 @@ def show_page(slug):
 
 
 @Signal.connect('app', 'restore')
-def restore(data, directory, **kwargs):
+def restore(data):
     if 'page' in data:
         pages = data['page']
         for page in pages:
@@ -76,7 +76,7 @@ def restore(data, directory, **kwargs):
 
 
 @current_plugin.signal.connect_this('page_url')
-def page_url(page, anchor, **kwargs):
+def page_url(page, anchor):
     return url_for('main.show_page', slug=page.slug, _anchor=anchor)
 
 
@@ -129,7 +129,7 @@ def page_list(request, templates, meta, scripts, **kwargs):
 
 
 @current_plugin.signal.connect_this('get_admin_page_list')
-def get_admin_page_list(params, **kwargs):
+def get_admin_page_list(params):
     def get_pages(repository_id):
         return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
 
@@ -184,12 +184,12 @@ def edit_page(request, templates, scripts, csss, **kwargs):
 
 
 @current_plugin.signal.connect_this('get_page')
-def get_article(page_id, **kwargs):
+def get_article(page_id):
     return Page.query.get(page_id)
 
 
 @Signal.connect('main', 'navbar_item')
-def navbar_item(**kwargs):
+def navbar_item():
     pages = Page.query.all()
     more = []
     for page in pages:
@@ -215,7 +215,7 @@ def filter(query, params):
 
 
 @current_plugin.signal.connect_this('get_widget_submit')
-def get_widget_submit(page, **kwargs):
+def get_widget_submit(page):
     return {
         'slug': 'submit',
         'name': '发布',
@@ -226,7 +226,7 @@ def get_widget_submit(page, **kwargs):
 
 
 @current_plugin.signal.connect_this('admin_page_list_url')
-def admin_page_list_url(params, **kwargs):
+def admin_page_list_url(params):
     return current_plugin.url_for('/list', **params)
 
 

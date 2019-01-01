@@ -13,7 +13,7 @@ current_plugin = Plugin.current_plugin()
 
 
 @Signal.connect('penguin', 'deploy')
-def deploy(**kwargs):
+def deploy():
     current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
     current_plugin.set_setting('password', name='密码', value='', value_type='str')
     current_plugin.set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
@@ -42,7 +42,7 @@ def test_send_mail(request, meta, templates, scripts, **kwargs):
 
 
 @current_plugin.signal.connect_this('send_mail')
-def send_mail(recipient, subject, body, result, **kwargs):
+def send_mail(recipient, subject, body):
     is_success, error_log = send_email(recipient, subject, body)
     return {
         'status': is_success,

@@ -9,7 +9,7 @@ current_plugin = Plugin.current_plugin()
 
 
 @current_plugin.signal.connect_this('restore')
-def restore_tags(tags, **kwargs):
+def restore_tags(tags):
     restored_tags = []
     for tag in tags:
         if type(tag) is str:
@@ -28,13 +28,13 @@ def restore_tags(tags, **kwargs):
 
 
 @Signal.connect('article', 'restore')
-def article_restore(article, data, **kwargs):
+def article_restore(article, data):
     if 'tags' in data:
         article.tags = current_plugin.signal.send_this('restore', tags=data['tags'])
 
 
 @Signal.connect('app', 'restore')
-def global_restore(data, **kwargs):
+def global_restore(data):
     if 'tag' in data:
         current_plugin.signal.send_this('restore', tags=data['tag'], restored_tags=[])
 
@@ -101,7 +101,7 @@ def delete(tag_id):
 
 
 @Signal.connect('article', 'edit_widget')
-def article_edit_widget(article, **kwargs):
+def article_edit_widget(article):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in article.tags]
     return {
@@ -113,7 +113,7 @@ def article_edit_widget(article, **kwargs):
 
 
 @Signal.connect('article', 'submit_edit_widget')
-def article_submit_edit_widget(slug, js_data, article, **kwargs):
+def article_submit_edit_widget(slug, js_data, article):
     if slug == 'tag':
         tags = []
         tag_names = []
@@ -132,7 +132,7 @@ def article_submit_edit_widget(slug, js_data, article, **kwargs):
 
 
 @Signal.connect('article', 'filter')
-def article_filter(query, params, Article, **kwargs):
+def article_filter(query, params, Article):
     if 'tag' in params and params['tag'] != '':
         query['query'] = query['query'].join(Article.tags).filter(Tag.slug == params['tag'])
 
@@ -142,17 +142,17 @@ def _article_meta(article):
 
 
 @Signal.connect('article', 'meta')
-def article_meta(article, **kwargs):
+def article_meta(article):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'article_list_item_meta')
-def article_list_item_meta(article, **kwargs):
+def article_list_item_meta(article):
     return _article_meta(article)
 
 
 @Signal.connect('article', 'custom_list_column')
-def article_custom_list_column(**kwargs):
+def article_custom_list_column():
     def content_func(article):
         return current_plugin.render_template('admin_tag_items.html', article=article, admin_article_list_url=admin_article_list_url)
 
@@ -165,5 +165,5 @@ def article_custom_list_column(**kwargs):
 
 
 @Signal.connect('article', 'header_keyword')
-def article_header_keyword(article, **kwargs):
+def article_header_keyword(article):
     return [tag.name for tag in article.tags]
