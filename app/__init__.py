@@ -50,9 +50,6 @@ def register_blueprints(app):
     from .admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
 
-    from .api import api as api_blueprint
-    app.register_blueprint(api_blueprint, url_prefix='/api')
-
     from .plugins import plugin as plugin_blueprint
     app.register_blueprint(plugin_blueprint, url_prefix='/plugin')
 
