@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import url_for, render_template
 from urllib.parse import urlencode
 from pathlib import Path
-import blinker
 import inspect
 
 
@@ -93,8 +92,6 @@ class Signal:
                 'func_name': func_name,
                 'func_file': func_file
             }
-            signal = blinker.signal(signal_name)
-            signal.connect(func)
 
         signal_name = category + '.' + name
         if signal_name not in cls._signals:
@@ -111,51 +108,57 @@ class Signal:
         if signal_name not in cls._signals:
             return
         signal = cls._signals[signal_name]
-        if not signal.get('managed', False):
-            result = blinker.signal(signal_name).send(**kwargs)
-        else:
-            result = []
-            signal_settings = get_setting_value(_name, category=_category)
-            if signal_settings is None or 'subscribers_order' not in signal_settings:
-                if signal['managed_default'] == 'all':
-                    result = blinker.signal(signal_name).send(**kwargs)
-                elif signal['managed_default'] == 'none':
-                    result = []
-            else:
-                result = {}
-                for list_name, items in signal_settings['subscribers_order'].items():
-                    result[list_name] = []
-                    for item in items:
-                        if item['is_on'] and item['subscriber'] in signal['receivers']:
-                            receiver = signal['receivers'][item['subscriber']]['func']
-                            result[list_name].append((receiver, receiver(None, **kwargs)))
-                if 'main' in result and len(result) == 1:
-                    result = result['main']
         if 'return_type' in cls._signals[signal_name]:
             return_type = cls._signals[signal_name]['return_type']
             if return_type == 'single':
-                default = cls._signals[signal_name].get('default', None)
-                if len(result) == 0 and default is not None:
-                    return default
-                return result[0][1]
+                if len(signal['receivers']) != 1:
+                    return cls._signals[signal_name].get('default', None)
+                return next(iter(signal['receivers'].values()))['func'](None, **kwargs)
             if return_type == 'list':
-                if type(result) is list:
-                    return [item[1] for item in result]
-                for list_name, items in result.items():
-                    result[list_name] = [item[1] for item in items]
-                return result
-            if return_type == 'merged_list':
-                items = []
-                for item in result:
-                    if type(item[1]) is list:
-                        items.extend(item[1])
+                if not signal.get('managed', False):
+                    result = []
+                    for receiver in signal['receivers'].values():
+                        result.append(receiver['func'](None, **kwargs))
+                    return result
+                else:
+                    result = []
+                    signal_settings = get_setting_value(_name, category=_category)
+                    if signal_settings is None or 'subscribers_order' not in signal_settings:
+                        if signal['managed_default'] == 'all':
+                            for receiver in signal['receivers'].values():
+                                result.append(receiver['func'](None, **kwargs))
+                            return result
+                        elif signal['managed_default'] == 'none':
+                            return []
                     else:
-                        items.append(item[1])
-                return items
+                        result = {}
+                        for list_name, items in signal_settings['subscribers_order'].items():
+                            result[list_name] = []
+                            for item in items:
+                                if item['is_on'] and item['subscriber'] in signal['receivers']:
+                                    receiver = signal['receivers'][item['subscriber']]['func']
+                                    result[list_name].append(receiver(None, **kwargs))
+                        if 'main' in result and len(result) == 1:
+                            result = result['main']
+                        return result
+            if return_type == 'merged_list':
+                result = []
+                for receiver in signal['receivers'].values():
+                    item_result = receiver['func'](None, **kwargs)
+                    if type(item_result) is list:
+                        result.extend(item_result)
+                    else:
+                        result.append(item_result)
+                return result
             if return_type == 'single_not_none':
-                for item in result:
-                    if item[1] is not None:
-                        return item[1]
+                for receiver in signal['receivers'].values():
+                    item_result = receiver['func'](None, **kwargs)
+                    if item_result is not None:
+                        return item_result
+                raise ValueError()
+        else:
+            for receiver in signal['receivers'].values():
+                receiver['func'](None, **kwargs)
 
     def send_this(self, name, **kwargs):
         return self.send(self.outer_class.slug, name, **kwargs)

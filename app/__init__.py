@@ -144,19 +144,6 @@ def register_commands(app):
 
     @app.cli.command()
     def show_signals():
-        import blinker
-        import inspect
-        signals = blinker.signal.__self__
-        for name, signal in sorted(signals.items()):
-            print(name)
-            for func in signal.receivers.values():
-                func_type = type(func)
-                if func_type is blinker._utilities.annotatable_weakref:
-                    func = func()
-                print('\t', 'name: ', func.__name__, 'signature: ', inspect.signature(func), 'file: ', inspect.getsourcefile(func), 'line: ', func.__code__.co_firstlineno)
-
-    @app.cli.command()
-    def show_signals_new():
         signals = Signal._signals
         for signal, value in signals.items():
             print(signal)
