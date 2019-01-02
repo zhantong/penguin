@@ -1,7 +1,6 @@
-from ..models import Signal, Component
+from ..models import Signal
 from .models import Plugin
-
-current_component = Component.current_component()
+from app import current_component
 
 
 @Signal.connect('admin', 'sidebar_item')

@@ -6,6 +6,7 @@ from flask import url_for, render_template
 from urllib.parse import urlencode
 from pathlib import Path
 import inspect
+import sys
 
 
 class Role(db.Model):
@@ -237,13 +238,6 @@ class Component:
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
 
-    @classmethod
-    def current_component(cls):
-        caller = inspect.getframeinfo(inspect.stack()[1][0])
-        caller_path = caller.filename
-        plugin_slug = Path(caller_path).parent.name
-        return cls._components[plugin_slug]
-
     @staticmethod
     def get_setting_value(key, component_name=None, default=None):
         from .settings import get_setting_value
@@ -270,6 +264,16 @@ class Component:
     def context_func(self, f):
         self.template_context[f.__name__] = f
         return f
+
+
+class ComponentProxy:
+    root_path = Path(__file__).parent
+
+    def __getattr__(self, item):
+        caller_path = Path(sys._getframe().f_back.f_code.co_filename).relative_to(self.root_path)
+        component_slug = caller_path.parts[0]
+        plugin = Component._components[component_slug]
+        return getattr(plugin, item)
 
 
 class Route:

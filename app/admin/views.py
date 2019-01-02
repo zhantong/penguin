@@ -3,8 +3,7 @@ from flask_login import login_required
 from . import admin
 from ..utils import slugify
 from ..models import Component
-
-current_component = Component.current_component()
+from app import current_component
 
 
 @admin.before_request

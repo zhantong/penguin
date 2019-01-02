@@ -15,8 +15,9 @@ import redis
 from rq import Connection, Worker
 import jinja2
 from .models import Component, Signal
+from ._globals import *
 
-current_component = Component('penguin', 'penguin', show_in_sidebar=False)
+_current_component = Component('penguin', 'penguin', show_in_sidebar=False)
 
 
 def create_app(config_name=None):
@@ -116,7 +117,7 @@ def register_commands(app):
 
         Role.insert_roles()
 
-        current_component.signal.send_this('deploy')
+        _current_component.signal.send_this('deploy')
 
     @app.cli.command()
     @click.option('--file-path', default=None, help='dumped file path')

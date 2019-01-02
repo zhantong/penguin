@@ -3,8 +3,7 @@ from flask import request, jsonify
 from .models import Settings
 from ..admin import admin
 import json
-
-current_component = Component.current_component()
+from app import current_component
 
 
 @Signal.connect('penguin', 'deploy')
