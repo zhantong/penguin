@@ -8,10 +8,8 @@ import uuid
 from .. import plugin
 from datetime import datetime
 import json
-from ..models import Plugin
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 @Signal.connect('penguin', 'deploy')

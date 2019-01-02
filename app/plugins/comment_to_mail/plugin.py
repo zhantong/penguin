@@ -13,8 +13,7 @@ import redis
 from rq import Queue, Connection, get_failed_queue
 from datetime import datetime
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 opener = urllib.request.build_opener()
 

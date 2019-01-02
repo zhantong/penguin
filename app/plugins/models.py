@@ -2,8 +2,8 @@ from flask import url_for, render_template
 from urllib.parse import urlencode
 from pathlib import Path
 import inspect
-import os
 from ..models import Signal, Component
+import sys
 
 
 class Plugin:
@@ -48,18 +48,6 @@ class Plugin:
         return Path(self.slug, 'templates', *args).as_posix()
 
     @staticmethod
-    def current_plugin():
-        caller = inspect.getframeinfo(inspect.stack()[1][0])
-        caller_path = caller.filename
-        caller_path_comp = caller_path.split(os.sep)
-        if 'plugins' in caller_path_comp:
-            plugin_slug = caller_path_comp[caller_path_comp.index('plugins') + 1]
-
-        else:
-            plugin_slug = Path(caller_path).parent.name
-        return Plugin.plugins[plugin_slug]
-
-    @staticmethod
     def get_setting_value(key, plugin_name=None, default=None):
         from app.settings import get_setting_value
         return get_setting_value(key, category=plugin_name, default=default)
@@ -85,6 +73,16 @@ class Plugin:
     def context_func(self, f):
         self.template_context[f.__name__] = f
         return f
+
+
+class PluginProxy:
+    root_path = Path(__file__).parent
+
+    def __getattr__(self, item):
+        caller_path = Path(sys._getframe().f_back.f_code.co_filename).relative_to(self.root_path)
+        plugin_slug = caller_path.parts[0]
+        plugin = Plugin.plugins[plugin_slug]
+        return getattr(plugin, item)
 
 
 class Route:

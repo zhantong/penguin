@@ -5,8 +5,7 @@ from jinja2 import Template as Jinja2Tempalte
 from ..models import Plugin
 import json
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 def get_widget(template):

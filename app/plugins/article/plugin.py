@@ -13,8 +13,7 @@ from uuid import uuid4
 import markdown2
 import re
 from ..models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 @plugin.route('/article/static/<path:filename>')

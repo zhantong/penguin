@@ -1,10 +1,8 @@
 import json
 from .models import ViewCount
 from ...models import db
-from ..models import Plugin
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 def viewing(repository_id, request, cookies_to_set):

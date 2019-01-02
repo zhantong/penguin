@@ -11,8 +11,7 @@ import os.path
 import re
 import markdown2
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 @plugin.route('/page/static/<path:filename>')

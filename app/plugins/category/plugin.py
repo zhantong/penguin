@@ -4,8 +4,7 @@ from flask import flash, jsonify, redirect
 from ...utils import slugify
 from ..models import Plugin
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 
 @Signal.connect('main', 'widget')

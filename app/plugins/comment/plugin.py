@@ -12,8 +12,7 @@ import urllib.request
 import urllib.parse
 from .js_captcha import confuse_string
 from ...models import Signal
-
-current_plugin = Plugin.current_plugin()
+from app.plugins import current_plugin
 
 ENABLE_TENCENT_CAPTCHA = True
 
