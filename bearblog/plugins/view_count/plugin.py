@@ -2,8 +2,8 @@ import json
 
 from bearblog.plugins import current_plugin
 from .models import ViewCount
-from ...models import Signal
-from ...models import db
+from bearblog.models import Signal
+from bearblog.extensions import db
 
 
 def viewing(repository_id, request, cookies_to_set):

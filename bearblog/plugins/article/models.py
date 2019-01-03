@@ -3,7 +3,7 @@ from random import randint
 
 from jieba.analyse.analyzer import ChineseAnalyzer
 
-from ... import db
+from bearblog.extensions import db
 
 
 def random_number():

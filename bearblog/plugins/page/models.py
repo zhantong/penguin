@@ -3,9 +3,9 @@ from random import randint
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from ... import db
-from ...models import User
-from ...utils import slugify
+from bearblog.extensions import db
+from bearblog.models import User
+from bearblog.utils import slugify
 
 
 def random_number():

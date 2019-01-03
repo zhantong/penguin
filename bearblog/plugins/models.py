@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 from flask import url_for, render_template
 
-from ..models import Signal, Component
+from bearblog.models import Signal, Component
 
 
 class Plugin:

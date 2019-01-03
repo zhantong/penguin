@@ -1,6 +1,6 @@
 from bearblog import current_component
 from .models import Plugin
-from ..models import Signal
+from bearblog.models import Signal
 
 
 @Signal.connect('admin', 'sidebar_item')

@@ -1,7 +1,7 @@
 from flask import url_for
 from sqlalchemy import Table, Column, Integer, ForeignKey
 
-from ... import db
+from bearblog.extensions import db
 
 association_table = Table('tag_article_association', db.Model.metadata,
                           Column('tag_id', Integer, ForeignKey('tags.id')),

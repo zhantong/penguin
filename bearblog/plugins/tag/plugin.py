@@ -1,11 +1,10 @@
 from flask import flash, jsonify, redirect
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, Plugin
 from .models import Tag
-from ..models import Plugin
-from ...models import Signal
-from ...models import db
-from ...utils import slugify
+from bearblog.models import Signal
+from bearblog.extensions import db
+from bearblog.utils import slugify
 
 
 @current_plugin.signal.connect_this('restore')

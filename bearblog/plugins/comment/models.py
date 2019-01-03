@@ -2,7 +2,7 @@ from datetime import datetime
 
 import markdown2
 
-from ... import db
+from bearblog.extensions import db
 
 
 class Comment(db.Model):

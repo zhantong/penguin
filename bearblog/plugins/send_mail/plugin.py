@@ -8,9 +8,8 @@ from email.utils import parseaddr, formataddr
 
 from flask import jsonify
 
-from bearblog.plugins import current_plugin
-from ..models import Plugin
-from ...models import Signal
+from bearblog.plugins import current_plugin, Plugin
+from bearblog.models import Signal
 
 
 @Signal.connect('penguin', 'deploy')

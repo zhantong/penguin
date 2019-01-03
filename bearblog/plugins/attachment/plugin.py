@@ -5,13 +5,12 @@ from datetime import datetime
 
 from flask import request, jsonify, current_app, url_for, send_from_directory
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin
 from .models import Attachment
-from .. import plugin
-from ...admin import admin
-from ...main import main
-from ...models import Signal
-from ...models import db
+from bearblog.admin import admin
+from bearblog.main import main
+from bearblog.models import Signal
+from bearblog.extensions import db
 
 
 @Signal.connect('penguin', 'deploy')

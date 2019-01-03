@@ -9,12 +9,12 @@ from sqlalchemy import desc
 
 from bearblog.plugins import current_plugin
 from .js_captcha import confuse_string
-from ..comment.models import Comment
-from ..models import Plugin
-from ...main import main
-from ...models import Signal
-from ...models import db, User, Role
-from ...utils import format_comments
+from bearblog.plugins.comment.models import Comment
+from bearblog.plugins.models import Plugin
+from bearblog.main import main
+from bearblog.models import Signal, User, Role
+from bearblog.extensions import db
+from bearblog.utils import format_comments
 
 ENABLE_TENCENT_CAPTCHA = True
 

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from bearblog import db
+from bearblog.extensions import db
 
 
 class Settings(db.Model):

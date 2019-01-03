@@ -2,7 +2,7 @@ from flask import url_for
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import backref
 
-from ... import db
+from bearblog.extensions import db
 
 template_article_association_table = Table('template_article_association', db.Model.metadata,
                                            Column('template_id', Integer, ForeignKey('templates.id')),

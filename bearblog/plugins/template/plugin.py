@@ -5,9 +5,9 @@ from jinja2 import Template as Jinja2Tempalte
 
 from bearblog.plugins import current_plugin
 from .models import Template
-from ..models import Plugin
-from ...models import Signal
-from ...models import db
+from bearblog.plugins.models import Plugin
+from bearblog.models import Signal
+from bearblog.extensions import db
 
 
 def get_widget(template):

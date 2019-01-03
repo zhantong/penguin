@@ -2,9 +2,8 @@ import os
 
 from flask import send_from_directory
 
-from bearblog.plugins import current_plugin
-from .. import plugin
-from ...models import Signal
+from bearblog.plugins import current_plugin, plugin
+from bearblog.models import Signal
 
 
 @plugin.route('/toc/static/<path:filename>')

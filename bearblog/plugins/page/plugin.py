@@ -9,11 +9,11 @@ from flask import url_for, request, session, make_response, flash, jsonify, send
 
 from bearblog.plugins import current_plugin
 from .models import Page
-from .. import plugin
-from ..models import Plugin
-from ...main import main
-from ...models import Signal
-from ...models import db, User
+from bearblog.plugins import plugin
+from bearblog.plugins.models import Plugin
+from bearblog.main import main
+from bearblog.models import Signal, User
+from bearblog.extensions import db
 
 
 @plugin.route('/page/static/<path:filename>')

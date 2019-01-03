@@ -7,14 +7,12 @@ from uuid import uuid4
 import markdown2
 from flask import request, make_response, url_for, session, flash, jsonify, send_from_directory
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin
 from .models import Article
-from .. import plugin
-from ..models import Plugin
-from ..models import Signal
-from ...main import main
-from ...models import User
-from ...models import db
+from bearblog.plugins.models import Plugin
+from bearblog.models import Signal, User
+from bearblog.main import main
+from bearblog.extensions import db
 
 
 @plugin.route('/article/static/<path:filename>')

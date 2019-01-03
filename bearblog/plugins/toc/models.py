@@ -1,4 +1,4 @@
-from ... import db
+from bearblog.extensions import db
 
 
 class Toc(db.Model):

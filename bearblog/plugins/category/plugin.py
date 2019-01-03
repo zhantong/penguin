@@ -2,10 +2,10 @@ from flask import flash, jsonify, redirect
 
 from bearblog.plugins import current_plugin
 from .models import Category
-from ..models import Plugin
-from ...models import Signal
-from ...models import db
-from ...utils import slugify
+from bearblog.plugins.models import Plugin
+from bearblog.models import Signal
+from bearblog.extensions import db
+from bearblog.utils import slugify
 
 
 @Signal.connect('main', 'widget')

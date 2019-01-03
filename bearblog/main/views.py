@@ -2,8 +2,8 @@ from flask import render_template, request, url_for
 
 from bearblog import current_component
 from . import main
-from ..models import Signal
-from ..plugins.models import Plugin
+from bearblog.models import Signal
+from bearblog.plugins.models import Plugin
 
 
 @main.route('/')

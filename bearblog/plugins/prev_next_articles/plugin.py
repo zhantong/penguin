@@ -1,6 +1,6 @@
 from bearblog.plugins import current_plugin
-from ..article.models import Article
-from ...models import Signal
+from bearblog.plugins.article.models import Article
+from bearblog.models import Signal
 
 
 @Signal.connect('article', 'show_article_widget')

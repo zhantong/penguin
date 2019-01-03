@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ... import db
+from bearblog.extensions import db
 
 
 class CommentToMail(db.Model):

@@ -11,11 +11,11 @@ from rq import Queue, Connection, get_failed_queue
 
 from bearblog.plugins import current_plugin
 from .models import Message
-from ..comment.models import Comment
-from ..comment.plugin import get_comment_show_info
-from ..models import Plugin
-from ...extensions import db
-from ...models import Signal
+from bearblog.plugins.comment.models import Comment
+from bearblog.plugins.comment.plugin import get_comment_show_info
+from bearblog.plugins.models import Plugin
+from bearblog.extensions import db
+from bearblog.models import Signal
 
 opener = urllib.request.build_opener()
 

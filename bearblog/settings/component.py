@@ -4,8 +4,8 @@ from flask import request, jsonify
 
 from bearblog import current_component
 from .models import Settings
-from ..admin import admin
-from ..models import Component, Signal
+from bearblog.admin import admin
+from bearblog.models import Component, Signal
 
 
 @Signal.connect('penguin', 'deploy')

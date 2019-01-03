@@ -3,8 +3,8 @@ from flask_login import login_required
 
 from bearblog import current_component
 from . import admin
-from ..models import Component
-from ..utils import slugify
+from bearblog.models import Component
+from bearblog.utils import slugify
 
 
 @admin.before_request
