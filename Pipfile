@@ -1,0 +1,24 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+flask = "*"
+python-dotenv = "*"
+flask-whooshalchemyplus = "*"
+redis = "*"
+rq = "*"
+bootstrap-flask = "*"
+flask-login = "*"
+flask-moment = "*"
+flask-wtf = "*"
+awesome-slugify = "*"
+jieba = "*"
+markdown2 = "*"
+phpserialize = "*"
+
+[requires]
+python_version = "3.7"

@@ -3,7 +3,7 @@
     <option name="additionalOptions" value="--cert cert.pem --key cert.key" />
     <option name="flaskDebug" value="true" />
     <module name="penguin" />
-    <option name="target" value="app" />
+    <option name="target" value="bearblog" />
     <option name="targetType" value="PYTHON" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -11,7 +11,7 @@
       <env name="LANG" value="en_US.utf-8" />
       <env name="LC_ALL" value="en_US.utf-8" />
     </envs>
-    <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
+    <option name="SDK_HOME" value="$USER_HOME$/.local/share/virtualenvs/penguin-Zr8SNINm/bin/python" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
