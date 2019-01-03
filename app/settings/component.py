@@ -1,9 +1,11 @@
-from ..models import Component, Signal
+import json
+
 from flask import request, jsonify
+
+from app import current_component
 from .models import Settings
 from ..admin import admin
-import json
-from app import current_component
+from ..models import Component, Signal
 
 
 @Signal.connect('penguin', 'deploy')

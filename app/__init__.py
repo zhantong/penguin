@@ -1,21 +1,22 @@
-from flask import Flask
-from config import config
-import flask_whooshalchemyplus
-from flask_whooshalchemyplus import index_all
-from .extensions import bootstrap, db, login_manager, csrf, moment
+import json
 import os
+from io import BytesIO
+from urllib.request import urlopen
+from zipfile import ZipFile
+
+import click
+import flask_whooshalchemyplus
+import jinja2
+import redis
+from flask import Flask
+from rq import Connection, Worker
+
 from app.extensions import db
 from app.models import Role
-import click
-import json
-from io import BytesIO
-from zipfile import ZipFile
-from urllib.request import urlopen
-import redis
-from rq import Connection, Worker
-import jinja2
-from .models import Component, Signal
+from config import config
 from ._globals import *
+from .extensions import bootstrap, db, login_manager, csrf, moment
+from .models import Component, Signal
 
 _current_component = Component('penguin', 'penguin', show_in_sidebar=False)
 

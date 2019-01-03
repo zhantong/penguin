@@ -1,12 +1,14 @@
-from .extensions import db, login_manager
-from datetime import datetime
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import url_for, render_template
-from urllib.parse import urlencode
-from pathlib import Path
 import inspect
 import sys
+from datetime import datetime
+from pathlib import Path
+from urllib.parse import urlencode
+
+from flask import url_for, render_template
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from .extensions import db, login_manager
 
 
 class Role(db.Model):

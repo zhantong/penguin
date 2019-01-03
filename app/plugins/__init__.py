@@ -1,10 +1,12 @@
+import json
 import os
 import os.path
+
 from flask import Blueprint
-import json
-from .models import Plugin
+
 from . import views
 from ._globals import *
+from .models import Plugin
 
 plugin = Blueprint('plugin', __name__)
 

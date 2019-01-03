@@ -1,8 +1,9 @@
-from . import main
 from flask import render_template, request, url_for
-from ..plugins.models import Plugin
-from ..models import Signal
+
 from app import current_component
+from . import main
+from ..models import Signal
+from ..plugins.models import Plugin
 
 
 @main.route('/')

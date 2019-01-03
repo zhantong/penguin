@@ -1,9 +1,10 @@
+import json
+import uuid
+
+import phpserialize
+from models import User, Content, Comment, Meta, Relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import User, Content, Comment, Meta, Relationship
-import json
-import phpserialize
-import uuid
 
 
 class Dump:

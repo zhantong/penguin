@@ -1,8 +1,9 @@
 import json
+import os
 from datetime import datetime
+
 from app import db
 from app.models import Role, User
-import os
 from app.models import Signal
 
 

@@ -1,14 +1,16 @@
-from ..models import Plugin
-from flask import jsonify
 import os.path
-from email.mime.text import MIMEText
-from email.utils import parseaddr, formataddr
-from email.header import Header
-import tempfile
 import smtplib
 import sys
-from ...models import Signal
+import tempfile
+from email.header import Header
+from email.mime.text import MIMEText
+from email.utils import parseaddr, formataddr
+
+from flask import jsonify
+
 from app.plugins import current_plugin
+from ..models import Plugin
+from ...models import Signal
 
 
 @Signal.connect('penguin', 'deploy')

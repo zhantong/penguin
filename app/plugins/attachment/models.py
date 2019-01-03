@@ -1,11 +1,13 @@
-from ... import db
-from datetime import datetime
-from flask import current_app
 import os.path
-from ...utils import md5
-import uuid
 import shutil
+import uuid
+from datetime import datetime
+
+from flask import current_app
 from sqlalchemy import Table, Column, Integer, ForeignKey
+
+from ... import db
+from ...utils import md5
 
 attachment_article_association_table = Table('attachment_article_association', db.Model.metadata,
                                              Column('attachment_id', Integer, ForeignKey('attachments.id')),

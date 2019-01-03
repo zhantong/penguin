@@ -1,6 +1,7 @@
-from app import db
-from datetime import datetime
 import json
+from datetime import datetime
+
+from app import db
 
 
 class Settings(db.Model):

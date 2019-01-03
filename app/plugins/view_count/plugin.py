@@ -1,8 +1,9 @@
 import json
-from .models import ViewCount
-from ...models import db
-from ...models import Signal
+
 from app.plugins import current_plugin
+from .models import ViewCount
+from ...models import Signal
+from ...models import db
 
 
 def viewing(repository_id, request, cookies_to_set):

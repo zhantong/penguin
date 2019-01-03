@@ -1,7 +1,9 @@
-from ... import db
-from jieba.analyse.analyzer import ChineseAnalyzer
-from random import randint
 from datetime import datetime
+from random import randint
+
+from jieba.analyse.analyzer import ChineseAnalyzer
+
+from ... import db
 
 
 def random_number():

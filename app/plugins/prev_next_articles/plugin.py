@@ -1,6 +1,6 @@
+from app.plugins import current_plugin
 from ..article.models import Article
 from ...models import Signal
-from app.plugins import current_plugin
 
 
 @Signal.connect('article', 'show_article_widget')

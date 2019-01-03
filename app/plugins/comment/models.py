@@ -1,6 +1,8 @@
-from ... import db
 from datetime import datetime
+
 import markdown2
+
+from ... import db
 
 
 class Comment(db.Model):

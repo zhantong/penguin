@@ -1,17 +1,19 @@
-from ..models import Plugin
-from ...main import main
-from flask import url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
-from datetime import datetime
-from ...models import db, User
-from .models import Page
 import json
-from uuid import uuid4
-from .. import plugin
 import os.path
 import re
+from datetime import datetime
+from uuid import uuid4
+
 import markdown2
-from ...models import Signal
+from flask import url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
+
 from app.plugins import current_plugin
+from .models import Page
+from .. import plugin
+from ..models import Plugin
+from ...main import main
+from ...models import Signal
+from ...models import db, User
 
 
 @plugin.route('/page/static/<path:filename>')

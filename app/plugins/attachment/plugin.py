@@ -1,15 +1,17 @@
-from ...models import db
-from .models import Attachment
-from ...admin import admin
-from ...main import main
-from flask import request, jsonify, current_app, url_for, send_from_directory
+import json
 import os.path
 import uuid
-from .. import plugin
 from datetime import datetime
-import json
-from ...models import Signal
+
+from flask import request, jsonify, current_app, url_for, send_from_directory
+
 from app.plugins import current_plugin
+from .models import Attachment
+from .. import plugin
+from ...admin import admin
+from ...main import main
+from ...models import Signal
+from ...models import db
 
 
 @Signal.connect('penguin', 'deploy')

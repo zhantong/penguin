@@ -1,9 +1,11 @@
-from ... import db
 from datetime import datetime
-from sqlalchemy.ext.hybrid import hybrid_property
-from ...utils import slugify
-from ...models import User
 from random import randint
+
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from ... import db
+from ...models import User
+from ...utils import slugify
 
 
 def random_number():

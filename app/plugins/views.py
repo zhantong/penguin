@@ -1,6 +1,6 @@
-from ..models import Signal
-from .models import Plugin
 from app import current_component
+from .models import Plugin
+from ..models import Signal
 
 
 @Signal.connect('admin', 'sidebar_item')

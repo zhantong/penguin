@@ -1,8 +1,10 @@
-from .. import plugin
-from flask import send_from_directory
 import os
-from ...models import Signal
+
+from flask import send_from_directory
+
 from app.plugins import current_plugin
+from .. import plugin
+from ...models import Signal
 
 
 @plugin.route('/toc/static/<path:filename>')

@@ -1,9 +1,10 @@
 from flask import render_template, request, jsonify, abort
 from flask_login import login_required
-from . import admin
-from ..utils import slugify
-from ..models import Component
+
 from app import current_component
+from . import admin
+from ..models import Component
+from ..utils import slugify
 
 
 @admin.before_request

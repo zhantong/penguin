@@ -1,19 +1,21 @@
-from flask import current_app, redirect
-from ...extensions import db
-from ..models import Plugin
-import urllib.request
-import time
-import urllib.parse
 import json
+import time
 import urllib.error
-from .models import Message
-from ..comment.plugin import get_comment_show_info
-from ..comment.models import Comment
-import redis
-from rq import Queue, Connection, get_failed_queue
+import urllib.parse
+import urllib.request
 from datetime import datetime
-from ...models import Signal
+
+import redis
+from flask import current_app, redirect
+from rq import Queue, Connection, get_failed_queue
+
 from app.plugins import current_plugin
+from .models import Message
+from ..comment.models import Comment
+from ..comment.plugin import get_comment_show_info
+from ..models import Plugin
+from ...extensions import db
+from ...models import Signal
 
 opener = urllib.request.build_opener()
 

@@ -1,11 +1,13 @@
-from ...models import db
-from .models import Template
+import json
+
 from flask import flash, jsonify, redirect
 from jinja2 import Template as Jinja2Tempalte
-from ..models import Plugin
-import json
-from ...models import Signal
+
 from app.plugins import current_plugin
+from .models import Template
+from ..models import Plugin
+from ...models import Signal
+from ...models import db
 
 
 def get_widget(template):

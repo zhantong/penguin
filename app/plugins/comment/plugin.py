@@ -1,18 +1,20 @@
-from ...models import db, User, Role
-from ..comment.models import Comment
+import json
+import urllib.parse
+import urllib.request
+from datetime import datetime
+
 from flask import flash, request, jsonify, session
-from ...main import main
 from flask_login import current_user
 from sqlalchemy import desc
-from ...utils import format_comments
-from datetime import datetime
-from ..models import Plugin
-import json
-import urllib.request
-import urllib.parse
-from .js_captcha import confuse_string
-from ...models import Signal
+
 from app.plugins import current_plugin
+from .js_captcha import confuse_string
+from ..comment.models import Comment
+from ..models import Plugin
+from ...main import main
+from ...models import Signal
+from ...models import db, User, Role
+from ...utils import format_comments
 
 ENABLE_TENCENT_CAPTCHA = True
 

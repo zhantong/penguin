@@ -1,10 +1,11 @@
-from ...models import db
-from .models import Category
 from flask import flash, jsonify, redirect
-from ...utils import slugify
+
+from app.plugins import current_plugin
+from .models import Category
 from ..models import Plugin
 from ...models import Signal
-from app.plugins import current_plugin
+from ...models import db
+from ...utils import slugify
 
 
 @Signal.connect('main', 'widget')

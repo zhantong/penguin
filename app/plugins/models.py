@@ -1,9 +1,11 @@
-from flask import url_for, render_template
-from urllib.parse import urlencode
-from pathlib import Path
 import inspect
-from ..models import Signal, Component
 import sys
+from pathlib import Path
+from urllib.parse import urlencode
+
+from flask import url_for, render_template
+
+from ..models import Signal, Component
 
 
 class Plugin:
