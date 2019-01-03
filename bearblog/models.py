@@ -272,10 +272,15 @@ class ComponentProxy:
     root_path = Path(__file__).parent
 
     def __getattr__(self, item):
-        caller_path = Path(sys._getframe().f_back.f_code.co_filename).relative_to(self.root_path)
+        return getattr(self._get_current_object(), item)
+
+    def __eq__(self, other):
+        return self._get_current_object() == other
+
+    def _get_current_object(self):
+        caller_path = Path(sys._getframe(1).f_back.f_code.co_filename).relative_to(self.root_path)
         component_slug = caller_path.parts[0]
-        plugin = Component._components[component_slug]
-        return getattr(plugin, item)
+        return Component._components[component_slug]
 
 
 class Route:
