@@ -1,2 +1,2 @@
-FLASK_APP=app
+FLASK_APP=bearblog
 FLASK_ENV=development

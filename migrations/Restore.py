@@ -2,9 +2,9 @@ import json
 import os
 from datetime import datetime
 
-from app import db
-from app.models import Role, User
-from app.models import Signal
+from bearblog import db
+from bearblog.models import Role, User
+from bearblog.models import Signal
 
 
 class Restore:
@@ -21,5 +21,5 @@ class Restore:
 
     def restore(self):
         self.process_admin(self.data['admin'])
-        Signal.send('app', 'restore', data=self.data, directory=os.path.dirname(self.file_path))
+        Signal.send('bearblog', 'restore', data=self.data, directory=os.path.dirname(self.file_path))
         db.session.commit()
