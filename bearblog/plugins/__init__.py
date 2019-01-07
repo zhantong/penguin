@@ -2,13 +2,9 @@ import json
 import os
 import os.path
 
-from flask import Blueprint
-
 from . import views
 from ._globals import *
 from .models import Plugin
-
-plugin = Blueprint('plugin', __name__)
 
 
 def load_plugins():

@@ -65,7 +65,7 @@
             {% for versioned_page in pages %}
                 <tr>
                     <th>
-                        <a href="{{ url_for('main.show_page',slug=versioned_page.slug, number=versioned_page.number) }}">
+                        <a href="{{ component_url_for('show_page', 'main', slug=versioned_page.slug, number=versioned_page.number) }}">
                             {{ versioned_page.title }}
                         </a>
                     </th>

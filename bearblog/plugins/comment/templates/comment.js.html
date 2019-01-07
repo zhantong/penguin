@@ -28,7 +28,7 @@
                 xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
             },
             type: 'POST',
-            url: '{{ url_for('.submit_comment') }}',
+            url: '{{ component_url_for('submit_comment', 'main') }}',
             data: data,
             success: function (msg) {
                 location.reload();

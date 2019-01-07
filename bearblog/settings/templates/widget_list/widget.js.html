@@ -20,7 +20,7 @@
                     xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
                 },
                 type: 'POST',
-                url: '{{ url_for('.submit_settings') }}',
+                url: '{{ component_url_for('submit_settings', 'admin') }}',
                 data: data,
                 success: function (msg) {
                     location.reload();

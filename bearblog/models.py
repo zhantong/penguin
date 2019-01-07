@@ -3,10 +3,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlencode
+import os.path
 
-from flask import url_for, render_template
+from flask import url_for, render_template, Blueprint, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.routing import Rule, Map
 
 from .extensions import db, login_manager
 
@@ -203,7 +205,7 @@ class Component:
                 return components[slug]
         return None
 
-    def __init__(self, name, directory, slug=None, show_in_sidebar=True):
+    def __init__(self, name, directory, slug=None, show_in_sidebar=True, config=None):
         if slug is None:
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             caller_path = caller.filename
@@ -216,11 +218,47 @@ class Component:
         self.routes = {}
         self.signal = Signal(self)
         self.template_context = {}
+        self.config = config
+        self.view_functions = {}
+        self.rule_map = Map()
+        self.view_route = self._instance_view_route
+        self.view_url_for = self._instance_view_url_for
+
+    def setup(self, app):
+        if 'url_prefix' in self.config:
+            if self.config['url_prefix'] is None:
+                self.blueprint = Blueprint(self.name, self.slug)
+            else:
+                self.blueprint = Blueprint(self.name, self.slug, url_prefix=self.config['url_prefix'])
+            self.urls = self.rule_map.bind('', '/')
+
+            @self.blueprint.route('/', defaults={'path': ''})
+            @self.blueprint.route('/<path:path>', methods=['GET', 'POST'])
+            def route(path):
+                endpoint, params = self.urls.match('/' + path, method=request.method)
+                return self.view_functions[endpoint](**params)
+
+            app.register_blueprint(self.blueprint)
 
     def route(self, blueprint, rule, name=None, **kwargs):
         def wrap(f):
             self.routes[rule] = Route(self, blueprint, rule, f, name)
             return f
+
+        return wrap
+
+    @classmethod
+    def view_route(cls, rule, endpoint, component=None, **kwargs):
+        if component is None:
+            component = ComponentProxy._get_current_object()
+        else:
+            component = cls.find_component(component)
+        return component._instance_view_route(rule, endpoint, **kwargs)
+
+    def _instance_view_route(self, rule, endpoint, **kwargs):
+        def wrap(f):
+            self.rule_map.add(Rule(rule, endpoint=endpoint, methods=kwargs.get('methods', None) or ('GET',)))
+            self.view_functions[endpoint] = f
 
         return wrap
 
@@ -236,6 +274,18 @@ class Component:
         if len(values) == 0:
             return self.routes[rule].path()
         return self.routes[rule].path() + '?' + urlencode(values)
+
+    @classmethod
+    def view_url_for(cls, endpoint, component=None, **kwargs):
+        if component is None:
+            component = ComponentProxy._get_current_object()
+        else:
+            component = cls.find_component(component)
+
+        return component._instance_view_url_for(endpoint, **kwargs)
+
+    def _instance_view_url_for(self, endpoint, **kwargs):
+        return (self.blueprint.url_prefix or '') + self.urls.build(endpoint, kwargs)
 
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
@@ -277,10 +327,17 @@ class ComponentProxy:
     def __eq__(self, other):
         return self._get_current_object() == other
 
-    def _get_current_object(self):
-        caller_path = Path(sys._getframe(1).f_back.f_code.co_filename).relative_to(self.root_path)
-        component_slug = caller_path.parts[0]
-        return Component._components[component_slug]
+    @classmethod
+    def _get_current_object(cls):
+        frame = sys._getframe()
+        while frame is not None:
+            path = os.path.abspath(frame.f_code.co_filename)
+            if path.startswith(str(cls.root_path)):
+                path = Path(path).relative_to(cls.root_path)
+                component_slug = path.parts[0]
+                if component_slug in Component._components:
+                    return Component._components[component_slug]
+            frame = frame.f_back
 
 
 class Route:
@@ -292,4 +349,4 @@ class Route:
         self.name = name
 
     def path(self):
-        return url_for(self.blueprint + '.dispatch', path=self.plugin.slug + self.rule)
+        return url_for(self.blueprint + '.route', path=self.plugin.slug + self.rule)

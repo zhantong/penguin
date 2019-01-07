@@ -10,11 +10,14 @@ from bearblog.utils import slugify
 
 @Signal.connect('main', 'widget')
 def main_widget(end_point):
+    def index_url(**kwargs):
+        return Signal.send('main', 'index_url', **kwargs)
+
     all_category = Category.query.order_by(Category.name).all()
     return {
         'slug': 'category',
         'name': '分类',
-        'html': current_plugin.render_template('widget_list', 'widget.html', all_category=all_category, end_point=end_point),
+        'html': current_plugin.render_template('widget_list', 'widget.html', all_category=all_category, index_url=index_url),
         'is_html_as_list': True
     }
 

@@ -1,13 +1,12 @@
 from flask import render_template, request, jsonify, abort
 from flask_login import login_required
 
-from bearblog import current_component
-from . import admin
+from bearblog import current_component, component_route
 from bearblog.models import Component
 from bearblog.utils import slugify
 
 
-@admin.before_request
+@current_component.blueprint.before_request
 @login_required
 def before_request():
     pass
@@ -17,12 +16,12 @@ def get_sidebar_item(component):
     return current_component.signal.send_this('sidebar_item', component=component)
 
 
-@admin.route('/')
+@component_route('/', 'index')
 def index():
     return render_template('admin/index.html', components=Component._components, get_sidebar_item=get_sidebar_item)
 
 
-@admin.route('/<path:path>', methods=['GET', 'POST'])
+@component_route('/<path:path>', 'all', methods=['GET', 'POST'])
 def dispatch(path):
     templates = []
     scripts = []
@@ -39,7 +38,7 @@ def dispatch(path):
     return render_template('admin/framework.html', components=Component._components, get_sidebar_item=get_sidebar_item, templates=templates, scripts=scripts, csss=csss)
 
 
-@admin.route('/trans-slug')
+@component_route('/trans-slug', 'trans_slug')
 def trans_slug():
     return jsonify({
         'slug': slugify(request.args['string'])

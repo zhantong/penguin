@@ -11,15 +11,15 @@ from bearblog.plugins import current_plugin
 from .js_captcha import confuse_string
 from bearblog.plugins.comment.models import Comment
 from bearblog.plugins.models import Plugin
-from bearblog.main import main
 from bearblog.models import Signal, User, Role
 from bearblog.extensions import db
 from bearblog.utils import format_comments
+from bearblog import component_route
 
 ENABLE_TENCENT_CAPTCHA = True
 
 
-@main.route('/comment', methods=['POST'])
+@component_route('/comment', 'submit_comment', 'main', methods=['POST'])
 def submit_comment():
     js_captcha = request.form.get('js_captcha', type=str)
     print(js_captcha)

@@ -21,6 +21,11 @@
     {
       "name": "navbar_item",
       "return_type": "list"
+    },
+    {
+      "name": "index_url",
+      "return_type": "single"
     }
-  ]
+  ],
+  "url_prefix": null
 }

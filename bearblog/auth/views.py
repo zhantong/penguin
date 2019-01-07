@@ -1,12 +1,12 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user
 
-from . import auth
 from .forms import LoginForm
 from bearblog.models import User
+from bearblog import component_route
 
 
-@auth.route('/login', methods=['GET', 'POST'])
+@component_route('/login', 'login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -23,7 +23,7 @@ def login():
     return render_template('auth/login.html', form=form)
 
 
-@auth.route('/logout')
+@component_route('/logout', 'logout')
 @login_required
 def logout():
     logout_user()

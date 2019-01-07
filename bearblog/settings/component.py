@@ -2,15 +2,14 @@ import json
 
 from flask import request, jsonify
 
-from bearblog import current_component
+from bearblog import current_component, component_route
 from .models import Settings
-from bearblog.admin import admin
 from bearblog.models import Component, Signal
 
 
-@Signal.connect('penguin', 'deploy')
+@Signal.connect('bearblog', 'deploy')
 def deploy():
-    current_component.set_setting('site_name', name='站名', value='Penguin', value_type='str')
+    current_component.set_setting('site_name', name='站名', value='BearBlog', value_type='str')
     current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
 
@@ -87,7 +86,7 @@ def get_widget_list(category, meta):
     }
 
 
-@admin.route('/settings', methods=['POST'])
+@component_route('/settings', 'submit_settings', 'admin', methods=['POST'])
 def submit_settings():
     category = request.form['category']
     settings = json.loads(request.form['settings'])

@@ -1,5 +1,6 @@
 {
   "id": "plugins",
   "name": "plugins",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "url_prefix": "/plugin"
 }

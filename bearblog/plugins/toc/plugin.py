@@ -2,11 +2,12 @@ import os
 
 from flask import send_from_directory
 
-from bearblog.plugins import current_plugin, plugin
+from bearblog.plugins import current_plugin
 from bearblog.models import Signal
+from bearblog import component_route
 
 
-@plugin.route('/toc/static/<path:filename>')
+@component_route('/toc/static/<path:filename>', 'toc_static')
 def toc_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 

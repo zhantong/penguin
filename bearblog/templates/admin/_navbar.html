@@ -9,11 +9,11 @@
         <ul class="navbar-nav navbar-right">
             {% if current_user.is_authenticated %}
                 <li>
-                    <a href="{{ url_for('auth.logout') }}">注销</a>
+                    <a href="{{ component_url_for('logout','auth') }}">注销</a>
                 </li>
             {% else %}
                 <li>
-                    <a href="{{ url_for('auth.login') }}">登录</a>
+                    <a href="{{ component_url_for('login','auth') }}">登录</a>
                 </li>
             {% endif %}
         </ul>

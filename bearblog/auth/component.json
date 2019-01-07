@@ -1,0 +1,6 @@
+{
+  "id": "auth",
+  "name": "auth",
+  "show_in_sidebar": false,
+  "url_prefix": "/auth"
+}

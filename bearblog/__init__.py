@@ -18,7 +18,7 @@ from ._globals import *
 from .extensions import bootstrap, db, login_manager, csrf, moment
 from .models import Component, Signal
 
-_current_component = Component('penguin', 'penguin', show_in_sidebar=False)
+_current_component = Component('bearblog', 'bearblog', show_in_sidebar=False)
 
 
 def create_app(config_name=None):
@@ -31,29 +31,14 @@ def create_app(config_name=None):
 
     register_extensions(app)
     register_components(app)
-    register_blueprints(app)
     register_commands(app)
     register_template_context(app)
 
-    Signal.send('penguin', 'create_app', app=app)
+    Signal.send('bearblog', 'create_app', app=app)
 
     flask_whooshalchemyplus.init_app(app)
 
     return app
-
-
-def register_blueprints(app):
-    from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
-
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix='/auth')
-
-    from .admin import admin as admin_blueprint
-    app.register_blueprint(admin_blueprint, url_prefix='/admin')
-
-    from .plugins import plugin as plugin_blueprint
-    app.register_blueprint(plugin_blueprint, url_prefix='/plugin')
 
 
 def register_extensions(app):
@@ -84,7 +69,8 @@ def register_template_context(app):
         from .plugins.models import Plugin
         return dict(
             get_setting=Plugin.get_setting,
-            get_setting_value=Plugin.get_setting_value)
+            get_setting_value=Plugin.get_setting_value,
+            component_url_for=Component.view_url_for)
 
 
 def register_components(app):
@@ -102,11 +88,12 @@ def register_components(app):
             if os.path.isfile(config_file):
                 with open(config_file) as f:
                     config = json.loads(f.read())
-                component = Component(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'])
+                component = Component(config['name'], name, config['id'], show_in_sidebar=config['show_in_sidebar'], config=config)
                 if 'signals' in config:
                     for signal in config['signals']:
                         name = signal.pop('name')
                         component.signal.declare_signal(name, **signal)
+                component.setup(app)
 
     load_components()
 

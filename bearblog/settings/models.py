@@ -17,7 +17,7 @@ class Settings(db.Model):
     visibility = db.Column(db.String(40), default='visible')
 
     @staticmethod
-    def get_value(slug, category='penguin'):
+    def get_value(slug, category='bearblog'):
         item = Settings.query.filter_by(slug=slug, category=category).first()
         if item is not None:
             return item.get_value_self()

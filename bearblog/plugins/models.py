@@ -96,4 +96,4 @@ class Route:
         self.name = name
 
     def path(self):
-        return url_for(self.blueprint + '.dispatch', path='plugins/' + self.plugin.slug + self.rule)
+        return url_for(self.blueprint + '.route', path='plugins/' + self.plugin.slug + self.rule)

@@ -7,20 +7,20 @@ from uuid import uuid4
 import markdown2
 from flask import request, make_response, url_for, session, flash, jsonify, send_from_directory
 
-from bearblog.plugins import current_plugin, plugin
+from bearblog.plugins import current_plugin
 from .models import Article
 from bearblog.plugins.models import Plugin
 from bearblog.models import Signal, User
-from bearblog.main import main
 from bearblog.extensions import db
+from bearblog import component_route,component_url_for
 
 
-@plugin.route('/article/static/<path:filename>')
+@component_route('/article/static/<path:filename>', 'article_static')
 def article_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/archives/<int:number>.html')
+@component_route('/archives/<int:number>.html', 'show_article', 'main')
 def show_article(number):
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.timestamp.desc()).all()
@@ -57,7 +57,7 @@ def restore(data, directory):
 
 @current_plugin.signal.connect_this('article_url')
 def article_url(article, anchor):
-    return url_for('main.show_article', number=article.number, _anchor=anchor)
+    return component_url_for('show_article', 'main', number=article.number, _anchor=anchor)
 
 
 @current_plugin.signal.connect_this('article_list_url')

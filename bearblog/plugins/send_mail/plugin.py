@@ -12,7 +12,7 @@ from bearblog.plugins import current_plugin, Plugin
 from bearblog.models import Signal
 
 
-@Signal.connect('penguin', 'deploy')
+@Signal.connect('bearblog', 'deploy')
 def deploy():
     current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
     current_plugin.set_setting('password', name='密码', value='', value_type='str')

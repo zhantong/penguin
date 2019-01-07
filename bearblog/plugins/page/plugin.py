@@ -5,23 +5,22 @@ from datetime import datetime
 from uuid import uuid4
 
 import markdown2
-from flask import url_for, request, session, make_response, flash, jsonify, send_from_directory, abort
+from flask import request, session, make_response, flash, jsonify, send_from_directory, abort
 
 from bearblog.plugins import current_plugin
 from .models import Page
-from bearblog.plugins import plugin
 from bearblog.plugins.models import Plugin
-from bearblog.main import main
 from bearblog.models import Signal, User
 from bearblog.extensions import db
+from bearblog import component_url_for, component_route
 
 
-@plugin.route('/page/static/<path:filename>')
+@component_route('/page/static/<path:filename>', 'page_static')
 def page_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/<string:slug>.html')
+@component_route('/<string:slug>.html', 'show_page', 'main')
 def show_page(slug):
     def get_pages(repository_id):
         return Page.query.filter_by(repository_id=repository_id).order_by(Page.timestamp.desc()).all()
@@ -78,7 +77,7 @@ def restore(data):
 
 @current_plugin.signal.connect_this('page_url')
 def page_url(page, anchor):
-    return url_for('main.show_page', slug=page.slug, _anchor=anchor)
+    return component_url_for('show_page', 'main', slug=page.slug, _anchor=anchor)
 
 
 def delete(page_id):
@@ -197,14 +196,14 @@ def navbar_item():
         more.append({
             'type': 'item',
             'name': page.title,
-            'link': url_for('main.show_page', slug=page.slug)
+            'link': component_url_for('show_page', 'main', slug=page.slug)
         })
     dynamic_pages = current_plugin.signal.send_this('dynamic_page')
     for page in dynamic_pages:
         more.append({
             'type': 'item',
             'name': page['title'],
-            'link': url_for('main.show_page', slug=page['slug'])
+            'link': component_url_for('show_page', 'main', slug=page['slug'])
         })
     return {
         'more': more

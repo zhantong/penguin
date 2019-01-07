@@ -1,12 +1,11 @@
-from flask import render_template, request, url_for
+from flask import render_template, request
 
-from bearblog import current_component
-from . import main
+from bearblog import current_component, component_url_for, component_route
 from bearblog.models import Signal
 from bearblog.plugins.models import Plugin
 
 
-@main.route('/')
+@component_route('/', 'index')
 def index():
     widgets = current_component.signal.send_this('widget', end_point='.index', request=request)
     main_widgets = widgets['main']
@@ -16,17 +15,22 @@ def index():
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 
 
-@main.errorhandler(404)
+@current_component.signal.connect_this('index_url')
+def index_url(**kwargs):
+    return current_component.view_url_for('index', **kwargs)
+
+
+@current_component.blueprint.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
 
-@main.errorhandler(500)
+@current_component.blueprint.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@Signal.connect('penguin', 'create_app')
+@Signal.connect('bearblog', 'create_app')
 def create_app(app):
     @app.context_processor
     def context_processor():
@@ -73,7 +77,7 @@ def get_navbar_item():
             {
                 'type': 'item',
                 'name': '首页',
-                'link': url_for('main.index')
+                'link': component_url_for('index')
             }
         ]
     }

@@ -20,7 +20,7 @@ from bearblog.models import Signal
 opener = urllib.request.build_opener()
 
 
-@Signal.connect('penguin', 'deploy')
+@Signal.connect('bearblog', 'deploy')
 def deploy():
     current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
     current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')

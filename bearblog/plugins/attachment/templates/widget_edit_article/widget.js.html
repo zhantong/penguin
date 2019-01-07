@@ -1,12 +1,12 @@
-<script src="{{ url_for('plugin.attachment_static', filename='jQuery-File-Upload-9.20.0/js/vendor/jquery.ui.widget.js') }}"></script>
-<script src="{{ url_for('plugin.attachment_static', filename='jQuery-File-Upload-9.20.0/js/jquery.fileupload.js') }}"></script>
+<script src="{{ component_url_for('attachment_static', filename='jQuery-File-Upload-9.20.0/js/vendor/jquery.ui.widget.js') }}"></script>
+<script src="{{ component_url_for('attachment_static', filename='jQuery-File-Upload-9.20.0/js/jquery.fileupload.js') }}"></script>
 <script>
     var origUploadItem = $('#hide-area').find('.upload-item');
     $('#fileupload').fileupload({
         beforeSend: function (xhr, settings) {
             xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
         },
-        url: "{{ url_for('.upload') }}",
+        url: "{{ component_url_for('upload', 'admin') }}",
         formData: {
             meta: JSON.stringify({{ meta|tojson }})
         },

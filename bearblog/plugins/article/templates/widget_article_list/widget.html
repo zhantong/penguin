@@ -5,7 +5,7 @@
         <article>
             <div class="card mb-3">
                 <div class="card-header">
-                    <a href="{{ url_for('.show_article', number=article.number) }}">
+                    <a href="{{ component_url_for('show_article', 'main', number=article.number) }}">
                         {% if article.title %}
                             {{ article.title }}
                         {% else %}
@@ -31,6 +31,6 @@
 </div>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget(pagination, '.index', **request_params) }}
+        {{ macros.pagination_widget(pagination, 'main', 'index', **request_params) }}
     </div>
 {% endif %}

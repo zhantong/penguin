@@ -5,15 +5,14 @@ from datetime import datetime
 
 from flask import request, jsonify, current_app, url_for, send_from_directory
 
-from bearblog.plugins import current_plugin, plugin
+from bearblog.plugins import current_plugin
 from .models import Attachment
-from bearblog.admin import admin
-from bearblog.main import main
 from bearblog.models import Signal
 from bearblog.extensions import db
+from bearblog import component_route
 
 
-@Signal.connect('penguin', 'deploy')
+@Signal.connect('bearblog', 'deploy')
 def deploy():
     current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
@@ -25,19 +24,19 @@ def account(request, templates, scripts, **kwargs):
     scripts.append(widget['script'])
 
 
-@plugin.route('/attachment/static/<path:filename>')
+@component_route('/attachment/static/<path:filename>', 'attachment_static')
 def attachment_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@main.route('/attachments/<string:filename>')
+@component_route('/attachments/<string:filename>', 'show_attachment', 'main')
 def show_attachment(filename):
     attachment = Attachment.query.filter_by(filename=filename).first()
     path = attachment.file_path
     return send_from_directory('../' + current_app.config['UPLOAD_FOLDER'], path, as_attachment=True, attachment_filename=attachment.original_filename)
 
 
-@admin.route('/upload', methods=['POST'])
+@component_route('/upload', 'upload', 'admin', methods=['POST'])
 def upload():
     if 'files[]' not in request.files:
         return jsonify({
@@ -82,7 +81,7 @@ def upload():
     })
 
 
-@admin.route('/upload/<int:id>', methods=['DELETE'])
+@component_route('/upload/<int:id>', 'upload_delete', 'admin', methods=['DELETE'])
 def delete_upload(id):
     attachment = Attachment.query.get(id)
     db.session.delete(attachment)
