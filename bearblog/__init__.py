@@ -81,6 +81,14 @@ def register_components(app):
             if os.path.isdir(os.path.join(dirname, name)) and not name.startswith('.'):
                 __import__(name, globals=globals(), fromlist=[name], level=1)
 
+        for name in os.listdir(dirname):
+            config_file = os.path.join(dirname, name, 'component.json')
+            if os.path.isfile(config_file):
+                with open(config_file) as f:
+                    config = json.loads(f.read())
+                component = Component.find_component(config['id'])
+                component.done_setup(app)
+
     def pre_load_components():
         dirname = os.path.dirname(__file__)
         for name in os.listdir(dirname):

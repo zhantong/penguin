@@ -218,7 +218,7 @@ class Component:
         self.routes = {}
         self.signal = Signal(self)
         self.template_context = {}
-        self.config = config
+        self.config = config or {}
         self.view_functions = {}
         self.rule_map = Map()
         self.view_route = self._instance_view_route
@@ -238,6 +238,8 @@ class Component:
                 endpoint, params = self.urls.match('/' + path, method=request.method)
                 return self.view_functions[endpoint](**params)
 
+    def done_setup(self, app):
+        if 'url_prefix' in self.config:
             app.register_blueprint(self.blueprint)
 
     def route(self, blueprint, rule, name=None, **kwargs):
