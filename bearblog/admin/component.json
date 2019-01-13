@@ -5,7 +5,7 @@
   "signals": [
     {
       "name": "sidebar_item",
-      "return_type": "single"
+      "return_type": "merged_list"
     }
   ],
   "url_prefix": "/admin"

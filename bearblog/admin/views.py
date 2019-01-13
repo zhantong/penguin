@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, abort
+from flask import render_template, request, jsonify
 from flask_login import login_required
 
 from bearblog import current_component, component_route
@@ -6,36 +6,25 @@ from bearblog.models import Component
 from bearblog.utils import slugify
 
 
-@current_component.blueprint.before_request
 @login_required
+@current_component.blueprint.before_request
 def before_request():
     pass
 
 
-def get_sidebar_item(component):
-    return current_component.signal.send_this('sidebar_item', component=component)
+@current_component.blueprint.after_request
+def after_request(response):
+    response.set_data(render_template('admin/framework.html', components=Component._components, sidebar_items=get_sidebar_item(), content=response.get_data().decode()))
+    return response
+
+
+def get_sidebar_item():
+    return current_component.signal.send_this('sidebar_item')
 
 
 @component_route('/', 'index')
 def index():
-    return render_template('admin/index.html', components=Component._components, get_sidebar_item=get_sidebar_item)
-
-
-@component_route('/<path:path>', 'all', methods=['GET', 'POST'])
-def dispatch(path):
-    templates = []
-    scripts = []
-    csss = []
-    meta = {'override_render': False}
-    component_slug = path.split('/')[0]
-    path = path[len(component_slug + '/'):]
-    Component.find_component(component_slug).request(path, request=request, templates=templates, scripts=scripts, csss=csss, meta=meta)
-    if meta['override_render']:
-        if len(templates) == 0:
-            abort(404)
-        else:
-            return templates[0]
-    return render_template('admin/framework.html', components=Component._components, get_sidebar_item=get_sidebar_item, templates=templates, scripts=scripts, csss=csss)
+    return ''
 
 
 @component_route('/trans-slug', 'trans_slug')
