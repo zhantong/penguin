@@ -6,9 +6,9 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 
-from flask import jsonify
+from flask import jsonify, request
 
-from bearblog.plugins import current_plugin, Plugin
+from bearblog.plugins import current_plugin, Plugin, plugin_url_for, plugin_route
 from bearblog.models import Signal
 
 
@@ -19,26 +19,42 @@ def deploy():
     current_plugin.set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
 
 
-@current_plugin.route('admin', '/account', '设置账号')
-def account(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '设置账号',
+                'url': plugin_url_for('account', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '测试发送邮件',
+                'url': plugin_url_for('test-send-mail', _component='admin')
+            }
+        ]
+    }
 
 
-@current_plugin.route('admin', '/test-send-mail', '测试发送邮件')
-def test_send_mail(request, meta, templates, scripts, **kwargs):
+@plugin_route('/account', 'account', _component='admin')
+def account():
+    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+
+
+@plugin_route('/test-send-mail', 'test-send-mail', _component='admin')
+def test_send_mail():
     if request.method == 'GET':
-        templates.append(current_plugin.render_template('test_send_mail.html'))
-        scripts.append(current_plugin.render_template('test_send_mail.js.html'))
+        return current_plugin.render_template('test_send_mail.html')
     elif request.method == 'POST':
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')
         body = request.form.get('body')
         result = current_plugin.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body)
 
-        meta['override_render'] = True
-        templates.append(jsonify(result))
+        return jsonify(result)
 
 
 @current_plugin.signal.connect_this('send_mail')
