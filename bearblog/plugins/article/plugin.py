@@ -7,12 +7,12 @@ from uuid import uuid4
 import markdown2
 from flask import request, make_response, url_for, session, flash, jsonify, send_from_directory
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Article
 from bearblog.plugins.models import Plugin
 from bearblog.models import Signal, User
 from bearblog.extensions import db
-from bearblog import component_route,component_url_for
+from bearblog import component_route, component_url_for
 
 
 @component_route('/article/static/<path:filename>', 'article_static')
@@ -42,6 +42,31 @@ def show_article(number):
     for key, value in cookies_to_set.items():
         resp.set_cookie(key, value)
     return resp
+
+
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '设置',
+                'url': plugin_url_for('settings', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '管理文章',
+                'url': plugin_url_for('list', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '撰写文章',
+                'url': plugin_url_for('edit', _component='admin')
+            }
+        ]
+    }
 
 
 @Signal.connect('bearblog', 'restore')
@@ -77,16 +102,13 @@ def delete(article_id):
     }
 
 
-@current_plugin.route('admin', '/list', '管理文章')
-def article_list(request, templates, meta, scripts, **kwargs):
+@plugin_route('/list', 'list', _component='admin')
+def article_list():
     if request.method == 'POST':
         if request.form['action'] == 'delete':
-            meta['override_render'] = True
             result = delete(request.form['id'])
-            templates.append(jsonify(result))
+            return jsonify(result)
         else:
-            meta['override_render'] = True
-
             article_id = request.form['id']
             action = request.form['action']
             article = Article.query.get(article_id)
@@ -100,12 +122,10 @@ def article_list(request, templates, meta, scripts, **kwargs):
                 article.status = 'hidden'
             db.session.commit()
 
-            templates.append(jsonify({'result': 'OK'}))
+            return jsonify({'result': 'OK'})
     else:
         cleanup_temp_article()
-        widget = current_plugin.signal.send_this('get_admin_article_list', params=request.args)
-        templates.append(widget['html'])
-        scripts.append(widget['js'])
+        return current_plugin.signal.send_this('get_admin_article_list', params=request.args)
 
 
 @current_plugin.signal.connect_this('get_admin_article_list')
@@ -123,14 +143,11 @@ def get_admin_widget_article_list(params):
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     custom_columns = current_plugin.signal.send_this('custom_list_column')
-    return {
-        'html': current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_articles=get_articles, url_for=current_plugin.url_for, custom_columns=custom_columns),
-        'js': current_plugin.render_template('list.js.html')
-    }
+    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_articles=get_articles, url_for=plugin_url_for, custom_columns=custom_columns)
 
 
-@current_plugin.route('admin', '/edit', '撰写文章')
-def edit_article(request, templates, scripts, csss, **kwargs):
+@plugin_route('/edit', 'edit', _component='admin')
+def edit_article():
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
@@ -158,9 +175,7 @@ def edit_article(request, templates, scripts, csss, **kwargs):
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', article=article))
         widgets.extend(current_plugin.signal.send_this('edit_widget', article=article))
-        templates.append(current_plugin.render_template('edit.html', article=article, widgets=widgets))
-        scripts.append(current_plugin.render_template('edit.js.html', article=article, widgets=widgets))
-        csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
+        return current_plugin.render_template('edit.html', article=article, widgets=widgets)
 
 
 def cleanup_temp_article():
@@ -208,7 +223,7 @@ def navbar_item():
 
 @current_plugin.signal.connect_this('admin_article_list_url')
 def admin_article_list_url(params):
-    return current_plugin.url_for('/list', **params)
+    return plugin_url_for('list', _component='admin', **params)
 
 
 @Signal.connect('page', 'dynamic_page')
@@ -264,8 +279,6 @@ def article_list_item_meta(article):
     return _meta_publish_datetime(article)
 
 
-@current_plugin.route('admin', '/settings', '设置')
-def account(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@plugin_route('/settings', 'settings', _component='admin')
+def settings():
+    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})

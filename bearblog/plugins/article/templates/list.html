@@ -18,7 +18,7 @@
         {% set articles=get_articles(repository_id) %}
         {% for article in articles %}
             <tr {% if not loop.first %} class="success" {% endif %}>
-                <td><a href="{{ url_for('/edit', id=article.id) }}">{{ article.title }}</a></td>
+                <td><a href="{{ url_for('edit', _component='admin', id=article.id) }}">{{ article.title }}</a></td>
                 <td>{{ article.author.name }}</td>
                 <td>{{ moment(article.timestamp).format('L') }}</td>
                 {% for column in custom_columns %}
@@ -54,6 +54,42 @@
 </table>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+        {{ macros.pagination_widget_3(pagination['pagination'],pagination['url_for'], pagination['url_for_params'], **pagination['fragment']) }}
     </div>
 {% endif %}
+
+<script>
+    $('.version-dropdown li a').click(function (event) {
+        event.preventDefault();
+        var action = $(this).data('action');
+        var article_id = $(this).data('id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: action,
+                id: article_id
+            }
+        }).done(function (msg) {
+            location.reload();
+        })
+    });
+    $('.article-item').click(function (event) {
+        var article_id = $(this).data('id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'delete',
+                id: article_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    })
+</script>
