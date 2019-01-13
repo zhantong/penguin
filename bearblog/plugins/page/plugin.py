@@ -7,7 +7,7 @@ from uuid import uuid4
 import markdown2
 from flask import request, session, make_response, flash, jsonify, send_from_directory, abort
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Page
 from bearblog.plugins.models import Plugin
 from bearblog.models import Signal, User
@@ -64,6 +64,31 @@ def show_page(slug):
         return resp
 
 
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '设置',
+                'url': plugin_url_for('settings', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '管理页面',
+                'url': plugin_url_for('list', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '撰写页面',
+                'url': plugin_url_for('edit', _component='admin')
+            }
+        ]
+    }
+
+
 @Signal.connect('bearblog', 'restore')
 def restore(data):
     if 'page' in data:
@@ -97,16 +122,13 @@ def cleanup_temp_page():
     db.session.commit()
 
 
-@current_plugin.route('admin', '/list', '管理页面')
-def page_list(request, templates, meta, scripts, **kwargs):
+@plugin_route('/list', 'list', _component='admin')
+def page_list():
     if request.method == 'POST':
         if request.form['action'] == 'delete':
-            meta['override_render'] = True
             result = delete(request.form['id'])
-            templates.append(jsonify(result))
+            return jsonify(result)
         else:
-            meta['override_render'] = True
-
             page_id = request.form['id']
             action = request.form['action']
             page = Page.query.get(page_id)
@@ -120,12 +142,10 @@ def page_list(request, templates, meta, scripts, **kwargs):
                 page.status = 'hidden'
             db.session.commit()
 
-            templates.append(jsonify({'result': 'OK'}))
+            return jsonify({'result': 'OK'})
     else:
         cleanup_temp_page()
-        widget = current_plugin.signal.send_this('get_admin_page_list', params=request.args)
-        templates.append(widget['html'])
-        scripts.append(widget['js'])
+        return current_plugin.signal.send_this('get_admin_page_list', params=request.args)
 
 
 @current_plugin.signal.connect_this('get_admin_page_list')
@@ -142,14 +162,11 @@ def get_admin_page_list(params):
     query = query['query']
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
-    return {
-        'html': current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, get_pages=get_pages, url_for=current_plugin.url_for),
-        'js': current_plugin.render_template('list.js.html')
-    }
+    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_pages=get_pages, url_for=plugin_url_for)
 
 
-@current_plugin.route('admin', '/edit', '撰写页面')
-def edit_page(request, templates, scripts, csss, **kwargs):
+@plugin_route('/edit', 'edit', _component='admin')
+def edit_page():
     if request.method == 'POST':
         title = request.form['title']
         slug = request.form['slug']
@@ -178,9 +195,7 @@ def edit_page(request, templates, scripts, csss, **kwargs):
         widgets = []
         widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
         widgets.extend(current_plugin.signal.send_this('edit_widget', page=page))
-        templates.append(current_plugin.render_template('edit.html', page=page, widgets=widgets))
-        scripts.append(current_plugin.render_template('edit.js.html', page=page, widgets=widgets))
-        csss.append(current_plugin.render_template('edit.css.html', widgets=widgets))
+        return current_plugin.render_template('edit.html', page=page, widgets=widgets)
 
 
 @current_plugin.signal.connect_this('get_page')
@@ -243,8 +258,6 @@ def on_changed_article_body(target, value, oldvalue, initiator):
 db.event.listen(Page.body, 'set', on_changed_article_body)
 
 
-@current_plugin.route('admin', '/settings', '设置')
-def settings(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@plugin_route('/settings', 'settings', _component='admin')
+def settings():
+    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})

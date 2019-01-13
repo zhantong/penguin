@@ -1,5 +1,12 @@
 {% import "_macros.html" as macros %}
 
+<link rel="stylesheet" href="{{ component_url_for('page_static', filename='editor.md-1.5.0/css/editormd.css') }}">
+{% for widget in widgets %}
+    {% if 'css' in widget %}
+        {{ widget['css']|safe }}
+    {% endif %}
+{% endfor %}
+
 <div class="container-fluid">
     <div class="row">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -12,7 +19,7 @@
             </div>
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-group-addon">{{ url_for('main.index',_external=True) }}</span>
+                    <span class="input-group-addon">{{ component_url_for('index', component='main', _external=True) }}</span>
                     <input id="page-slug" name="slug" type="text" class="form-control" value="{{ page.slug }}">
                     <span class="input-group-addon">.html</span>
                     <span class="input-group-btn">
@@ -35,3 +42,33 @@
         </div>
     </div>
 </div>
+
+<script src="{{ component_url_for('page_static', filename='editor.md-1.5.0/editormd.min.js') }}"></script>
+
+<script>
+    $('#trans-slug').click(function () {
+        $input = $(this).parent().siblings('input');
+        $.ajax({
+            type: 'GET',
+            url: '{{ component_url_for('trans_slug', component='admin') }}',
+            data: {
+                string: $input.val()
+            },
+            success: function (msg) {
+                $input.val(msg['slug']);
+            }
+        })
+    });
+    editormd({
+        id: "markdown-editor",
+        width: "100%",
+        height: 640,
+        path: "{{ component_url_for('page_static', filename='editor.md-1.5.0/lib/') }}"
+    });
+</script>
+
+{% for widget in widgets %}
+    {% if 'js' in widget %}
+        {{ widget['js']|safe }}
+    {% endif %}
+{% endfor %}
