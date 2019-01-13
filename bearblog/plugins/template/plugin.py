@@ -1,13 +1,33 @@
 import json
 
-from flask import flash, jsonify, redirect
+from flask import flash, jsonify, redirect, request
 from jinja2 import Template as Jinja2Tempalte
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Template
 from bearblog.plugins.models import Plugin
 from bearblog.models import Signal
 from bearblog.extensions import db
+
+
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '新建模板',
+                'url': plugin_url_for('new', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '管理模板',
+                'url': plugin_url_for('list', _component='admin')
+            }
+        ]
+    }
 
 
 def get_widget(template):
@@ -68,29 +88,27 @@ def admin_page_list_url(**kwargs):
     return Signal.send('page', 'admin_page_list_url', params=kwargs)
 
 
-@current_plugin.route('admin', '/list', '管理模板')
-def list_tags(request, templates, scripts, meta, **kwargs):
+@plugin_route('/list', 'list', _component='admin')
+def list_tags():
     if request.method == 'POST':
         if request.form['action'] == 'delete':
-            meta['override_render'] = True
             result = delete(request.form['id'])
-            templates.append(jsonify(result))
+            return jsonify(result)
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Template.query.order_by(Template.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         the_templates = pagination.items
-        templates.append(current_plugin.render_template('list.html', template_instance=current_plugin, templates=the_templates, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url))
-        scripts.append(current_plugin.render_template('list.js.html'))
+        return current_plugin.render_template('list.html', url_for=plugin_url_for, templates=the_templates, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url)
 
 
-@current_plugin.route('admin', '/edit', None)
-def edit_template(request, templates, meta, **kwargs):
+@plugin_route('/edit', 'edit', _component='admin')
+def edit_template():
     if request.method == 'GET':
         id = request.args.get('id', type=int)
         template = None
         if id is not None:
             template = Template.query.get(id)
-        templates.append(current_plugin.render_template('edit.html', template=template))
+        return current_plugin.render_template('edit.html', template=template)
     else:
         id = request.form.get('id', type=int)
         if id is None:
@@ -104,14 +122,12 @@ def edit_template(request, templates, meta, **kwargs):
         if template.id is None:
             db.session.add(template)
         db.session.commit()
-        meta['override_render'] = True
-        templates.append(redirect(current_plugin.url_for('/list')))
+        return redirect(current_plugin.url_for('/list'))
 
 
-@current_plugin.route('admin', '/new', '新建模板')
-def new_tag(templates, meta, **kwargs):
-    meta['override_render'] = True
-    templates.append(redirect(current_plugin.url_for('/edit')))
+@plugin_route('/new', 'new', _component='admin')
+def new_tag():
+    return redirect(plugin_url_for('edit', _component='admin'))
 
 
 @current_plugin.signal.connect_this('render_template')
