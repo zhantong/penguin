@@ -117,7 +117,7 @@ def authorize():
         current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
         current_plugin.set_setting('refresh_token', value=result['refresh_token'])
         opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
-    return redirect(current_plugin.url_for('/me'))
+    return redirect(plugin_url_for('me', _component='admin'))
 
 
 @plugin_route('/me', 'me', _component='admin')

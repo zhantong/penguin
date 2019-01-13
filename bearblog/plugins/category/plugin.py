@@ -143,12 +143,12 @@ def edit_tag():
         if category.id is None:
             db.session.add(category)
         db.session.commit()
-        return redirect(current_plugin.url_for('/list'))
+        return redirect(plugin_url_for('list', _component='admin'))
 
 
 @plugin_route('/new', 'new', _component='admin')
 def new_tag():
-    return redirect(current_plugin.url_for('/edit'))
+    return redirect(plugin_url_for('edit', _component='admin'))
 
 
 @Signal.connect('article', 'filter')

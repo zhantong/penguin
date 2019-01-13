@@ -122,7 +122,7 @@ def edit_template():
         if template.id is None:
             db.session.add(template)
         db.session.commit()
-        return redirect(current_plugin.url_for('/list'))
+        return redirect(plugin_url_for('list', _component='admin'))
 
 
 @plugin_route('/new', 'new', _component='admin')

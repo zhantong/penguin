@@ -242,7 +242,7 @@ def get_widget_submit(page):
 
 @current_plugin.signal.connect_this('admin_page_list_url')
 def admin_page_list_url(params):
-    return current_plugin.url_for('/list', **params)
+    return plugin_url_for('list', _component='admin', **params)
 
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')

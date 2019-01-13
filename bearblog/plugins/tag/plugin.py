@@ -95,7 +95,7 @@ def edit_tag():
         if tag.id is None:
             db.session.add(tag)
         db.session.commit()
-        return redirect(current_plugin.url_for('/list'))
+        return redirect(plugin_url_for('list', _component='admin'))
 
 
 @plugin_route('/new', 'new', _component='admin')
