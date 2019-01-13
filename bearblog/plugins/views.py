@@ -4,9 +4,8 @@ from bearblog.models import Signal
 
 
 @Signal.connect('admin', 'sidebar_item')
-def sidebar(component):
-    if component == current_component:
-        return current_component.render_template('items.html', plugins=Plugin.plugins)
+def sidebar_item():
+    return current_component.signal.send_this('admin_sidebar_item')
 
 
 @current_component.route('admin', '/*')

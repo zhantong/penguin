@@ -2,5 +2,11 @@
   "id": "plugins",
   "name": "plugins",
   "show_in_sidebar": true,
-  "url_prefix": "/plugin"
+  "url_prefix": "/plugin",
+  "signals": [
+    {
+      "name": "admin_sidebar_item",
+      "return_type": "list"
+    }
+  ]
 }
