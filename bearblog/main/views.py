@@ -15,6 +15,21 @@ def index():
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 
 
+@Signal.connect('admin', 'sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_component.name,
+        'slug': current_component.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '通用',
+                'url': component_url_for('main_settings', 'admin')
+            }
+        ]
+    }
+
+
 @current_component.signal.connect_this('index_url')
 def index_url(**kwargs):
     return current_component.view_url_for('index', **kwargs)
@@ -83,8 +98,6 @@ def get_navbar_item():
     }
 
 
-@current_component.route('admin', '/settings', '设置')
-def account(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_component.slug, meta={'plugin': current_component.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@component_route('/main/settings', 'main_settings', 'admin')
+def account():
+    return Signal.send('settings', 'get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
