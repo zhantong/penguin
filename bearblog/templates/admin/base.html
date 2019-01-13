@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+    {% block head %}
+        <meta charset="UTF-8">
+        {% block metas %}
+        {% endblock metas %}
+        <title>{% block title %}{% endblock title %} - Powered by BearBlog</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon-180x180.png') }}">
+        {% block styles %}
+            {{ bootstrap.load_css() }}
+            <link rel="stylesheet" href="{{ url_for('static', filename='_sidebar.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='font-awesome-4.7.0/css/font-awesome.min.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='colorful.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='markdown.css') }}">
+        {% endblock styles %}
+    {% endblock head %}
+    {% block scripts %}
+        {{ bootstrap.load_js() }}
+        {{ moment.include_moment(local_js=url_for('static', filename='moment-2.20.1/min/moment.min.js')) }}
+        <script src="{{ url_for('static', filename='moment-2.20.1/locale/zh-cn.js') }}" charset="UTF-8"></script>
+        {{ moment.lang('zh-CN') }}
+    {% endblock scripts %}
+</head>
+
+<body {% block body_attribs %}{% endblock body_attribs %}>
+{% block body %}
+    {% block navbar %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+            <a class="navbar-brand" href="#">{{ get_setting_value('site_name') }}</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                </ul>
+                <ul class="navbar-nav navbar-right">
+                    {% if current_user.is_authenticated %}
+                        <li>
+                            <a href="{{ component_url_for('logout','auth') }}">注销</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ component_url_for('login','auth') }}">登录</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    {% endblock navbar %}
+    {% block content %}
+    {% endblock content %}
+{% endblock body %}
+</body>
+</html>
+
