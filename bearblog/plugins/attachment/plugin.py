@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import request, jsonify, current_app, url_for, send_from_directory
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Attachment
 from bearblog.models import Signal
 from bearblog.extensions import db
@@ -17,11 +17,24 @@ def deploy():
     current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
-@current_plugin.route('admin', '/settings', '设置')
-def account(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '设置',
+                'url': plugin_url_for('settings', _component='admin')
+            }
+        ]
+    }
+
+
+@plugin_route('/settings', 'settings', _component='admin')
+def settings():
+    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
 
 
 @component_route('/attachment/static/<path:filename>', 'attachment_static')
