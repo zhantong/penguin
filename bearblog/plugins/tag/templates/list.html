@@ -11,7 +11,7 @@
     <tbody>
     {% for tag in tags %}
         <tr>
-            <td><a href="{{ tag_instance.url_for('/edit', id=tag.id) }}">{{ tag.name }}</a></td>
+            <td><a href="{{ url_for('edit', _component='admin', id=tag.id) }}">{{ tag.name }}</a></td>
             <td>{{ tag.slug }}</td>
             <td><a href="{{ admin_article_list_url(tag=tag.slug) }}">{{ tag.articles|length }}</a></td>
             <td>
@@ -23,6 +23,25 @@
 </table>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+        {{ macros.pagination_widget_3(pagination['pagination'],pagination['url_for'], pagination['url_for_params'] , **pagination['fragment']) }}
     </div>
 {% endif %}
+
+<script>
+    $('.tag-item').click(function (event) {
+        var tag_id = $(this).data('id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'delete',
+                id: tag_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    })
+</script>
