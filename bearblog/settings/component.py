@@ -2,7 +2,7 @@ import json
 
 from flask import request, jsonify
 
-from bearblog import current_component, component_route
+from bearblog import current_component, component_route, component_url_for
 from .models import Settings
 from bearblog.models import Component, Signal
 
@@ -13,11 +13,24 @@ def deploy():
     current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
 
-@current_component.route('admin', '/settings', '通用')
-def general(templates, scripts, **kwargs):
-    widget = current_component.signal.send_this('get_widget_list', category=current_component.slug, meta={'plugin': current_component.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@Signal.connect('admin', 'sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_component.name,
+        'slug': current_component.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '通用',
+                'url': component_url_for('settings_settings', 'admin')
+            }
+        ]
+    }
+
+
+@component_route('/settings/settings', 'settings_settings', 'admin')
+def get_settings():
+    return current_component.signal.send_this('get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
 
 
 def get_setting(slug, category=None):
@@ -43,7 +56,7 @@ def set_setting(key, category='settings', **kwargs):
     Settings.set(key, category, **kwargs)
 
 
-@current_component.signal.connect_this('get_widget_list')
+@current_component.signal.connect_this('get_rendered_settings')
 def get_widget_list(category, meta):
     component = Component.find_component(category)
     for signal_name, data in component.signal.signals.items():
@@ -78,12 +91,7 @@ def get_widget_list(category, meta):
                 component.set_setting(signal_name, value=json.dumps(value))
 
     settings = Settings.query.filter_by(category=category, visibility='visible').all()
-    return {
-        'slug': 'settings',
-        'name': '设置',
-        'html': current_component.render_template('widget_list', 'widget.html', settings=settings, category=category, meta=meta),
-        'script': current_component.render_template('widget_list', 'widget.js.html', category=category)
-    }
+    return current_component.render_template('settings.html', settings=settings, category=category, meta=meta)
 
 
 @component_route('/settings', 'submit_settings', 'admin', methods=['POST'])

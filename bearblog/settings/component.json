@@ -4,7 +4,7 @@
   "show_in_sidebar": true,
   "signals": [
     {
-      "name": "get_widget_list",
+      "name": "get_rendered_settings",
       "return_type": "single"
     }
   ]
