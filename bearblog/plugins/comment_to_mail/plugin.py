@@ -6,10 +6,10 @@ import urllib.request
 from datetime import datetime
 
 import redis
-from flask import current_app, redirect
+from flask import current_app, redirect, request
 from rq import Queue, Connection, get_failed_queue
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Message
 from bearblog.plugins.comment.models import Comment
 from bearblog.plugins.comment.plugin import get_comment_show_info
@@ -33,6 +33,31 @@ def deploy():
     current_plugin.set_setting('expires_at', value='0', value_type='int', visibility='invisible')
     current_plugin.set_setting('refresh_token', value='', value_type='str', visibility='invisible')
     current_plugin.set_setting('token_type', value='', value_type='str', visibility='invisible')
+
+
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '设置',
+                'url': plugin_url_for('settings', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '我',
+                'url': plugin_url_for('me', _component='admin')
+            },
+            {
+                'type': 'link',
+                'name': '管理提醒',
+                'url': plugin_url_for('list', _component='admin')
+            }
+        ]
+    }
 
 
 def is_authorized():
@@ -61,26 +86,23 @@ def is_authorized():
     return True
 
 
-@current_plugin.route('admin', '/settings', '设置')
-def account(request, templates, scripts, **kwargs):
-    widget = Signal.send('settings', 'get_widget_list', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
-    templates.append(widget['html'])
-    scripts.append(widget['script'])
+@plugin_route('/settings', 'settings', _component='admin')
+def account():
+    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
 
 
-@current_plugin.route('admin', '/login', None)
-def login(meta, templates, **kwargs):
+@plugin_route('/login', 'login', _component='admin')
+def login():
     authorize_url = current_plugin.get_setting_value_this('authorize_url')
     client_id = current_plugin.get_setting_value_this('client_id')
     scope = current_plugin.get_setting_value_this('scope')
     redirect_url = current_plugin.get_setting_value_this('redirect_url')
 
-    meta['override_render'] = True
-    templates.append(redirect(authorize_url + '?' + urllib.parse.urlencode({'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query', 'scope': scope})))
+    return redirect(authorize_url + '?' + urllib.parse.urlencode({'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query', 'scope': scope}))
 
 
-@current_plugin.route('admin', '/authorize')
-def authorize(request, meta, templates, **kwargs):
+@plugin_route('/authorize', 'authorize', _component='admin')
+def authorize():
     token_url = current_plugin.get_setting_value_this('token_url')
     client_id = current_plugin.get_setting_value_this('client_id')
     scope = current_plugin.get_setting_value_this('scope')
@@ -95,12 +117,11 @@ def authorize(request, meta, templates, **kwargs):
         current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
         current_plugin.set_setting('refresh_token', value=result['refresh_token'])
         opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
-    meta['override_render'] = True
-    templates.append(redirect(current_plugin.url_for('/me')))
+    return redirect(current_plugin.url_for('/me'))
 
 
-@current_plugin.route('admin', '/me', '我')
-def me(templates, **kwargs):
+@plugin_route('/me', 'me', _component='admin')
+def me():
     if is_authorized():
         api_base_url = current_plugin.get_setting_value_this('api_base_url')
         try:
@@ -110,7 +131,7 @@ def me(templates, **kwargs):
             me = None
     else:
         me = None
-    templates.append(current_plugin.render_template('me.html', me=me, login_url=current_plugin.url_for('/login')))
+    return current_plugin.render_template('me.html', me=me, login_url=plugin_url_for('login', _component='admin'))
 
 
 @Signal.connect('comment', 'comment_submitted')
@@ -183,8 +204,8 @@ def send_mail(recipient, subject, body, message_id):
         db.session.commit()
 
 
-@current_plugin.route('admin', '/list', '管理提醒')
-def list_messages(request, templates, scripts, meta, **kwargs):
+@plugin_route('/list', 'list', _component='admin')
+def list_messages():
     if request.method == 'POST':
         if request.form['action'] == 'resend':
             comment_id = request.form['comment_id']
@@ -201,5 +222,4 @@ def list_messages(request, templates, scripts, meta, **kwargs):
         messages = pagination.items
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()
-        templates.append(current_plugin.render_template('list.html', messages=messages, queue=queue, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
-        scripts.append(current_plugin.render_template('list.js.html'))
+        return current_plugin.render_template('list.html', messages=messages, queue=queue, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}})

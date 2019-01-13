@@ -49,6 +49,41 @@
 </table>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+        {{ macros.pagination_widget_3(pagination['pagination'],pagination['url_for'], pagination['url_for_params'] , **pagination['fragment']) }}
     </div>
 {% endif %}
+
+<script>
+    $('.resend-item').click(function (event) {
+        var comment_id = $(this).data('comment-id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'resend',
+                comment_id: comment_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    });
+    $('.rerun-item').click(function (event) {
+        var job_id = $(this).data('job-id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'rerun',
+                job_id: job_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    })
+</script>
