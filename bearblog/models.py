@@ -2,10 +2,9 @@ import inspect
 import sys
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urlencode
 import os.path
 
-from flask import url_for, render_template, Blueprint, request
+from flask import render_template, Blueprint, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.routing import Rule, Map
@@ -242,13 +241,6 @@ class Component:
         if 'url_prefix' in self.config:
             app.register_blueprint(self.blueprint)
 
-    def route(self, blueprint, rule, name=None, **kwargs):
-        def wrap(f):
-            self.routes[rule] = Route(self, blueprint, rule, f, name)
-            return f
-
-        return wrap
-
     @classmethod
     def view_route(cls, rule, endpoint, component=None, **kwargs):
         if component is None:
@@ -263,19 +255,6 @@ class Component:
             self.view_functions[endpoint] = f
 
         return wrap
-
-    def request(self, path, **kwargs):
-        rule = '/' + path.split('/')[0]
-        if rule in self.routes:
-            path = path[len(rule):]
-            self.routes[rule].func(path=path, **kwargs)
-        elif '/*' in self.routes:
-            self.routes['/*'].func(path=path, **kwargs)
-
-    def url_for(self, rule, **values):
-        if len(values) == 0:
-            return self.routes[rule].path()
-        return self.routes[rule].path() + '?' + urlencode(values)
 
     @classmethod
     def view_url_for(cls, endpoint, component=None, **kwargs):
@@ -315,10 +294,6 @@ class Component:
     def render_template(self, *args, **kwargs):
         return render_template(self.template_path(*args), **self.template_context, **kwargs)
 
-    def context_func(self, f):
-        self.template_context[f.__name__] = f
-        return f
-
 
 class ComponentProxy:
     root_path = Path(__file__).parent
@@ -340,15 +315,3 @@ class ComponentProxy:
                 if component_slug in Component._components:
                     return Component._components[component_slug]
             frame = frame.f_back
-
-
-class Route:
-    def __init__(self, plugin, blueprint, rule, func, name=None):
-        self.plugin = plugin
-        self.blueprint = blueprint
-        self.rule = rule
-        self.func = func
-        self.name = name
-
-    def path(self):
-        return url_for(self.blueprint + '.route', path=self.plugin.slug + self.rule)
