@@ -79,6 +79,38 @@
     </ul>
 {% endmacro %}
 
+{% macro pagination_widget_3(pagination ,url_for, url_for_params, fragment) %}
+    <ul class="pagination">
+        <li{% if not pagination.has_prev %} class="disabled"{% endif %}>
+            <a href="
+                    {% if pagination.has_prev %}{{ url_for(page=pagination.prev_num, *url_for_params['args'], **url_for_params['kwargs']) }}{{ fragment }}{% else %}#{% endif %}">
+                &laquo;
+            </a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <li class="active">
+                        <a href="{{ url_for(page = p, *url_for_params['args'], **url_for_params['kwargs']) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ url_for(page = p, *url_for_params['args'], **url_for_params['kwargs']) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="disabled"><a href="#">&hellip;</a></li>
+            {% endif %}
+        {% endfor %}
+        <li{% if not pagination.has_next %} class="disabled"{% endif %}>
+            <a href="
+                    {% if pagination.has_next %}{{ url_for(page=pagination.next_num, *url_for_params['args'], **url_for_params['kwargs']) }}{{ fragment }}{% else %}#{% endif %}">
+                &raquo;
+            </a>
+        </li>
+    </ul>
+{% endmacro %}
+
 {% macro render_card(slug,title,body=None,footer=None,content_before=None,content_after=None) %}
     <div class="card mb-3" data-widget-slug="{{ slug }}">
         <div class="card-header" id="card-{{ slug }}-heading">
