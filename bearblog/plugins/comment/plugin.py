@@ -7,7 +7,7 @@ from flask import flash, request, jsonify, session
 from flask_login import current_user
 from sqlalchemy import desc
 
-from bearblog.plugins import current_plugin
+from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .js_captcha import confuse_string
 from bearblog.plugins.comment.models import Comment
 from bearblog.plugins.models import Plugin
@@ -81,6 +81,21 @@ def submit_comment():
     })
 
 
+@Signal.connect('plugins', 'admin_sidebar_item')
+def admin_sidebar_item():
+    return {
+        'name': current_plugin.name,
+        'slug': current_plugin.slug,
+        'items': [
+            {
+                'type': 'link',
+                'name': '管理评论',
+                'url': plugin_url_for('list', _component='admin')
+            }
+        ]
+    }
+
+
 def get_comment_show_info(comment):
     if comment.article is not None:
         return {
@@ -106,19 +121,17 @@ def delete(comment_id):
     }
 
 
-@current_plugin.route('admin', '/list', '管理评论')
-def list_tags(request, templates, scripts, meta, **kwargs):
+@plugin_route('/list', 'list', _component='admin')
+def list_tags():
     if request.method == 'POST':
         if request.form['action'] == 'delete':
-            meta['override_render'] = True
             result = delete(request.form['id'])
-            templates.append(jsonify(result))
+            return jsonify(result)
     else:
         page = request.args.get('page', 1, type=int)
         pagination = Comment.query.order_by(desc(Comment.timestamp)).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         comments = pagination.items
-        templates.append(current_plugin.render_template('list.html', comment_instance=current_plugin, comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'endpoint': '/list', 'fragment': {}, 'url_for': current_plugin.url_for}))
-        scripts.append(current_plugin.render_template('list.js.html', meta=meta))
+        return current_plugin.render_template('list.html', comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}})
 
 
 def show_widget(session, comments, meta):

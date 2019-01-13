@@ -30,6 +30,25 @@
 </table>
 {% if pagination %}
     <div class="text-center">
-        {{ macros.pagination_widget_2(pagination['pagination'],pagination['url_for'], pagination['endpoint'] , **pagination['fragment']) }}
+        {{ macros.pagination_widget_3(pagination['pagination'],pagination['url_for'], pagination['url_for_params'] , **pagination['fragment']) }}
     </div>
 {% endif %}
+
+<script>
+    $('.comment-item').click(function (event) {
+        var comment_id = $(this).data('id');
+        $.ajax({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+            },
+            method: 'POST',
+            data: {
+                action: 'delete',
+                id: comment_id
+            }
+        })
+            .done(function (msg) {
+                location.reload();
+            })
+    })
+</script>
