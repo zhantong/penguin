@@ -1,16 +1,21 @@
 import inspect
 import sys
+import os.path
 from pathlib import Path
 from urllib.parse import urlencode
 
-from flask import url_for, render_template
+from flask import url_for, render_template, request
+from werkzeug.routing import Map
 
 from bearblog.models import Signal, Component
+from bearblog import component_route
 
 
 class Plugin:
     plugins = {}
     Component._component_search_scope.append(plugins)
+
+    component = Component.find_component('plugins')
 
     @staticmethod
     def find_plugin(slug):
@@ -29,11 +34,35 @@ class Plugin:
         self.routes = {}
         self.signal = Signal(self)
         self.template_context = {}
+        self.rule_map = Map()
+        self.view_functions = {}
+
+    def setup(self):
+        self.urls = self.rule_map.bind('', '/')
+
+        @component_route('/' + self.slug + '/<path:path>', endpoint=self.slug, component='plugins', methods=['GET', 'POST'])
+        def route(path):
+            endpoint, params = self.urls.match('/' + path, method=request.method)
+            return self.view_functions[endpoint](**params)
 
     def route(self, blueprint, rule, name=None, **kwargs):
         def wrap(f):
             self.routes[rule] = Route(self, blueprint, rule, f, name)
             return f
+
+        return wrap
+
+    @classmethod
+    def view_route(cls, rule, endpoint, plugin=None, _component='plugins', **kwargs):
+        if plugin is None:
+            plugin = PluginProxy._get_current_object()
+        else:
+            plugin = cls.find_plugin(plugin)
+        return plugin._instance_view_route(rule, endpoint, _component=_component, **kwargs)
+
+    def _instance_view_route(self, rule, endpoint, _component='plugins', **kwargs):
+        def wrap(f):
+            Component.view_route('/plugins/' + self.slug + rule, 'plugins_' + self.slug + '_' + endpoint, _component, **kwargs)(f)
 
         return wrap
 
@@ -45,6 +74,18 @@ class Plugin:
         if len(values) == 0:
             return self.routes[rule].path()
         return self.routes[rule].path() + '?' + urlencode(values)
+
+    @classmethod
+    def view_url_for(cls, endpoint, plugin=None, _component='plugins', **kwargs):
+        if plugin is None:
+            plugin = PluginProxy._get_current_object()
+        else:
+            plugin = cls.find_plugin(plugin)
+
+        return plugin._instance_view_url_for(endpoint, _component, **kwargs)
+
+    def _instance_view_url_for(self, endpoint, _component='plugins', **kwargs):
+        return Component.view_url_for('plugins_' + self.slug + '_' + endpoint, _component, **kwargs)
 
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
@@ -81,10 +122,22 @@ class PluginProxy:
     root_path = Path(__file__).parent
 
     def __getattr__(self, item):
-        caller_path = Path(sys._getframe().f_back.f_code.co_filename).relative_to(self.root_path)
-        plugin_slug = caller_path.parts[0]
-        plugin = Plugin.plugins[plugin_slug]
-        return getattr(plugin, item)
+        return getattr(self._get_current_object(), item)
+
+    def __eq__(self, other):
+        return self._get_current_object() == other
+
+    @classmethod
+    def _get_current_object(cls):
+        frame = sys._getframe()
+        while frame is not None:
+            path = os.path.abspath(frame.f_code.co_filename)
+            if path.startswith(str(cls.root_path)):
+                path = Path(path).relative_to(cls.root_path)
+                plugin_slug = path.parts[0]
+                if plugin_slug in Plugin.plugins:
+                    return Plugin.plugins[plugin_slug]
+            frame = frame.f_back
 
 
 class Route:
