@@ -81,7 +81,7 @@ def submit_comment():
     })
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -144,7 +144,7 @@ def show_widget(session, comments, meta):
     }
 
 
-@Signal.connect('article', 'show_article_widget')
+@Signal.connect('show_article_widget', 'article')
 def show_article_widget(session, article):
     meta = {
         'article_id': article.id
@@ -153,7 +153,7 @@ def show_article_widget(session, article):
     return show_widget(session, comments, meta)
 
 
-@Signal.connect('page', 'show_page_widget')
+@Signal.connect('show_page_widget', 'page')
 def show_page_widget(session, page):
     meta = {
         'page_id': page.id
@@ -183,19 +183,19 @@ def restore(comments):
     return restored_comments
 
 
-@Signal.connect('article', 'restore')
+@Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'comments' in data:
         article.comments = restore(data['comments'])
 
 
-@Signal.connect('page', 'restore')
+@Signal.connect('restore', 'page')
 def page_restore(page, data):
     if 'comments' in data:
         page.comments = restore(data['comments'])
 
 
-@Signal.connect('main', 'widget')
+@Signal.connect('widget', 'main')
 def main_widget():
     comments = Comment.query.order_by(Comment.timestamp.desc()).limit(10).all()
     return {
@@ -211,12 +211,12 @@ def get_rendered_tag_items(comments):
     return current_plugin.render_template('num_comments.html', comments=comments)
 
 
-@Signal.connect('article', 'duplicate')
+@Signal.connect('duplicate', 'article')
 def article_duplicate(old_article, new_article):
     new_article.comments = old_article.comments
 
 
-@Signal.connect('page', 'duplicate')
+@Signal.connect('duplicate', 'page')
 def article_duplicate(old_page, new_page):
     new_page.comments = old_page.comments
 
@@ -225,22 +225,22 @@ def _article_meta(article):
     return current_plugin.render_template('num_comments.html', comments=article.comments)
 
 
-@Signal.connect('article', 'meta')
+@Signal.connect('meta', 'article')
 def article_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('page', 'meta')
-def article_meta(page):
+@Signal.connect('meta', 'page')
+def page_meta(page):
     return current_plugin.render_template('num_comments.html', comments=page.comments)
 
 
-@Signal.connect('article', 'custom_contents_column')
+@Signal.connect('custom_contents_column', 'article')
 def article_custom_contents_column():
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', comments=article.comments)

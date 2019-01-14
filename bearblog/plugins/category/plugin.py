@@ -8,7 +8,7 @@ from bearblog.extensions import db
 from bearblog.utils import slugify
 
 
-@Signal.connect('main', 'widget')
+@Signal.connect('widget', 'main')
 def main_widget(end_point):
     def index_url(**kwargs):
         return Signal.send('main', 'index_url', **kwargs)
@@ -41,19 +41,19 @@ def restore_categories(categories):
     return restored_categories
 
 
-@Signal.connect('article', 'restore')
+@Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'categories' in data:
         article.categories = current_plugin.signal.send_this('restore', categories=data['categories'])
 
 
-@Signal.connect('bearblog', 'restore')
+@Signal.connect('restore', 'bearblog')
 def global_restore(data):
     if 'category' in data:
         return current_plugin.signal.send_this('restore', categories=data['category'])
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -73,7 +73,7 @@ def admin_sidebar_item():
     }
 
 
-@Signal.connect('article', 'edit_widget')
+@Signal.connect('edit_widget', 'article')
 def article_edit_widget(article):
     all_category = Category.query.all()
     category_ids = [category.id for category in article.categories]
@@ -84,7 +84,7 @@ def article_edit_widget(article):
     }
 
 
-@Signal.connect('article', 'submit_edit_widget')
+@Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'category':
         category_ids = []
@@ -151,7 +151,7 @@ def new_tag():
     return redirect(plugin_url_for('edit', _component='admin'))
 
 
-@Signal.connect('article', 'filter')
+@Signal.connect('filter', 'article')
 def article_filter(query, params, Article):
     if 'category' in params and params['category'] != '':
         query['query'] = query['query'].join(Article.categories).filter(Category.slug == params['category'])
@@ -161,22 +161,22 @@ def _article_meta(article):
     return current_plugin.render_template('category_items.html', categories=article.categories)
 
 
-@Signal.connect('article', 'meta')
+@Signal.connect('meta', 'article')
 def article_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'header_keyword')
+@Signal.connect('header_keyword', 'article')
 def article_header_keyword(article):
     return [category.name for category in article.categories]
 
 
-@Signal.connect('article', 'custom_list_column')
+@Signal.connect('custom_list_column', 'article')
 def article_custom_list_column():
     def content_func(article):
         return current_plugin.render_template('admin_category_items.html', article=article, admin_article_list_url=admin_article_list_url)

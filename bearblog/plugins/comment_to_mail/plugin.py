@@ -20,7 +20,7 @@ from bearblog.models import Signal
 opener = urllib.request.build_opener()
 
 
-@Signal.connect('bearblog', 'deploy')
+@Signal.connect('deploy', 'bearblog')
 def deploy():
     current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
     current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
@@ -35,7 +35,7 @@ def deploy():
     current_plugin.set_setting('token_type', value='', value_type='str', visibility='invisible')
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -134,7 +134,7 @@ def me():
     return current_plugin.render_template('me.html', me=me, login_url=plugin_url_for('login', _component='admin'))
 
 
-@Signal.connect('comment', 'comment_submitted')
+@Signal.connect('comment_submitted', 'comment')
 def comment_submitted(comment):
     message = Message(comment=comment, status='未发送')
     db.session.add(message)

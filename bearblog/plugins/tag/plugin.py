@@ -26,19 +26,19 @@ def restore_tags(tags):
     return restored_tags
 
 
-@Signal.connect('article', 'restore')
+@Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'tags' in data:
         article.tags = current_plugin.signal.send_this('restore', tags=data['tags'])
 
 
-@Signal.connect('bearblog', 'restore')
+@Signal.connect('restore', 'bearblog')
 def global_restore(data):
     if 'tag' in data:
         current_plugin.signal.send_this('restore', tags=data['tag'], restored_tags=[])
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -115,7 +115,7 @@ def delete(tag_id):
     }
 
 
-@Signal.connect('article', 'edit_widget')
+@Signal.connect('edit_widget', 'article')
 def article_edit_widget(article):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in article.tags]
@@ -127,7 +127,7 @@ def article_edit_widget(article):
     }
 
 
-@Signal.connect('article', 'submit_edit_widget')
+@Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'tag':
         tags = []
@@ -146,7 +146,7 @@ def article_submit_edit_widget(slug, js_data, article):
         article.tags = tags
 
 
-@Signal.connect('article', 'filter')
+@Signal.connect('filter', 'article')
 def article_filter(query, params, Article):
     if 'tag' in params and params['tag'] != '':
         query['query'] = query['query'].join(Article.tags).filter(Tag.slug == params['tag'])
@@ -156,17 +156,17 @@ def _article_meta(article):
     return current_plugin.render_template('tag_items.html', tags=article.tags)
 
 
-@Signal.connect('article', 'meta')
+@Signal.connect('meta', 'article')
 def article_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'custom_list_column')
+@Signal.connect('custom_list_column', 'article')
 def article_custom_list_column():
     def content_func(article):
         return current_plugin.render_template('admin_tag_items.html', article=article, admin_article_list_url=admin_article_list_url)
@@ -179,6 +179,6 @@ def article_custom_list_column():
     }
 
 
-@Signal.connect('article', 'header_keyword')
+@Signal.connect('header_keyword', 'article')
 def article_header_keyword(article):
     return [tag.name for tag in article.tags]

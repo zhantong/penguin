@@ -12,12 +12,12 @@ from bearblog.extensions import db
 from bearblog import component_route
 
 
-@Signal.connect('bearblog', 'deploy')
+@Signal.connect('deploy', 'bearblog')
 def deploy():
     current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -105,7 +105,7 @@ def delete_upload(id):
     })
 
 
-@Signal.connect('article', 'restore')
+@Signal.connect('restore', 'article')
 def article_restore(article, data, directory):
     if 'attachments' in data:
         restored_attachments = []
@@ -127,7 +127,7 @@ def get_widget(attachments, meta):
     }
 
 
-@Signal.connect('article', 'edit_widget')
+@Signal.connect('edit_widget', 'article')
 def article_edit_widget(article):
     meta = {
         'article_id': article.id
@@ -135,7 +135,7 @@ def article_edit_widget(article):
     return get_widget(article.attachments, meta)
 
 
-@Signal.connect('page', 'edit_widget')
+@Signal.connect('edit_widget', 'page')
 def page_edit_widget(page):
     meta = {
         'page_id': page.id
@@ -143,11 +143,11 @@ def page_edit_widget(page):
     return get_widget(page.attachments, meta)
 
 
-@Signal.connect('article', 'duplicate')
+@Signal.connect('duplicate', 'article')
 def article_duplicate(old_article, new_article):
     new_article.attachments = old_article.attachments
 
 
-@Signal.connect('page', 'duplicate')
+@Signal.connect('duplicate', 'page')
 def page_duplicate(old_page, new_page):
     new_page.attachments = old_page.attachments

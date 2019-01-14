@@ -64,7 +64,7 @@ def show_page(slug):
         return resp
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -89,7 +89,7 @@ def admin_sidebar_item():
     }
 
 
-@Signal.connect('bearblog', 'restore')
+@Signal.connect('restore', 'bearblog')
 def restore(data):
     if 'page' in data:
         pages = data['page']
@@ -203,7 +203,7 @@ def get_article(page_id):
     return Page.query.get(page_id)
 
 
-@Signal.connect('main', 'navbar_item')
+@Signal.connect('navbar_item', 'main')
 def navbar_item():
     pages = Page.query.all()
     more = []

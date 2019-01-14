@@ -7,13 +7,13 @@ from .models import Settings
 from bearblog.models import Component, Signal
 
 
-@Signal.connect('bearblog', 'deploy')
+@Signal.connect('deploy', 'bearblog')
 def deploy():
     current_component.set_setting('site_name', name='站名', value='BearBlog', value_type='str')
     current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
 
 
-@Signal.connect('admin', 'sidebar_item')
+@Signal.connect('sidebar_item', 'admin')
 def admin_sidebar_item():
     return {
         'name': current_component.name,

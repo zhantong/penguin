@@ -12,14 +12,14 @@ from bearblog.plugins import current_plugin, Plugin, plugin_url_for, plugin_rout
 from bearblog.models import Signal
 
 
-@Signal.connect('bearblog', 'deploy')
+@Signal.connect('deploy', 'bearblog')
 def deploy():
     current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
     current_plugin.set_setting('password', name='密码', value='', value_type='str')
     current_plugin.set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,

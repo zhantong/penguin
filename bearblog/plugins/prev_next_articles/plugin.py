@@ -3,7 +3,7 @@ from bearblog.plugins.article.models import Article
 from bearblog.models import Signal
 
 
-@Signal.connect('article', 'show_article_widget')
+@Signal.connect('show_article_widget', 'article')
 def show_article_widget(article):
     prev_next_articles = []
     prev_article = Article.query_published().filter(Article.timestamp < article.timestamp).order_by(Article.timestamp.desc()).limit(1).first()

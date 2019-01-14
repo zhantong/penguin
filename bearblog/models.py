@@ -84,7 +84,7 @@ class Signal:
         self.outer_class = outer_class
 
     @classmethod
-    def connect(cls, category, name):
+    def connect(cls, name, scope):
         def decorator(func):
             func_name = func.__name__
             func_file = inspect.getsourcefile(func)
@@ -97,13 +97,13 @@ class Signal:
                 'func_file': func_file
             }
 
-        signal_name = category + '.' + name
+        signal_name = scope + '.' + name
         if signal_name not in cls._signals:
             cls._signals[signal_name] = {}
         return decorator
 
     def connect_this(self, name):
-        return self.connect(self.outer_class.slug, name)
+        return self.connect(name, self.outer_class.slug)
 
     @staticmethod
     def call_receiver_func(func, kwargs):
@@ -214,7 +214,6 @@ class Component:
         self.slug = slug
         self.directory = directory
         self.show_in_sidebar = show_in_sidebar
-        self.routes = {}
         self.signal = Signal(self)
         self.template_context = {}
         self.config = config or {}

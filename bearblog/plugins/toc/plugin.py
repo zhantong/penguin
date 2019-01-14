@@ -12,7 +12,7 @@ def toc_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 
-@Signal.connect('article', 'show_article_widget')
+@Signal.connect('show_article_widget', 'article')
 def show_article_widget(article):
     return {
         'slug': 'toc',

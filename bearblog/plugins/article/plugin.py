@@ -44,7 +44,7 @@ def show_article(number):
     return resp
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -69,7 +69,7 @@ def admin_sidebar_item():
     }
 
 
-@Signal.connect('bearblog', 'restore')
+@Signal.connect('restore', 'bearblog')
 def restore(data, directory):
     if 'article' in data:
         articles = data['article']
@@ -188,7 +188,7 @@ def get_article(article_id):
     return Article.query.get(article_id)
 
 
-@Signal.connect('main', 'widget')
+@Signal.connect('widget', 'main')
 def main_widget(request):
     def get_metas(article):
         return current_plugin.signal.send_this('article_list_item_meta', article=article)
@@ -213,7 +213,7 @@ def filter(query, params):
     current_plugin.signal.send_this('filter', query=query, params=params, Article=Article)
 
 
-@Signal.connect('main', 'navbar_item')
+@Signal.connect('navbar_item', 'main')
 def navbar_item():
     return {
         'type': 'template',
@@ -226,7 +226,7 @@ def admin_article_list_url(params):
     return plugin_url_for('list', _component='admin', **params)
 
 
-@Signal.connect('page', 'dynamic_page')
+@Signal.connect('dynamic_page', 'page')
 def dynamic_page():
     articles = Article.query_published().order_by(Article.timestamp.desc()).all()
     custom_columns = current_plugin.signal.send_this('custom_contents_column')

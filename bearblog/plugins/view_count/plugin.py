@@ -24,12 +24,12 @@ def viewing(repository_id, request, cookies_to_set):
         cookies_to_set['view_count_repository_ids'] = json.dumps(view_count_repository_ids)
 
 
-@Signal.connect('article', 'on_showing_article')
+@Signal.connect('on_showing_article', 'article')
 def on_showing_article(article, request, cookies_to_set):
     viewing(article.repository_id, request, cookies_to_set)
 
 
-@Signal.connect('page', 'on_showing_page')
+@Signal.connect('on_showing_page', 'page')
 def on_showing_article(page, request, cookies_to_set):
     viewing(page.repository_id, request, cookies_to_set)
 
@@ -42,13 +42,13 @@ def restore(repository_id, count):
         db.session.flush()
 
 
-@Signal.connect('article', 'restore')
+@Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'view_count' in data:
         restore(article.repository_id, data['view_count'])
 
 
-@Signal.connect('page', 'restore')
+@Signal.connect('restore', 'page')
 def page_restore(page, data):
     if 'view_count' in data:
         restore(page.repository_id, data['view_count'])
@@ -64,22 +64,22 @@ def _article_meta(article):
     return get_rendered_view_count(article.repository_id)
 
 
-@Signal.connect('article', 'meta')
+@Signal.connect('meta', 'article')
 def article_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('article', 'article_list_item_meta')
+@Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
     return _article_meta(article)
 
 
-@Signal.connect('page', 'meta')
+@Signal.connect('meta', 'page')
 def page_meta(page):
     return get_rendered_view_count(page.repository_id)
 
 
-@Signal.connect('article', 'custom_contents_column')
+@Signal.connect('custom_contents_column', 'article')
 def article_custom_contents_column():
     def content_func(article):
         return current_plugin.render_template('article_contents_item.html', view_count=ViewCount.query.filter_by(repository_id=article.repository_id).first().count)

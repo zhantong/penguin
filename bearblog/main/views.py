@@ -15,7 +15,7 @@ def index():
     return render_template('index.html', main_widgets=main_widgets, left_widgets=left_widgets, right_widgets=right_widgets)
 
 
-@Signal.connect('admin', 'sidebar_item')
+@Signal.connect('sidebar_item', 'admin')
 def admin_sidebar_item():
     return {
         'name': current_component.name,
@@ -45,7 +45,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-@Signal.connect('bearblog', 'create_app')
+@Signal.connect('create_app', 'bearblog')
 def create_app(app):
     @app.context_processor
     def context_processor():

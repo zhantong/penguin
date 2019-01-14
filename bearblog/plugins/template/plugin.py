@@ -10,7 +10,7 @@ from bearblog.models import Signal
 from bearblog.extensions import db
 
 
-@Signal.connect('plugins', 'admin_sidebar_item')
+@Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
     return {
         'name': current_plugin.name,
@@ -40,17 +40,17 @@ def get_widget(template):
     }
 
 
-@Signal.connect('article', 'edit_widget')
+@Signal.connect('edit_widget', 'article')
 def article_edit_widget(article):
     return get_widget(article.template)
 
 
-@Signal.connect('page', 'edit_widget')
+@Signal.connect('edit_widget', 'page')
 def page_edit_widget(page):
     return get_widget(page.template)
 
 
-@Signal.connect('article', 'submit_edit_widget')
+@Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'template':
         for item in js_data:
@@ -59,7 +59,7 @@ def article_submit_edit_widget(slug, js_data, article):
                     article.template = Template.query.get(int(item['value']))
 
 
-@Signal.connect('page', 'submit_edit_widget')
+@Signal.connect('submit_edit_widget', 'page')
 def page_submit_edit_widget(slug, js_data, page):
     if slug == 'template':
         for item in js_data:
@@ -137,19 +137,19 @@ def render(template, json_params):
     return template.render(**params)
 
 
-@Signal.connect('article', 'filter')
+@Signal.connect('filter', 'article')
 def article_filter(query, params, Article):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Article.template).filter(Template.slug == params['template'])
 
 
-@Signal.connect('page', 'filter')
+@Signal.connect('filter', 'page')
 def page_filter(query, params, Page):
     if 'template' in params and params['template'] != '':
         query['query'] = query['query'].join(Page.template).filter(Template.slug == params['template'])
 
 
-@Signal.connect('article', 'modify_article_when_showing')
+@Signal.connect('modify_article_when_showing', 'article')
 def modify_article_when_showing(article):
     if article.template is not None:
         template = Jinja2Tempalte(article.template.body)
@@ -157,7 +157,7 @@ def modify_article_when_showing(article):
         article.body_html = template.render(**params)
 
 
-@Signal.connect('page', 'modify_page_when_showing')
+@Signal.connect('modify_page_when_showing', 'page')
 def modify_page_when_showing(page):
     if page.template is not None:
         template = Jinja2Tempalte(page.template.body)
@@ -165,6 +165,6 @@ def modify_page_when_showing(page):
         page.body_html = template.render(**params)
 
 
-@Signal.connect('article', 'should_compile_markdown_when_body_change')
+@Signal.connect('should_compile_markdown_when_body_change', 'article')
 def article_should_compile_markdown_when_body_change(article):
     return article.template is None
