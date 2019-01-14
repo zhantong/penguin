@@ -124,9 +124,9 @@ class Signal:
         return func(**pass_params)
 
     @classmethod
-    def send(cls, _category, _name, **kwargs):
+    def send(cls, _name, _scope, **kwargs):
         from .settings import get_setting_value
-        signal_name = _category + '.' + _name
+        signal_name = _scope + '.' + _name
         if signal_name not in cls._signals:
             return
         signal = cls._signals[signal_name]
@@ -144,7 +144,7 @@ class Signal:
                     return result
                 else:
                     result = []
-                    signal_settings = get_setting_value(_name, category=_category)
+                    signal_settings = get_setting_value(_name, category=_scope)
                     if signal_settings is None or 'subscribers_order' not in signal_settings:
                         if signal['managed_default'] == 'all':
                             for receiver in signal.get('receivers', {}).values():
@@ -183,7 +183,7 @@ class Signal:
                 cls.call_receiver_func(receiver['func'], kwargs)
 
     def send_this(self, name, **kwargs):
-        return self.send(self.outer_class.slug, name, **kwargs)
+        return self.send(name, self.outer_class.slug, **kwargs)
 
     def declare_signal(self, name, **kwargs):
         signal_name = self.outer_class.slug + '.' + name

@@ -34,7 +34,7 @@ def create_app(config_name=None):
     register_commands(app)
     register_template_context(app)
 
-    Signal.send('bearblog', 'create_app', app=app)
+    Signal.send('create_app', 'bearblog', app=app)
 
     flask_whooshalchemyplus.init_app(app)
 

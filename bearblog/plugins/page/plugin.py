@@ -263,4 +263,4 @@ db.event.listen(Page.body, 'set', on_changed_article_body)
 
 @plugin_route('/settings', 'settings', _component='admin')
 def settings():
-    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})

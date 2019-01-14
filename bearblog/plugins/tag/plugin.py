@@ -62,7 +62,7 @@ def admin_sidebar_item():
 
 
 def admin_article_list_url(**kwargs):
-    return Signal.send('article', 'admin_article_list_url', params=kwargs)
+    return Signal.send('admin_article_list_url', 'article', params=kwargs)
 
 
 @plugin_route('/list', 'list', _component='admin')

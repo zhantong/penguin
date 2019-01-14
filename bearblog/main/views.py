@@ -103,4 +103,4 @@ def get_navbar_item():
 
 @component_route('/main/settings', 'main_settings', 'admin')
 def account():
-    return Signal.send('settings', 'get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_component.slug, meta={'plugin': current_component.slug})

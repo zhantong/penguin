@@ -44,7 +44,7 @@ def admin_sidebar_item():
 
 @plugin_route('/account', 'account', _component='admin')
 def account():
-    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
 
 
 @plugin_route('/test-send-mail', 'test-send-mail', _component='admin')

@@ -84,11 +84,11 @@ def delete(template_id):
 
 
 def admin_article_list_url(**kwargs):
-    return Signal.send('article', 'admin_article_list_url', params=kwargs)
+    return Signal.send('admin_article_list_url', 'article', params=kwargs)
 
 
 def admin_page_list_url(**kwargs):
-    return Signal.send('page', 'admin_page_list_url', params=kwargs)
+    return Signal.send('admin_page_list_url', 'page', params=kwargs)
 
 
 @plugin_route('/list', 'list', _component='admin')

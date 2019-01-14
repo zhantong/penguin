@@ -34,7 +34,7 @@ def admin_sidebar_item():
 
 @plugin_route('/settings', 'settings', _component='admin')
 def settings():
-    return Signal.send('settings', 'get_rendered_settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
 
 
 @component_route('/attachment/static/<path:filename>', 'attachment_static')
@@ -78,11 +78,11 @@ def upload():
     db.session.commit()
     meta = json.loads(request.form.get('meta', type=str))
     if 'article_id' in meta:
-        article = Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article = Signal.send('get_article', 'article', article_id=meta['article_id'])
         article.attachments.append(attachment)
         db.session.commit()
     if 'page_id' in meta:
-        page = Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page = Signal.send('get_page', 'page', page_id=meta['page_id'])
         page.attachments.append(attachment)
         db.session.commit()
     return jsonify({

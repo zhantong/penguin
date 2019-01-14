@@ -14,7 +14,7 @@ Signal.set_default_scope(current_plugin.slug)
 @Signal.connect('widget', 'main')
 def main_widget(end_point):
     def index_url(**kwargs):
-        return Signal.send('main', 'index_url', **kwargs)
+        return Signal.send('index_url', 'main', **kwargs)
 
     all_category = Category.query.order_by(Category.name).all()
     return {
@@ -110,7 +110,7 @@ def delete(category_id):
 
 
 def admin_article_list_url(**kwargs):
-    return Signal.send('article', 'admin_article_list_url', params=kwargs)
+    return Signal.send('admin_article_list_url', 'article', params=kwargs)
 
 
 @plugin_route('/list', 'list', _component='admin')

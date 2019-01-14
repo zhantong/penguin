@@ -21,5 +21,5 @@ class Restore:
 
     def restore(self):
         self.process_admin(self.data['admin'])
-        Signal.send('bearblog', 'restore', data=self.data, directory=os.path.dirname(self.file_path))
+        Signal.send('restore', 'bearblog', data=self.data, directory=os.path.dirname(self.file_path))
         db.session.commit()

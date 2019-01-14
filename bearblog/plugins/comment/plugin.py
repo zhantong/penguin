@@ -69,11 +69,11 @@ def submit_comment():
     db.session.add(comment)
     db.session.commit()
     if 'article_id' in meta:
-        article = Signal.send('article', 'get_article', article_id=meta['article_id'])
+        article = Signal.send('get_article', 'article', article_id=meta['article_id'])
         article.comments.append(comment)
         db.session.commit()
     elif 'page_id' in meta:
-        page = Signal.send('page', 'get_page', page_id=meta['page_id'])
+        page = Signal.send('get_page', 'page', page_id=meta['page_id'])
         page.comments.append(comment)
         db.session.commit()
     current_plugin.signal.send_this('on_new_comment', comment=comment, meta=meta)
@@ -103,12 +103,12 @@ def get_comment_show_info(comment):
     if comment.article is not None:
         return {
             'title': comment.article.title,
-            'url': Signal.send('article', 'article_url', article=comment.article, anchor='comment-' + str(comment.id))
+            'url': Signal.send('article_url', 'article', article=comment.article, anchor='comment-' + str(comment.id))
         }
     if comment.page is not None:
         return {
             'title': comment.page.title,
-            'url': Signal.send('page', 'page_url', page=comment.page, anchor='comment-' + str(comment.id))
+            'url': Signal.send('page_url', 'page', page=comment.page, anchor='comment-' + str(comment.id))
         }
 
 
