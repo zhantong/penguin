@@ -14,6 +14,9 @@ from bearblog.models import Signal, User
 from bearblog.extensions import db
 from bearblog import component_route, component_url_for
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @component_route('/article/static/<path:filename>', 'article_static')
 def article_static(filename):
@@ -80,12 +83,12 @@ def restore(data, directory):
             current_plugin.signal.send_this('restore', article=a, data=article, directory=directory)
 
 
-@current_plugin.signal.connect_this('article_url')
+@Signal.connect('article_url')
 def article_url(article, anchor):
     return component_url_for('show_article', 'main', number=article.number, _anchor=anchor)
 
 
-@current_plugin.signal.connect_this('article_list_url')
+@Signal.connect('article_list_url')
 def article_list_url(params):
     return url_for('.dispatch', path=current_plugin.slug + '/' + 'list', **params)
 
@@ -128,7 +131,7 @@ def article_list():
         return current_plugin.signal.send_this('get_admin_article_list', params=request.args)
 
 
-@current_plugin.signal.connect_this('get_admin_article_list')
+@Signal.connect('get_admin_article_list')
 def get_admin_widget_article_list(params):
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
@@ -183,7 +186,7 @@ def cleanup_temp_article():
     db.session.commit()
 
 
-@current_plugin.signal.connect_this('get_article')
+@Signal.connect('get_article')
 def get_article(article_id):
     return Article.query.get(article_id)
 
@@ -221,7 +224,7 @@ def navbar_item():
     }
 
 
-@current_plugin.signal.connect_this('admin_article_list_url')
+@Signal.connect('admin_article_list_url')
 def admin_article_list_url(params):
     return plugin_url_for('list', _component='admin', **params)
 
@@ -239,7 +242,7 @@ def dynamic_page():
     }
 
 
-@current_plugin.signal.connect_this('get_widget_submit')
+@Signal.connect('get_widget_submit')
 def get_widget_submit(article):
     return {
         'slug': 'submit',
@@ -269,12 +272,12 @@ def _meta_publish_datetime(article):
     return current_plugin.render_template('meta_publish_datetime.html', datetime=article.timestamp)
 
 
-@current_plugin.signal.connect_this('meta')
+@Signal.connect('meta')
 def meta_publish_datetime(article):
     return _meta_publish_datetime(article)
 
 
-@current_plugin.signal.connect_this('article_list_item_meta')
+@Signal.connect('article_list_item_meta')
 def article_list_item_meta(article):
     return _meta_publish_datetime(article)
 

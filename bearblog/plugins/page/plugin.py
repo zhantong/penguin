@@ -14,6 +14,9 @@ from bearblog.models import Signal, User
 from bearblog.extensions import db
 from bearblog import component_url_for, component_route
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @component_route('/page/static/<path:filename>', 'page_static')
 def page_static(filename):
@@ -100,7 +103,7 @@ def restore(data):
             current_plugin.signal.send_this('restore', page=p, data=page)
 
 
-@current_plugin.signal.connect_this('page_url')
+@Signal.connect('page_url')
 def page_url(page, anchor):
     return component_url_for('show_page', 'main', slug=page.slug, _anchor=anchor)
 
@@ -148,7 +151,7 @@ def page_list():
         return current_plugin.signal.send_this('get_admin_page_list', params=request.args)
 
 
-@current_plugin.signal.connect_this('get_admin_page_list')
+@Signal.connect('get_admin_page_list')
 def get_admin_page_list(params):
     def get_pages(repository_id):
         return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
@@ -198,7 +201,7 @@ def edit_page():
         return current_plugin.render_template('edit.html', page=page, widgets=widgets)
 
 
-@current_plugin.signal.connect_this('get_page')
+@Signal.connect('get_page')
 def get_article(page_id):
     return Page.query.get(page_id)
 
@@ -229,7 +232,7 @@ def filter(query, params):
     current_plugin.signal.send_this('filter', query=query, params=params, Page=Page)
 
 
-@current_plugin.signal.connect_this('get_widget_submit')
+@Signal.connect('get_widget_submit')
 def get_widget_submit(page):
     return {
         'slug': 'submit',
@@ -240,7 +243,7 @@ def get_widget_submit(page):
     }
 
 
-@current_plugin.signal.connect_this('admin_page_list_url')
+@Signal.connect('admin_page_list_url')
 def admin_page_list_url(params):
     return plugin_url_for('list', _component='admin', **params)
 

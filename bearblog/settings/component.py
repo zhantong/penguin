@@ -6,6 +6,9 @@ from bearblog import current_component, component_route, component_url_for
 from .models import Settings
 from bearblog.models import Component, Signal
 
+Signal = Signal(None)
+Signal.set_default_scope(current_component.slug)
+
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
@@ -56,7 +59,7 @@ def set_setting(key, category='settings', **kwargs):
     Settings.set(key, category, **kwargs)
 
 
-@current_component.signal.connect_this('get_rendered_settings')
+@Signal.connect('get_rendered_settings')
 def get_widget_list(category, meta):
     component = Component.find_component(category)
     for signal_name, data in component.signal.signals.items():

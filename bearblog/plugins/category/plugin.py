@@ -7,6 +7,9 @@ from bearblog.models import Signal
 from bearblog.extensions import db
 from bearblog.utils import slugify
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @Signal.connect('widget', 'main')
 def main_widget(end_point):
@@ -22,7 +25,7 @@ def main_widget(end_point):
     }
 
 
-@current_plugin.signal.connect_this('restore')
+@Signal.connect('restore')
 def restore_categories(categories):
     restored_categories = []
     for category in categories:

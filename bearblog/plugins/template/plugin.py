@@ -9,6 +9,9 @@ from bearblog.plugins.models import Plugin
 from bearblog.models import Signal
 from bearblog.extensions import db
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @Signal.connect('admin_sidebar_item', 'plugins')
 def admin_sidebar_item():
@@ -130,7 +133,7 @@ def new_tag():
     return redirect(plugin_url_for('edit', _component='admin'))
 
 
-@current_plugin.signal.connect_this('render_template')
+@Signal.connect('render_template')
 def render(template, json_params):
     template = Jinja2Tempalte(template.body)
     params = {json_param[0]: eval(json_param[1]) for json_param in json_params.items()}

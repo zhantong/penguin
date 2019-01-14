@@ -18,6 +18,9 @@ from bearblog import component_route
 
 ENABLE_TENCENT_CAPTCHA = True
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @component_route('/comment', 'submit_comment', 'main', methods=['POST'])
 def submit_comment():
@@ -206,7 +209,7 @@ def main_widget():
     }
 
 
-@current_plugin.signal.connect_this('get_rendered_num_comments')
+@Signal.connect('get_rendered_num_comments')
 def get_rendered_tag_items(comments):
     return current_plugin.render_template('num_comments.html', comments=comments)
 

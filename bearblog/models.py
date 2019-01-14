@@ -82,6 +82,11 @@ class Signal:
 
     def __init__(self, outer_class):
         self.outer_class = outer_class
+        self.default_scope = None
+        self.connect = self._instance_connect
+
+    def set_default_scope(self, scope):
+        self.default_scope = scope
 
     @classmethod
     def connect(cls, name, scope):
@@ -102,8 +107,13 @@ class Signal:
             cls._signals[signal_name] = {}
         return decorator
 
-    def connect_this(self, name):
-        return self.connect(name, self.outer_class.slug)
+    def _instance_connect(self, name, scope=None):
+        if scope is None:
+            if self.default_scope is None:
+                raise ValueError()
+            else:
+                scope = self.default_scope
+        return Signal.connect(name, scope)
 
     @staticmethod
     def call_receiver_func(func, kwargs):
@@ -180,9 +190,6 @@ class Signal:
         if signal_name not in self._signals:
             self._signals[signal_name] = {}
         self._signals[signal_name].update(**kwargs)
-
-    def get_signal(self, name):
-        return self._signals[self.outer_class.slug + '.' + name]
 
     @property
     def signals(self):

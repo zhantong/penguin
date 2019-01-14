@@ -6,8 +6,11 @@ from bearblog.models import Signal
 from bearblog.extensions import db
 from bearblog.utils import slugify
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
 
-@current_plugin.signal.connect_this('restore')
+
+@Signal.connect('restore')
 def restore_tags(tags):
     restored_tags = []
     for tag in tags:

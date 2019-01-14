@@ -4,6 +4,9 @@ from bearblog import current_component, component_url_for, component_route
 from bearblog.models import Signal
 from bearblog.plugins.models import Plugin
 
+Signal = Signal(None)
+Signal.set_default_scope(current_component.slug)
+
 
 @component_route('/', 'index')
 def index():
@@ -30,7 +33,7 @@ def admin_sidebar_item():
     }
 
 
-@current_component.signal.connect_this('index_url')
+@Signal.connect('index_url')
 def index_url(**kwargs):
     return current_component.view_url_for('index', **kwargs)
 
@@ -83,7 +86,7 @@ def create_app(app):
         return dict(custom_navbar=custom_navbar)
 
 
-@current_component.signal.connect_this('navbar_item')
+@Signal.connect('navbar_item')
 def get_navbar_item():
     return {
         'type': 'brand',

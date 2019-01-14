@@ -11,6 +11,9 @@ from flask import jsonify, request
 from bearblog.plugins import current_plugin, Plugin, plugin_url_for, plugin_route
 from bearblog.models import Signal
 
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
+
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
@@ -57,7 +60,7 @@ def test_send_mail():
         return jsonify(result)
 
 
-@current_plugin.signal.connect_this('send_mail')
+@Signal.connect('send_mail')
 def send_mail(recipient, subject, body):
     is_success, error_log = send_email(recipient, subject, body)
     return {
