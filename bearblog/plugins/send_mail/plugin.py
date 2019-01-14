@@ -55,7 +55,7 @@ def test_send_mail():
         recipient = request.form.get('recipient')
         subject = request.form.get('subject')
         body = request.form.get('body')
-        result = current_plugin.signal.send_this('send_mail', recipient=recipient, subject=subject, body=body)
+        result = Signal.send('send_mail', recipient=recipient, subject=subject, body=body)
 
         return jsonify(result)
 

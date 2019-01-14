@@ -37,20 +37,20 @@ def show_page(slug):
         right_widgets = []
         after_page_widgets = []
         cookies_to_set = {}
-        metas = current_plugin.signal.send_this('meta', page=page)
-        widgets = current_plugin.signal.send_this('show_page_widget', session=session, page=page)
+        metas = Signal.send('meta', page=page)
+        widgets = Signal.send('show_page_widget', session=session, page=page)
         for widget in widgets:
             if widget['slug'] == 'comment':
                 after_page_widgets.append(widget)
-        current_plugin.signal.send_this('on_showing_page', page=page, request=request, cookies_to_set=cookies_to_set)
-        current_plugin.signal.send_this('modify_page_when_showing', page=page)
+        Signal.send('on_showing_page', page=page, request=request, cookies_to_set=cookies_to_set)
+        Signal.send('modify_page_when_showing', page=page)
         resp = make_response(current_plugin.render_template('page.html', page=page, after_page_widgets=after_page_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_pages=get_pages, metas=metas))
         for key, value in cookies_to_set.items():
             resp.set_cookie(key, value)
         return resp
     else:
         page = None
-        dynamic_pages = current_plugin.signal.send_this('dynamic_page')
+        dynamic_pages = Signal.send('dynamic_page')
         for dynamic_page in dynamic_pages:
             if dynamic_page['slug'] == slug:
                 page = dynamic_page
@@ -100,7 +100,7 @@ def restore(data):
             p = Page(title=page['title'], slug=page['slug'], body=page['body'], timestamp=datetime.utcfromtimestamp(page['timestamp']), status=page['version']['status'], repository_id=page['version']['repository_id'], author=User.query.filter_by(username=page['author']).one())
             db.session.add(p)
             db.session.flush()
-            current_plugin.signal.send_this('restore', page=p, data=page)
+            Signal.send('restore', page=p, data=page)
 
 
 @Signal.connect('page_url')
@@ -148,7 +148,7 @@ def page_list():
             return jsonify({'result': 'OK'})
     else:
         cleanup_temp_page()
-        return current_plugin.signal.send_this('get_admin_page_list', params=request.args)
+        return Signal.send('get_admin_page_list', params=request.args)
 
 
 @Signal.connect('get_admin_page_list')
@@ -181,10 +181,10 @@ def edit_page():
         else:
             repository_id = page.repository_id
         new_page = Page(title=title, slug=slug, body=body, timestamp=timestamp, author=page.author, repository_id=repository_id, status='published')
-        current_plugin.signal.send_this('duplicate', old_page=page, new_page=new_page)
+        Signal.send('duplicate', old_page=page, new_page=new_page)
         widgets_dict = json.loads(request.form['widgets'])
         for slug, js_data in widgets_dict.items():
-            current_plugin.signal.send_this('submit_edit_widget', slug=slug, js_data=js_data, page=new_page)
+            Signal.send('submit_edit_widget', slug=slug, js_data=js_data, page=new_page)
         db.session.add(new_page)
         db.session.commit()
     else:
@@ -196,8 +196,8 @@ def edit_page():
             db.session.add(page)
             db.session.commit()
         widgets = []
-        widgets.append(current_plugin.signal.send_this('get_widget_submit', page=page))
-        widgets.extend(current_plugin.signal.send_this('edit_widget', page=page))
+        widgets.append(Signal.send('get_widget_submit', page=page))
+        widgets.extend(Signal.send('edit_widget', page=page))
         return current_plugin.render_template('edit.html', page=page, widgets=widgets)
 
 
@@ -216,7 +216,7 @@ def navbar_item():
             'name': page.title,
             'link': component_url_for('show_page', 'main', slug=page.slug)
         })
-    dynamic_pages = current_plugin.signal.send_this('dynamic_page')
+    dynamic_pages = Signal.send('dynamic_page')
     for page in dynamic_pages:
         more.append({
             'type': 'item',
@@ -229,7 +229,7 @@ def navbar_item():
 
 
 def filter(query, params):
-    current_plugin.signal.send_this('filter', query=query, params=params, Page=Page)
+    Signal.send('filter', query=query, params=params, Page=Page)
 
 
 @Signal.connect('get_widget_submit')
@@ -252,7 +252,7 @@ RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
 def on_changed_article_body(target, value, oldvalue, initiator):
-    if current_plugin.signal.send_this('should_compile_markdown_when_body_change', page=target):
+    if Signal.send('should_compile_markdown_when_body_change', page=target):
         html = markdown2.markdown(value)
         target.body_html = html
         target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'

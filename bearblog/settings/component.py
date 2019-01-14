@@ -33,7 +33,7 @@ def admin_sidebar_item():
 
 @component_route('/settings/settings', 'settings_settings', 'admin')
 def get_settings():
-    return current_component.signal.send_this('get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
+    return Signal.send('get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
 
 
 def get_setting(slug, category=None):

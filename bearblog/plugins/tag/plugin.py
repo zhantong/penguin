@@ -32,13 +32,13 @@ def restore_tags(tags):
 @Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'tags' in data:
-        article.tags = current_plugin.signal.send_this('restore', tags=data['tags'])
+        article.tags = Signal.send('restore', tags=data['tags'])
 
 
 @Signal.connect('restore', 'bearblog')
 def global_restore(data):
     if 'tag' in data:
-        current_plugin.signal.send_this('restore', tags=data['tag'], restored_tags=[])
+        Signal.send('restore', tags=data['tag'], restored_tags=[])
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')

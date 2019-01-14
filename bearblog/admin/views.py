@@ -2,8 +2,11 @@ from flask import render_template, request, jsonify
 from flask_login import login_required
 
 from bearblog import current_component, component_route
-from bearblog.models import Component
+from bearblog.models import Component, Signal
 from bearblog.utils import slugify
+
+Signal = Signal(None)
+Signal.set_default_scope(current_component.slug)
 
 
 @login_required
@@ -19,7 +22,7 @@ def after_request(response):
 
 
 def get_sidebar_item():
-    return current_component.signal.send_this('sidebar_item')
+    return Signal.send('sidebar_item')
 
 
 @component_route('/', 'index')

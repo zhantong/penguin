@@ -10,7 +10,7 @@ Signal.set_default_scope(current_component.slug)
 
 @component_route('/', 'index')
 def index():
-    widgets = current_component.signal.send_this('widget', end_point='.index', request=request)
+    widgets = Signal.send('widget', end_point='.index', request=request)
     main_widgets = widgets['main']
     left_widgets = widgets['left']
     right_widgets = widgets['right']
@@ -77,7 +77,7 @@ def create_app(app):
                     for item in more:
                         insert_item(item)
 
-            navbar_items = current_component.signal.send_this('navbar_item')
+            navbar_items = Signal.send('navbar_item')
             for navbar_item in navbar_items:
                 process_item(navbar_item)
 

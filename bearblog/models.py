@@ -84,6 +84,7 @@ class Signal:
         self.outer_class = outer_class
         self.default_scope = None
         self.connect = self._instance_connect
+        self.send = self._instance_send
 
     def set_default_scope(self, scope):
         self.default_scope = scope
@@ -182,8 +183,13 @@ class Signal:
             for receiver in signal['receivers'].values():
                 cls.call_receiver_func(receiver['func'], kwargs)
 
-    def send_this(self, name, **kwargs):
-        return self.send(name, self.outer_class.slug, **kwargs)
+    def _instance_send(self, name, scope=None, **kwargs):
+        if scope is None:
+            if self.default_scope is None:
+                raise ValueError()
+            else:
+                scope = self.default_scope
+        return Signal.send(name, scope, **kwargs)
 
     def declare_signal(self, name, **kwargs):
         signal_name = self.outer_class.slug + '.' + name

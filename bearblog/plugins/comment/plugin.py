@@ -76,8 +76,8 @@ def submit_comment():
         page = Signal.send('get_page', 'page', page_id=meta['page_id'])
         page.comments.append(comment)
         db.session.commit()
-    current_plugin.signal.send_this('on_new_comment', comment=comment, meta=meta)
-    current_plugin.signal.send_this('comment_submitted', comment=comment)
+    Signal.send('on_new_comment', comment=comment, meta=meta)
+    Signal.send('comment_submitted', comment=comment)
     return jsonify({
         'code': 0,
         'message': '发表成功'

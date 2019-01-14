@@ -20,6 +20,9 @@ from .models import Component, Signal
 
 _current_component = Component('bearblog', 'bearblog', show_in_sidebar=False)
 
+Signal = Signal(None)
+Signal.set_default_scope(_current_component.slug)
+
 
 def create_app(config_name=None):
     if config_name is None:
@@ -113,7 +116,7 @@ def register_commands(app):
 
         Role.insert_roles()
 
-        _current_component.signal.send_this('deploy')
+        Signal.send('deploy')
 
     @app.cli.command()
     @click.option('--file-path', default=None, help='dumped file path')

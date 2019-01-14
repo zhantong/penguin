@@ -47,13 +47,13 @@ def restore_categories(categories):
 @Signal.connect('restore', 'article')
 def article_restore(article, data):
     if 'categories' in data:
-        article.categories = current_plugin.signal.send_this('restore', categories=data['categories'])
+        article.categories = Signal.send('restore', categories=data['categories'])
 
 
 @Signal.connect('restore', 'bearblog')
 def global_restore(data):
     if 'category' in data:
-        return current_plugin.signal.send_this('restore', categories=data['category'])
+        return Signal.send('restore', categories=data['category'])
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')
