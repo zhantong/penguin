@@ -101,7 +101,7 @@ def list_tags():
         page = request.args.get('page', 1, type=int)
         pagination = Template.query.order_by(Template.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         the_templates = pagination.items
-        return current_plugin.render_template('list.html', url_for=plugin_url_for, templates=the_templates, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url)
+        return current_plugin.render_template('list.html', templates=the_templates, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url)
 
 
 @plugin_route('/edit', 'edit', _component='admin')

@@ -11,7 +11,7 @@
     <tbody>
     {% for tag in tags %}
         <tr>
-            <td><a href="{{ url_for('edit', _component='admin', id=tag.id) }}">{{ tag.name }}</a></td>
+            <td><a href="{{ plugin_url_for('edit', _component='admin', id=tag.id) }}">{{ tag.name }}</a></td>
             <td>{{ tag.slug }}</td>
             <td><a href="{{ admin_article_list_url(tag=tag.slug) }}">{{ tag.articles|length }}</a></td>
             <td>

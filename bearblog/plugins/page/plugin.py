@@ -165,7 +165,7 @@ def get_admin_page_list(params):
     query = query['query']
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
-    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_pages=get_pages, url_for=plugin_url_for)
+    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_pages=get_pages)
 
 
 @plugin_route('/edit', 'edit', _component='admin')

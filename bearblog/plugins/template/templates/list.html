@@ -12,7 +12,7 @@
     <tbody>
     {% for template in templates %}
         <tr>
-            <td><a href="{{ url_for('edit', _component='admin', id=template.id) }}">{{ template.name }}</a></td>
+            <td><a href="{{ plugin_url_for('edit', _component='admin', id=template.id) }}">{{ template.name }}</a></td>
             <td>{{ template.slug }}</td>
             <td><a href="{{ admin_article_list_url(template=template.slug) }}">{{ template.articles|length }}</a></td>
             <td><a href="{{ admin_page_list_url(template=template.slug) }}">{{ template.pages|length }}</a></td>

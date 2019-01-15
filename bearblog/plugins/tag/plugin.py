@@ -75,7 +75,7 @@ def dispatch():
         page = request.args.get('page', 1, type=int)
         pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
         tags = pagination.items
-        return current_plugin.render_template('list.html', url_for=plugin_url_for, tags=tags, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url)
+        return current_plugin.render_template('list.html', tags=tags, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url)
 
 
 @plugin_route('/edit', 'edit', _component='admin')

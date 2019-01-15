@@ -20,6 +20,8 @@ from .models import Component, Signal
 
 _current_component = Component('bearblog', 'bearblog', show_in_sidebar=False)
 
+_current_component.signal.declare_signal('context_processor', return_type='list')
+
 Signal = Signal(None)
 Signal.set_default_scope(_current_component.slug)
 
@@ -70,10 +72,14 @@ def register_template_context(app):
     @app.context_processor
     def context_processor():
         from .plugins.models import Plugin
-        return dict(
-            get_setting=Plugin.get_setting,
-            get_setting_value=Plugin.get_setting_value,
-            component_url_for=Component.view_url_for)
+        funcs = {
+            'get_setting': Plugin.get_setting,
+            'get_setting_value': Plugin.get_setting_value,
+            'component_url_for': Component.view_url_for
+        }
+        for item in Signal.send('context_processor'):
+            funcs.update(item)
+        return funcs
 
 
 def register_components(app):

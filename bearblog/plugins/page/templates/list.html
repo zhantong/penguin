@@ -15,7 +15,7 @@
         {% set pages=get_pages(repository_id) %}
         {% for page in pages %}
             <tr {% if not loop.first %} class="success" {% endif %}>
-                <td><a href="{{ url_for('edit', _component='admin', id=page.id) }}">{{ page.title }}</a></td>
+                <td><a href="{{ plugin_url_for('edit', _component='admin', id=page.id) }}">{{ page.title }}</a></td>
                 <td>{{ page.author.name }}</td>
                 <td>{{ moment(page.timestamp).format('L') }}
                 <td>

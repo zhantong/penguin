@@ -84,8 +84,8 @@ def restore(data, directory):
 
 
 @Signal.connect('article_url')
-def article_url(article, anchor):
-    return component_url_for('show_article', 'main', number=article.number, _anchor=anchor)
+def article_url(article, anchor, **kwargs):
+    return component_url_for('show_article', 'main', number=article.number, _anchor=anchor, **kwargs)
 
 
 @Signal.connect('article_list_url')
@@ -146,7 +146,7 @@ def get_admin_widget_article_list(params):
     pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     custom_columns = Signal.send('custom_list_column')
-    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_articles=get_articles, url_for=plugin_url_for, custom_columns=custom_columns)
+    return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_articles=get_articles, custom_columns=custom_columns)
 
 
 @plugin_route('/edit', 'edit', _component='admin')

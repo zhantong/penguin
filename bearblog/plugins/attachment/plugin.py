@@ -9,7 +9,7 @@ from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Attachment
 from bearblog.models import Signal
 from bearblog.extensions import db
-from bearblog import component_route
+from bearblog import component_route,component_url_for
 
 
 @Signal.connect('deploy', 'bearblog')
@@ -90,7 +90,7 @@ def upload():
         'message': '上传成功',
         'file_size': attachment.file_size,
         'relative_path': random_filename,
-        'delete_url': url_for('.delete_upload', id=attachment.id)
+        'delete_url': component_url_for('.upload_delete', 'admin', id=attachment.id)
     })
 
 
