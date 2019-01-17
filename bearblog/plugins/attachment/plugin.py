@@ -3,13 +3,13 @@ import os.path
 import uuid
 from datetime import datetime
 
-from flask import request, jsonify, current_app, url_for, send_from_directory
+from flask import request, jsonify, current_app, send_from_directory
 
 from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Attachment
 from bearblog.models import Signal
 from bearblog.extensions import db
-from bearblog import component_route,component_url_for
+from bearblog import component_route, component_url_for
 
 
 @Signal.connect('deploy', 'bearblog')
@@ -119,12 +119,7 @@ def article_restore(article, data, directory):
 
 
 def get_widget(attachments, meta):
-    return {
-        'slug': 'attachment',
-        'name': '附件',
-        'html': current_plugin.render_template('widget_edit_article', 'widget.html', attachments=attachments),
-        'js': current_plugin.render_template('widget_edit_article', 'widget.js.html', meta=meta)
-    }
+    return current_plugin.render_template('widget_edit.html', attachments=attachments, meta=meta)
 
 
 @Signal.connect('edit_widget', 'article')

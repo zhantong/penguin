@@ -234,13 +234,7 @@ def filter(query, params):
 
 @Signal.connect('get_widget_submit')
 def get_widget_submit(page):
-    return {
-        'slug': 'submit',
-        'name': '发布',
-        'html': current_plugin.render_template('widget_submit', 'widget.html'),
-        'footer': current_plugin.render_template('widget_submit', 'footer.html'),
-        'js': current_plugin.render_template('widget_submit', 'widget.js.html', page=page)
-    }
+    return current_plugin.render_template('widget_submit.html', page=page)
 
 
 @Signal.connect('admin_page_list_url')

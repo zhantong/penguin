@@ -1,0 +1,24 @@
+<div class="card mb-3" data-widget-slug="{% block slug %}{% endblock %}">
+    <div class="card-header" id="card-{{ self.slug() }}-heading">
+        <a data-toggle="collapse" data-target="#card-collapse-{{ self.slug() }}" aria-expanded="true" aria-controls="card-collapse-{{ self.slug() }}">
+            {% block title %}
+            {% endblock %}
+        </a>
+    </div>
+    <div id="card-collapse-{{ self.slug() }}" class="collapse show" aria-labelledby="card-{{ self.slug() }}-heading">
+        {% block content_before %}{% endblock %}
+        {% if self.body() %}
+            <div class="card-body">
+                {% block body %}{% endblock %}
+            </div>
+        {% endif %}
+        {% block content_after %}{% endblock %}
+    </div>
+    {% if self.footer() %}
+        <div class="card-footer">
+            {% block footer %}{% endblock %}
+        </div>
+    {% endif %}
+</div>
+{% block script %}
+{% endblock %}

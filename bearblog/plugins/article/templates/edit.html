@@ -24,11 +24,7 @@
         </div>
         <div class="col-md-4">
             {% for widget in widgets %}
-                {% if 'is_html_as_list' in widget and widget['is_html_as_list'] %}
-                    {{ macros.render_card(widget['slug'],widget['name'],footer=widget['footer'] or None,content_before=widget['html']) }}
-                {% else %}
-                    {{ macros.render_card(widget['slug'],widget['name'],widget['html'],widget['footer'] or None) }}
-                {% endif %}
+                {{ widget|safe }}
             {% endfor %}
         </div>
     </div>

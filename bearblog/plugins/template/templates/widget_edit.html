@@ -1,3 +1,14 @@
+{% extends 'utils/card.html' %}
+
+{% block slug -%}
+    template
+{%- endblock %}
+
+{% block title %}
+    模板
+{% endblock %}
+
+{% block body %}
 <div class="dropdown">
     <button class="btn btn-default dropdown-toggle" type="button" id="dropdown-template" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="true" data-id="">
@@ -12,3 +23,13 @@
         {% endfor %}
     </ul>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $('#dropdown-template ~ ul li > a').click(function (e) {
+        $('#dropdown-template-input').val($(this).data('id'));
+        $('#dropdown-template').html($(this).text() + ' <span class="caret"></span>')
+    });
+</script>
+{% endblock %}

@@ -12,7 +12,7 @@ Signal.set_default_scope(current_plugin.slug)
 
 
 @Signal.connect('widget', 'main')
-def main_widget(end_point):
+def main_widget():
     def index_url(**kwargs):
         return Signal.send('index_url', 'main', **kwargs)
 
@@ -80,11 +80,7 @@ def admin_sidebar_item():
 def article_edit_widget(article):
     all_category = Category.query.all()
     category_ids = [category.id for category in article.categories]
-    return {
-        'slug': 'category',
-        'name': '分类',
-        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_category=all_category, category_ids=category_ids)
-    }
+    return current_plugin.render_template('widget_edit_article.html', all_category=all_category, category_ids=category_ids)
 
 
 @Signal.connect('submit_edit_widget', 'article')

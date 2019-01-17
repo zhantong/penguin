@@ -35,12 +35,7 @@ def admin_sidebar_item():
 
 def get_widget(template):
     all_templates = Template.query.all()
-    return {
-        'slug': 'template',
-        'name': '模板',
-        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_templates=all_templates, template=template),
-        'js': current_plugin.render_template('widget_edit_article', 'widget.js.html')
-    }
+    return current_plugin.render_template('widget_edit.html', all_templates=all_templates, template=template)
 
 
 @Signal.connect('edit_widget', 'article')

@@ -1,0 +1,58 @@
+{% extends 'utils/card.html' %}
+
+{% block slug -%}
+    tag
+{%- endblock %}
+
+{% block title %}
+    标签
+{% endblock %}
+
+{% block body %}
+    <div class="input-group">
+        <input list="tag_name" type="text" class="form-control" placeholder="标签">
+        <span class="input-group-btn">
+            <button id="add-tag" class="btn btn-default" type="button">添加</button>
+        </span>
+    </div>
+
+    <datalist id="all_tag_name">
+        {% for tag_name in all_tag_name %}
+            <option value="{{ tag_name }}"></option>
+        {% endfor %}
+    </datalist>
+
+    <ul id="tag-list" class="list-group"></ul>
+{% endblock %}
+
+{% block script %}
+    <script>
+        var $btnAddTag = $('#add-tag');
+        var $ulTagList = $('#tag-list');
+        $btnAddTag.click(function () {
+            addTag($(this).parent().prev('input').val());
+        });
+
+        $ulTagList.on('click', 'li a', function (event) {
+            event.preventDefault();
+            $(this).parent().remove();
+        });
+
+        var tagNames ={{ tag_names | tojson }};
+        tagNames.forEach(function (tagName) {
+            addTag(tagName);
+        });
+
+        function addTag(tagName) {
+            let html = `
+                <li class="list-group-item">
+                    <a href="#">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </a>${tagName}
+                    <input name="tag_name" type="hidden" value="${tagName}">
+                </li>
+            `;
+            $ulTagList.append(html);
+        }
+    </script>
+{% endblock %}

@@ -122,12 +122,7 @@ def delete(tag_id):
 def article_edit_widget(article):
     all_tag_name = [tag.name for tag in Tag.query.all()]
     tag_names = [tag.name for tag in article.tags]
-    return {
-        'slug': 'tag',
-        'name': '标签',
-        'html': current_plugin.render_template('widget_edit_article', 'widget.html', all_tag_name=all_tag_name),
-        'js': current_plugin.render_template('widget_edit_article', 'widget.js.html', tag_names=tag_names)
-    }
+    return current_plugin.render_template('widget_edit_article.html', all_tag_name=all_tag_name, tag_names=tag_names)
 
 
 @Signal.connect('submit_edit_widget', 'article')

@@ -244,13 +244,7 @@ def dynamic_page():
 
 @Signal.connect('get_widget_submit')
 def get_widget_submit(article):
-    return {
-        'slug': 'submit',
-        'name': '发布',
-        'html': current_plugin.render_template('widget_submit', 'widget.html'),
-        'footer': current_plugin.render_template('widget_submit', 'footer.html'),
-        'js': current_plugin.render_template('widget_submit', 'widget.js.html', article=article)
-    }
+    return current_plugin.render_template('widget_submit.html', article=article)
 
 
 RE_HTML_TAGS = re.compile(r'<[^<]+?>')

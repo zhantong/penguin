@@ -1,0 +1,70 @@
+{% extends 'utils/card.html' %}
+
+{% block slug -%}
+    submit
+{%- endblock %}
+
+{% block title %}
+    发布
+{% endblock %}
+
+{% block body %}
+    <div class="form-group form-inline">
+        <label for="submit-datetime">发布时间</label>
+        <input id="submit-datetime" type="text" class="form-control" placeholder="yyyy-MM-dd HH:mm:ss">
+        <input id="article-timestamp" name="timestamp" type="hidden" value="">
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <button type="submit" name="action" value="save-draft" class="btn btn-default">保存草稿</button>
+    <button id="btn-submit" type="submit" name="action" value="publish" class="btn btn-primary pull-right">
+        发布
+    </button>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ component_url_for('page_static',filename='laydate-5.0.9/dist/laydate.js') }}"></script>
+
+    <script>
+        var postDate = new Date('{{ article.timestamp.strftime('%Y-%m-%d %H:%M:%S GMT%z') }}');
+        updateHideTimestamp(postDate);
+        laydate.render({
+            elem: '#submit-datetime',
+            type: 'datetime',
+            value: postDate,
+            format: 'yyyy-MM-dd HH:mm:ss',
+            done: function (value, date, endDate) {
+                updateHideTimestamp(new Date(value));
+            }
+        });
+
+        function updateHideTimestamp(date) {
+            $('#submit-datetime').next().val(Math.floor(date.getTime() / 1000))
+        }
+
+        $('#btn-submit').click(function (event) {
+            var data = {
+                id:{{ article.id }},
+                title: $('#article-title').val(),
+                body: $('#article-body').val(),
+                timestamp: $('#article-timestamp').val()
+            };
+            var widgets = {};
+            $('.card[data-widget-slug]').each(function (i, panel) {
+                widgets[$(this).data('widget-slug')] = $(this).find('select, textarea, input').serializeArray();
+            });
+            data['widgets'] = JSON.stringify(widgets);
+            $.ajax({
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}");
+                },
+                type: 'POST',
+                data: data,
+                success: function (msg) {
+                    location.reload();
+                }
+            });
+        })
+    </script>
+{% endblock %}
