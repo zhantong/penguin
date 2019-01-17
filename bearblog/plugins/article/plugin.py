@@ -176,7 +176,6 @@ def edit_article():
             db.session.add(article)
             db.session.commit()
         widgets = []
-        widgets.append(Signal.send('get_widget_submit', article=article))
         widgets.extend(Signal.send('edit_widget', article=article))
         return current_plugin.render_template('edit.html', article=article, widgets=widgets)
 
@@ -242,8 +241,8 @@ def dynamic_page():
     }
 
 
-@Signal.connect('get_widget_submit')
-def get_widget_submit(article):
+@Signal.connect('edit_widget')
+def edit_widget_submit(article):
     return current_plugin.render_template('widget_submit.html', article=article)
 
 

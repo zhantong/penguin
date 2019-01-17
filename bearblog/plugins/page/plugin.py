@@ -196,7 +196,6 @@ def edit_page():
             db.session.add(page)
             db.session.commit()
         widgets = []
-        widgets.append(Signal.send('get_widget_submit', page=page))
         widgets.extend(Signal.send('edit_widget', page=page))
         return current_plugin.render_template('edit.html', page=page, widgets=widgets)
 
@@ -232,8 +231,8 @@ def filter(query, params):
     Signal.send('filter', query=query, params=params, Page=Page)
 
 
-@Signal.connect('get_widget_submit')
-def get_widget_submit(page):
+@Signal.connect('edit_widget')
+def edit_widget_submit(page):
     return current_plugin.render_template('widget_submit.html', page=page)
 
 
