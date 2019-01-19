@@ -10,7 +10,7 @@ from sqlalchemy import desc
 from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .js_captcha import confuse_string
 from bearblog.plugins.comment.models import Comment
-from bearblog.plugins.models import Plugin
+from bearblog.settings import get_setting
 from bearblog.models import Signal, User, Role
 from bearblog.extensions import db
 from bearblog.utils import format_comments
@@ -132,7 +132,7 @@ def list_tags():
             return jsonify(result)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Comment.query.order_by(desc(Comment.timestamp)).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Comment.query.order_by(desc(Comment.timestamp)).paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
         comments = pagination.items
         return current_plugin.render_template('list.html', comments=comments, get_comment_show_info=get_comment_show_info, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}})
 

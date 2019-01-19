@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ page.title }} - {{ get_setting_value('site_name') }}{% endblock %}
+{% block title %}{{ page.title }} - {{ get_setting('site_name').value }}{% endblock %}
 
 {% block metas %}
     {{ super() }}

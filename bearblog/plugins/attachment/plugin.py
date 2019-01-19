@@ -10,6 +10,7 @@ from .models import Attachment
 from bearblog.models import Signal
 from bearblog.extensions import db
 from bearblog import component_route, component_url_for
+from bearblog.settings import get_setting
 
 
 @Signal.connect('deploy', 'bearblog')
@@ -63,7 +64,7 @@ def upload():
             'message': '未选择上传文件'
         })
     filename = file.filename
-    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in current_plugin.get_setting_value_this('allowed_upload_file_extensions'):
+    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in get_setting('allowed_upload_file_extensions').value:
         return jsonify({
             'code': 3,
             'message': '禁止上传的文件类型'

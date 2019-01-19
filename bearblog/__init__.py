@@ -73,8 +73,6 @@ def register_template_context(app):
     def context_processor():
         from .plugins.models import Plugin
         funcs = {
-            'get_setting': Plugin.get_setting,
-            'get_setting_value': Plugin.get_setting_value,
             'component_url_for': Component.view_url_for
         }
         for item in Signal.send('context_processor'):

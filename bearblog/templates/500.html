@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    服务器内部错误 - {{ get_setting_value('site_name') }}
+    服务器内部错误 - {{ get_setting('site_name').value }}
 {% endblock %}
 
 {% block main %}

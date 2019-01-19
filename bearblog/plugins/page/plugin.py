@@ -9,7 +9,7 @@ from flask import request, session, make_response, flash, jsonify, send_from_dir
 
 from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Page
-from bearblog.plugins.models import Plugin
+from bearblog.settings import get_setting
 from bearblog.models import Signal, User
 from bearblog.extensions import db
 from bearblog import component_url_for, component_route
@@ -163,7 +163,7 @@ def get_admin_page_list(params):
     query = {'query': query}
     filter(query, params=request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+    pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_pages=get_pages)
 

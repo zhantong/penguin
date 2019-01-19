@@ -90,22 +90,6 @@ class Plugin:
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
 
-    @staticmethod
-    def get_setting_value(key, plugin_name=None, default=None):
-        from bearblog.settings import get_setting_value
-        return get_setting_value(key, category=plugin_name, default=default)
-
-    @staticmethod
-    def get_setting(key, plugin_name=None):
-        from bearblog.settings import get_setting
-        return get_setting(key, category=plugin_name)
-
-    def get_setting_value_this(self, key, default=None):
-        return Plugin.get_setting_value(key, self.slug, default=default)
-
-    def get_setting_this(self, key):
-        return Plugin.get_setting(key, self.slug)
-
     def set_setting(self, key, **kwargs):
         from bearblog.settings import set_setting
         return set_setting(key, self.slug, **kwargs)

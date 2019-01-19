@@ -5,7 +5,7 @@ from jinja2 import Template as Jinja2Tempalte
 
 from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Template
-from bearblog.plugins.models import Plugin
+from bearblog.settings import get_setting
 from bearblog.models import Signal
 from bearblog.extensions import db
 
@@ -94,7 +94,7 @@ def list_tags():
             return jsonify(result)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Template.query.order_by(Template.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Template.query.order_by(Template.name).paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
         the_templates = pagination.items
         return current_plugin.render_template('list.html', templates=the_templates, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url, admin_page_list_url=admin_page_list_url)
 

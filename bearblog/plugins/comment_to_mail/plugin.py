@@ -13,9 +13,9 @@ from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from .models import Message
 from bearblog.plugins.comment.models import Comment
 from bearblog.plugins.comment.plugin import get_comment_show_info
-from bearblog.plugins.models import Plugin
 from bearblog.extensions import db
 from bearblog.models import Signal
+from bearblog.settings import get_setting
 
 opener = urllib.request.build_opener()
 
@@ -61,17 +61,17 @@ def admin_sidebar_item():
 
 
 def is_authorized():
-    access_token = current_plugin.get_setting_value_this('access_token')
+    access_token = get_setting('access_token').value
     if access_token == '':
         return False
-    expires_at = current_plugin.get_setting_value_this('expires_at')
+    expires_at = get_setting('expires_at').value
     if expires_at - 10 < int(time.time()):
-        token_url = current_plugin.get_setting_value_this('token_url')
-        refresh_token = current_plugin.get_setting_value_this('refresh_token')
-        client_id = current_plugin.get_setting_value_this('client_id')
-        redirect_url = current_plugin.get_setting_value_this('redirect_url')
-        scope = current_plugin.get_setting_value_this('scope')
-        client_secret = current_plugin.get_setting_value_this('client_secret')
+        token_url = get_setting('token_url').value
+        refresh_token = get_setting('refresh_token').value
+        client_id = get_setting('client_id').value
+        redirect_url = get_setting('redirect_url').value
+        scope = get_setting('scope').value
+        client_secret = get_setting('client_secret').value
         if refresh_token == '':
             return False
         with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'refresh_token', 'scope': scope, 'refresh_token': refresh_token, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
@@ -80,8 +80,8 @@ def is_authorized():
             current_plugin.set_setting('token_type', value=result['token_type'])
             current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
             current_plugin.set_setting('refresh_token', value=result['refresh_token'])
-    token_type = current_plugin.get_setting_value_this('token_type')
-    access_token = current_plugin.get_setting_value_this('access_token')
+    token_type = get_setting('token_type').value
+    access_token = get_setting('access_token').value
     opener.addheaders = [('Authorization', token_type + ' ' + access_token)]
     return True
 
@@ -93,21 +93,21 @@ def account():
 
 @plugin_route('/login', 'login', _component='admin')
 def login():
-    authorize_url = current_plugin.get_setting_value_this('authorize_url')
-    client_id = current_plugin.get_setting_value_this('client_id')
-    scope = current_plugin.get_setting_value_this('scope')
-    redirect_url = current_plugin.get_setting_value_this('redirect_url')
+    authorize_url = get_setting('authorize_url').value
+    client_id = get_setting('client_id').value
+    scope = get_setting('scope').value
+    redirect_url = get_setting('redirect_url').value
 
     return redirect(authorize_url + '?' + urllib.parse.urlencode({'client_id': client_id, 'response_type': 'code', 'redirect_uri': redirect_url, 'response_mode': 'query', 'scope': scope}))
 
 
 @plugin_route('/authorize', 'authorize', _component='admin')
 def authorize():
-    token_url = current_plugin.get_setting_value_this('token_url')
-    client_id = current_plugin.get_setting_value_this('client_id')
-    scope = current_plugin.get_setting_value_this('scope')
-    redirect_url = current_plugin.get_setting_value_this('redirect_url')
-    client_secret = current_plugin.get_setting_value_this('client_secret')
+    token_url = get_setting('token_url').value
+    client_id = get_setting('client_id').value
+    scope = get_setting('scope').value
+    redirect_url = get_setting('redirect_url').value
+    client_secret = get_setting('client_secret').value
 
     code = request.args['code']
     with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'authorization_code', 'scope': scope, 'code': code, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
@@ -123,7 +123,7 @@ def authorize():
 @plugin_route('/me', 'me', _component='admin')
 def me():
     if is_authorized():
-        api_base_url = current_plugin.get_setting_value_this('api_base_url')
+        api_base_url = get_setting('api_base_url').value
         try:
             f = opener.open(api_base_url + '/me')
             me = json.loads(f.read().decode())
@@ -162,11 +162,11 @@ def comment_submitted(comment):
 
 def send_mail(recipient, subject, body, message_id):
     message = Message.query.get(message_id)
-    api_base_url = current_plugin.get_setting_value_this('api_base_url')
+    api_base_url = get_setting('api_base_url').value
     if not is_authorized():
         return
-    token_type = current_plugin.get_setting_value_this('token_type')
-    access_token = current_plugin.get_setting_value_this('access_token')
+    token_type = get_setting('token_type').value
+    access_token = get_setting('access_token').value
     request = urllib.request.Request(api_base_url + '/me/messages', data=json.dumps({'subject': subject, 'body': {'contentType': 'HTML', 'content': body}, 'toRecipients': [{'emailAddress': {'address': recipient}}]}).encode(), method='POST')
     request.add_header('Authorization', token_type + ' ' + access_token)
     request.add_header('Content-Type', 'application/json')
@@ -218,7 +218,7 @@ def list_messages():
                 fq.requeue(job_id)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Message.query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Message.query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
         messages = pagination.items
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             queue = Queue()

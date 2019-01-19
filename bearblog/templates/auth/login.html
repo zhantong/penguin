@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'bootstrap/form.html' import render_form %}
 
-{% block title %}登录 - {{ get_setting_value('site_name') }}{% endblock %}
+{% block title %}登录 - {{ get_setting('site_name').value }}{% endblock %}
 
 {% block content %}
     <div class="col-md-4 col-md-offset-4">

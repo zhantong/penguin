@@ -1,10 +1,11 @@
 from flask import flash, jsonify, redirect, request
 
-from bearblog.plugins import current_plugin, Plugin, plugin_route, plugin_url_for
+from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Tag
 from bearblog.models import Signal
 from bearblog.extensions import db
 from bearblog.utils import slugify
+from bearblog.settings import get_setting
 
 Signal = Signal(None)
 Signal.set_default_scope(current_plugin.slug)
@@ -73,7 +74,7 @@ def dispatch():
             return jsonify(result)
     else:
         page = request.args.get('page', 1, type=int)
-        pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+        pagination = Tag.query.order_by(Tag.name).paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
         tags = pagination.items
         return current_plugin.render_template('list.html', tags=tags, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, admin_article_list_url=admin_article_list_url)
 

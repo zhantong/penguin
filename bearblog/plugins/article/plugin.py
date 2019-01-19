@@ -9,10 +9,10 @@ from flask import request, make_response, url_for, session, flash, jsonify, send
 
 from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Article
-from bearblog.plugins.models import Plugin
 from bearblog.models import Signal, User
 from bearblog.extensions import db
 from bearblog import component_route, component_url_for
+from bearblog.settings import get_setting
 
 Signal = Signal(None)
 Signal.set_default_scope(current_plugin.slug)
@@ -143,7 +143,7 @@ def get_admin_widget_article_list(params):
     query = {'query': query}
     filter(query, request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+    pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     custom_columns = Signal.send('custom_list_column')
     return current_plugin.render_template('list.html', repository_ids=repository_ids, pagination={'pagination': pagination, 'fragment': {}, 'url_for': plugin_url_for, 'url_for_params': {'args': ['list'], 'kwargs': {'_component': 'admin'}}}, get_articles=get_articles, custom_columns=custom_columns)
@@ -200,7 +200,7 @@ def main_widget(request):
     query = {'query': query}
     filter(query, request.args)
     query = query['query']
-    pagination = query.paginate(page, per_page=Plugin.get_setting_value('items_per_page'), error_out=False)
+    pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
     articles = pagination.items
     return {
         'slug': 'article_list',

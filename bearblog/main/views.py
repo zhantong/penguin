@@ -2,7 +2,7 @@ from flask import render_template, request
 
 from bearblog import current_component, component_url_for, component_route
 from bearblog.models import Signal
-from bearblog.plugins.models import Plugin
+from bearblog.settings import get_setting
 
 Signal = Signal(None)
 Signal.set_default_scope(current_component.slug)
@@ -90,7 +90,7 @@ def create_app(app):
 def get_navbar_item():
     return {
         'type': 'brand',
-        'brand': Plugin.get_setting_value('site_name'),
+        'brand': get_setting('site_name').value,
         'more': [
             {
                 'type': 'item',

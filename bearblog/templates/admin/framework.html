@@ -1,6 +1,6 @@
 {% extends "admin/base.html" %}
 
-{% block title %}{{ get_setting_value('site_name') }}{% endblock %}
+{% block title %}{{ get_setting('site_name').value }}{% endblock %}
 
 {% block content %}
     <div class="container-fluid">

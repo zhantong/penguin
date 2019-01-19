@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_macros.html" as macros %}
 
-{% block title %}{{ article.title }} - {{ get_setting_value('site_name') }}{% endblock %}
+{% block title %}{{ article.title }} - {{ get_setting('site_name').value }}{% endblock %}
 
 {% block metas %}
     {{ super() }}

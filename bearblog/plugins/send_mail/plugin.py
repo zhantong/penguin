@@ -8,8 +8,9 @@ from email.utils import parseaddr, formataddr
 
 from flask import jsonify, request
 
-from bearblog.plugins import current_plugin, Plugin, plugin_url_for, plugin_route
+from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from bearblog.models import Signal
+from bearblog.settings import get_setting
 
 Signal = Signal(None)
 Signal.set_default_scope(current_plugin.slug)
@@ -75,12 +76,12 @@ def _format_address(s):
 
 
 def send_email(to_address, subject, content):
-    from_address = current_plugin.get_setting_value_this('email')
-    password = current_plugin.get_setting_value_this('password')
-    smtp_address = current_plugin.get_setting_value_this('smtp_address')
+    from_address = get_setting('email').value
+    password = get_setting('password').value
+    smtp_address = get_setting('smtp_address').value
 
     msg = MIMEText(content, 'plain', 'utf-8')
-    msg['From'] = _format_address(Plugin.get_setting_value('site_name') + from_address)
+    msg['From'] = _format_address(get_setting('site_name').value + from_address)
     msg['To'] = _format_address('%s <%s>' % (to_address, to_address))
     msg['Subject'] = Header(subject, 'utf-8').encode()
 

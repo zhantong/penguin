@@ -9,12 +9,24 @@ class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     slug = db.Column(db.String(100))
-    value = db.Column(db.Text)
+    _value = db.Column('value', db.Text)
     description = db.Column(db.Text)
     value_type = db.Column(db.String(40))
     category = db.Column(db.String(40))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     visibility = db.Column(db.String(40), default='visible')
+
+    @property
+    def value(self):
+        return self.get_value_self()
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    @classmethod
+    def get_setting(cls, slug, category=None):
+        return Settings.query.filter_by(slug=slug).one()
 
     @staticmethod
     def get_value(slug, category='bearblog'):
@@ -25,12 +37,12 @@ class Settings(db.Model):
 
     def get_value_self(self):
         if self.value_type is None:
-            return self.value
+            return self._value
         if self.value_type == 'str_list':
-            return self.value.split()
+            return self._value.split()
         if self.value_type == 'signal':
-            return json.loads(self.value)
-        return eval(self.value_type)(self.value)
+            return json.loads(self._value)
+        return eval(self.value_type)(self._value)
 
     @staticmethod
     def get(slug, category='settings'):
@@ -38,7 +50,7 @@ class Settings(db.Model):
         if item is None:
             return None
         return {
-            'raw_value': item.value,
+            'raw_value': item._value,
             'value': Settings.get_value(slug, category),
             'description': item.description,
             'value_type': item.value_type
