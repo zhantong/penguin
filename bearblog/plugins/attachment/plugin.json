@@ -11,5 +11,6 @@
       "name": "get_widget",
       "return_type": "single"
     }
-  ]
+  ],
+  "default_setting_category": "attachment"
 }

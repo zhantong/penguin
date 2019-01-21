@@ -1,9 +1,10 @@
 from bearblog import Signal
 
 from . import component, models
-from .component import get_setting_value, set_setting
 
 get_setting = models.Settings.get_setting
+add_default_cateogry = models.Settings.add_default_category
+set_setting = models.Settings.set_setting
 
 
 @Signal.connect('context_processor', 'bearblog')

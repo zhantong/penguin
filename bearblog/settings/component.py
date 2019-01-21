@@ -12,8 +12,8 @@ Signal.set_default_scope(current_component.slug)
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
-    current_component.set_setting('site_name', name='站名', value='BearBlog', value_type='str')
-    current_component.set_setting('items_per_page', name='每页项目数', value='20', value_type='int')
+    Settings.set_setting('site_name', 'settings', name='站名', value='BearBlog', value_type='str')
+    Settings.set_setting('items_per_page', 'settings', name='每页项目数', value='20', value_type='int')
 
 
 @Signal.connect('sidebar_item', 'admin')
@@ -36,36 +36,13 @@ def get_settings():
     return Signal.send('get_rendered_settings', category=current_component.slug, meta={'plugin': current_component.slug})
 
 
-def get_setting(slug, category=None):
-    if category is None:
-        category = current_component.slug
-    return Settings.get(slug, category)
-
-
-def get_setting_obj(slug, category=None):
-    return Settings.query.filter_by(slug=slug, category=category).first()
-
-
-def get_setting_value(slug, category=None, default=None):
-    if category is None:
-        category = current_component.slug
-    value = Settings.get_value(slug, category)
-    if value is None:
-        value = default
-    return value
-
-
-def set_setting(key, category='settings', **kwargs):
-    Settings.set(key, category, **kwargs)
-
-
 @Signal.connect('get_rendered_settings')
 def get_widget_list(category, meta):
     component = Component.find_component(category)
     for signal_name, data in component.signal.signals.items():
         if data.get('managed', False):
             if 'return_type' in data and data['return_type'] == 'list':
-                if component.get_setting_this(signal_name) is None:
+                if Settings.get_setting(signal_name) is None:
                     value = {
                         'subscribers_order': {
                             'main': []
@@ -73,7 +50,7 @@ def get_widget_list(category, meta):
                         'subscribers': {}
                     }
                     component.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
-                value = component.get_setting_value_this(signal_name)
+                value = Settings.get_setting(signal_name, component.slug).value
                 if 'custom_list' in data:
                     value['subscribers_order'] = {list_key: list_value for list_key, list_value in value['subscribers_order'].items() if list_key in data['custom_list']}
                     for custom_list_key in data['custom_list'].keys():
@@ -102,7 +79,7 @@ def submit_settings():
     category = request.form['category']
     settings = json.loads(request.form['settings'])
     for slug, data in settings.items():
-        setting = get_setting_obj(slug, category)
+        setting = Settings.get_setting(slug, category)
         if setting.value_type == 'signal':
             value = setting.get_value_self()
             on_sets = {}
@@ -116,7 +93,7 @@ def submit_settings():
                 for item in items:
                     if list_name not in on_sets or item['subscriber'] not in on_sets[list_name]:
                         item['is_on'] = False
-            set_setting(slug, category, value=json.dumps(value))
+            Settings.set_setting(slug, category, value=json.dumps(value))
     return jsonify({
         'code': 0,
         'message': '更新成功'

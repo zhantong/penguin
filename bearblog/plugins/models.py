@@ -9,6 +9,7 @@ from werkzeug.routing import Map
 
 from bearblog.models import Signal, Component
 from bearblog import component_route
+from bearblog.settings import add_default_cateogry
 
 
 class Plugin:
@@ -21,7 +22,7 @@ class Plugin:
     def find_plugin(slug):
         return Plugin.plugins.get(slug, None)
 
-    def __init__(self, name, directory, slug=None, show_in_sidebar=True):
+    def __init__(self, name, directory, slug=None, show_in_sidebar=True, config=None):
         if slug is None:
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             caller_path = caller.filename
@@ -36,6 +37,10 @@ class Plugin:
         self.template_context = {}
         self.rule_map = Map()
         self.view_functions = {}
+        self.config = config or {}
+
+        if 'default_setting_category' in self.config:
+            add_default_cateogry(self.directory, self.config['default_setting_category'])
 
     def setup(self):
         self.urls = self.rule_map.bind('', '/')

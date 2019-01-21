@@ -1,5 +1,6 @@
 {
   "id": "comment_to_mail",
   "name": "评论邮件提醒",
-  "show_in_sidebar": true
+  "show_in_sidebar": true,
+  "default_setting_category": "comment_to_mail"
 }

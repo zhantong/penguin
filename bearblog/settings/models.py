@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+import sys
+import os.path
 
 from bearblog.extensions import db
 
@@ -16,6 +18,8 @@ class Settings(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     visibility = db.Column(db.String(40), default='visible')
 
+    _default_categories = {}
+
     @property
     def value(self):
         return self.get_value_self()
@@ -26,7 +30,7 @@ class Settings(db.Model):
 
     @classmethod
     def get_setting(cls, slug, category=None):
-        return Settings.query.filter_by(slug=slug).one()
+        return Settings.query.filter_by(slug=slug).first()
 
     @staticmethod
     def get_value(slug, category='bearblog'):
@@ -56,6 +60,18 @@ class Settings(db.Model):
             'value_type': item.value_type
         }
 
+    @classmethod
+    def set_setting(cls, slug, category=None, **kwargs):
+        if category is None:
+            frame = sys._getframe(1)
+            caller_file = os.path.abspath(frame.f_code.co_filename)
+            matches = [category for category in cls._default_categories if caller_file.startswith(category)]
+            if matches:
+                category = cls._default_categories[max(matches, key=len)]
+        if category is None:
+            category = 'settings'
+        cls.set(slug, category, **kwargs)
+
     @staticmethod
     def set(slug, category='settings', **kwargs):
         item = Settings.query.filter_by(slug=slug).first()
@@ -67,3 +83,7 @@ class Settings(db.Model):
             if value is not None:
                 setattr(item, attr, value)
         db.session.commit()
+
+    @classmethod
+    def add_default_category(cls, path, category):
+        cls._default_categories[path] = category

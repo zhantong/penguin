@@ -126,7 +126,7 @@ class Signal:
 
     @classmethod
     def send(cls, _name, _scope, **kwargs):
-        from .settings import get_setting_value
+        from bearblog.settings import get_setting
         signal_name = _scope + '.' + _name
         if signal_name not in cls._signals:
             return
@@ -145,8 +145,8 @@ class Signal:
                     return result
                 else:
                     result = []
-                    signal_settings = get_setting_value(_name, category=_scope)
-                    if signal_settings is None or 'subscribers_order' not in signal_settings:
+                    signal_settings_obj = get_setting(_name, category=_scope)
+                    if signal_settings_obj is None or 'subscribers_order' not in signal_settings_obj.value:
                         if signal['managed_default'] == 'all':
                             for receiver in signal.get('receivers', {}).values():
                                 result.append(cls.call_receiver_func(receiver['func'], kwargs))
@@ -154,6 +154,7 @@ class Signal:
                         elif signal['managed_default'] == 'none':
                             return []
                     else:
+                        signal_settings = signal_settings_obj.value
                         result = {}
                         for list_name, items in signal_settings['subscribers_order'].items():
                             result[list_name] = []

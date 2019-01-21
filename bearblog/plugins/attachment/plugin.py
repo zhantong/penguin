@@ -10,12 +10,12 @@ from .models import Attachment
 from bearblog.models import Signal
 from bearblog.extensions import db
 from bearblog import component_route, component_url_for
-from bearblog.settings import get_setting
+from bearblog.settings import get_setting, set_setting
 
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
-    current_plugin.set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
+    set_setting('allowed_upload_file_extensions', name='允许上传文件后缀', value='txt pdf png jpg jpeg gif', value_type='str_list')
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')

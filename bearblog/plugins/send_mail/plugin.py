@@ -10,7 +10,7 @@ from flask import jsonify, request
 
 from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
 from bearblog.models import Signal
-from bearblog.settings import get_setting
+from bearblog.settings import get_setting, set_setting
 
 Signal = Signal(None)
 Signal.set_default_scope(current_plugin.slug)
@@ -18,9 +18,9 @@ Signal.set_default_scope(current_plugin.slug)
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
-    current_plugin.set_setting('email', name='邮箱', value='', value_type='str')
-    current_plugin.set_setting('password', name='密码', value='', value_type='str')
-    current_plugin.set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
+    set_setting('email', name='邮箱', value='', value_type='str')
+    set_setting('password', name='密码', value='', value_type='str')
+    set_setting('smtp_address', name='SMTP服务器', value='', value_type='str')
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')

@@ -15,24 +15,24 @@ from bearblog.plugins.comment.models import Comment
 from bearblog.plugins.comment.plugin import get_comment_show_info
 from bearblog.extensions import db
 from bearblog.models import Signal
-from bearblog.settings import get_setting
+from bearblog.settings import get_setting, set_setting
 
 opener = urllib.request.build_opener()
 
 
 @Signal.connect('deploy', 'bearblog')
 def deploy():
-    current_plugin.set_setting('client_id', name='Application ID', value='', value_type='str')
-    current_plugin.set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
-    current_plugin.set_setting('scope', name='Delegated Permissions', value='', value_type='str')
-    current_plugin.set_setting('client_secret', name='Application Secret', value='', value_type='str')
-    current_plugin.set_setting('authorize_url', name='Authorize URL', value='', value_type='str')
-    current_plugin.set_setting('token_url', name='Token URL', value='', value_type='str')
-    current_plugin.set_setting('api_base_url', name='API Base URL', value='', value_type='str')
-    current_plugin.set_setting('access_token', value='', value_type='str', visibility='invisible')
-    current_plugin.set_setting('expires_at', value='0', value_type='int', visibility='invisible')
-    current_plugin.set_setting('refresh_token', value='', value_type='str', visibility='invisible')
-    current_plugin.set_setting('token_type', value='', value_type='str', visibility='invisible')
+    set_setting('client_id', name='Application ID', value='', value_type='str')
+    set_setting('redirect_url', name='Redirect URL', value='', value_type='str')
+    set_setting('scope', name='Delegated Permissions', value='', value_type='str')
+    set_setting('client_secret', name='Application Secret', value='', value_type='str')
+    set_setting('authorize_url', name='Authorize URL', value='', value_type='str')
+    set_setting('token_url', name='Token URL', value='', value_type='str')
+    set_setting('api_base_url', name='API Base URL', value='', value_type='str')
+    set_setting('access_token', value='', value_type='str', visibility='invisible')
+    set_setting('expires_at', value='0', value_type='int', visibility='invisible')
+    set_setting('refresh_token', value='', value_type='str', visibility='invisible')
+    set_setting('token_type', value='', value_type='str', visibility='invisible')
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')
@@ -76,10 +76,10 @@ def is_authorized():
             return False
         with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'refresh_token', 'scope': scope, 'refresh_token': refresh_token, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
             result = json.loads(f.read().decode())
-            current_plugin.set_setting('access_token', value=result['access_token'])
-            current_plugin.set_setting('token_type', value=result['token_type'])
-            current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
-            current_plugin.set_setting('refresh_token', value=result['refresh_token'])
+            set_setting('access_token', value=result['access_token'])
+            set_setting('token_type', value=result['token_type'])
+            set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
+            set_setting('refresh_token', value=result['refresh_token'])
     token_type = get_setting('token_type').value
     access_token = get_setting('access_token').value
     opener.addheaders = [('Authorization', token_type + ' ' + access_token)]
@@ -112,10 +112,10 @@ def authorize():
     code = request.args['code']
     with urllib.request.urlopen(token_url, data=urllib.parse.urlencode({'client_id': client_id, 'grant_type': 'authorization_code', 'scope': scope, 'code': code, 'redirect_uri': redirect_url, 'client_secret': client_secret}).encode()) as f:
         result = json.loads(f.read().decode())
-        current_plugin.set_setting('access_token', value=result['access_token'])
-        current_plugin.set_setting('token_type', value=result['token_type'])
-        current_plugin.set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
-        current_plugin.set_setting('refresh_token', value=result['refresh_token'])
+        set_setting('access_token', value=result['access_token'])
+        set_setting('token_type', value=result['token_type'])
+        set_setting('expires_at', value=str(int(time.time()) + result['expires_in']))
+        set_setting('refresh_token', value=result['refresh_token'])
         opener.addheaders = [('Authorization', result['token_type'] + ' ' + result['access_token'])]
     return redirect(plugin_url_for('me', _component='admin'))
 
