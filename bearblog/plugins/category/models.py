@@ -1,6 +1,6 @@
-from flask import url_for
 from sqlalchemy import Table, Column, Integer, ForeignKey
 
+from bearblog import component_url_for
 from bearblog.extensions import db
 
 association_table = Table('category_article_association', db.Model.metadata,
@@ -29,7 +29,7 @@ class Category(db.Model):
     def get_info(self):
         return {
             'name': self.name,
-            'url': url_for('.index', category=self.slug),
+            'url': component_url_for('index', 'main', category=self.slug),
             'url_params': {
                 'category': self.slug
             }
