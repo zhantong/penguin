@@ -284,10 +284,6 @@ class Component:
     def template_path(self, *args):
         return Path(self.slug, 'templates', *args).as_posix()
 
-    def set_setting(self, key, **kwargs):
-        from .settings import set_setting
-        return set_setting(key, self.slug, **kwargs)
-
     def render_template(self, *args, **kwargs):
         return render_template(self.template_path(*args), **self.template_context, **kwargs)
 

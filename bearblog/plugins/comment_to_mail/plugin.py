@@ -88,7 +88,7 @@ def is_authorized():
 
 @plugin_route('/settings', 'settings', _component='admin')
 def account():
-    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug}, signals=current_plugin.signal.signals)
 
 
 @plugin_route('/login', 'login', _component='admin')

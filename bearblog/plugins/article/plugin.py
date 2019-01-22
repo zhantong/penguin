@@ -277,4 +277,4 @@ def article_list_item_meta(article):
 
 @plugin_route('/settings', 'settings', _component='admin')
 def settings():
-    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug}, signals=current_plugin.signal.signals)

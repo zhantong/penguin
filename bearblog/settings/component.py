@@ -37,9 +37,8 @@ def get_settings():
 
 
 @Signal.connect('get_rendered_settings')
-def get_widget_list(category, meta):
-    component = Component.find_component(category)
-    for signal_name, data in component.signal.signals.items():
+def get_widget_list(category, meta, signals=None):
+    for signal_name, data in (signals or {}).items():
         if data.get('managed', False):
             if 'return_type' in data and data['return_type'] == 'list':
                 if Settings.get_setting(signal_name) is None:
@@ -49,16 +48,16 @@ def get_widget_list(category, meta):
                         },
                         'subscribers': {}
                     }
-                    component.set_setting(signal_name, name=signal_name, value=json.dumps(value), value_type='signal')
-                value = Settings.get_setting(signal_name, component.slug).value
+                    Settings.set_setting(signal_name, category, name=signal_name, value=json.dumps(value), value_type='signal')
+                value = Settings.get_setting(signal_name, category).value
                 if 'custom_list' in data:
                     value['subscribers_order'] = {list_key: list_value for list_key, list_value in value['subscribers_order'].items() if list_key in data['custom_list']}
                     for custom_list_key in data['custom_list'].keys():
                         if custom_list_key not in value['subscribers_order']:
                             value['subscribers_order'][custom_list_key] = []
                 for list_key in value['subscribers_order'].keys():
-                    value['subscribers_order'][list_key] = [item for item in value['subscribers_order'][list_key] if item['subscriber'] in component.signal.signals[signal_name]['receivers']]
-                for key, info in component.signal.signals[signal_name].get('receivers', {}).items():
+                    value['subscribers_order'][list_key] = [item for item in value['subscribers_order'][list_key] if item['subscriber'] in signals[signal_name]['receivers']]
+                for key, info in signals[signal_name].get('receivers', {}).items():
                     if key not in value['subscribers']:
                         value['subscribers'][key] = {
                             'file': info['func_file'],
@@ -68,7 +67,7 @@ def get_widget_list(category, meta):
                                 'subscriber': key,
                                 'is_on': data['managed_default'] == 'all'
                             })
-                component.set_setting(signal_name, value=json.dumps(value))
+                Settings.set_setting(signal_name, category, value=json.dumps(value))
 
     settings = Settings.query.filter_by(category=category, visibility='visible').all()
     return current_component.render_template('settings.html', settings=settings, category=category, meta=meta)

@@ -35,7 +35,7 @@ def admin_sidebar_item():
 
 @plugin_route('/settings', 'settings', _component='admin')
 def settings():
-    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug})
+    return Signal.send('get_rendered_settings', 'settings', category=current_plugin.slug, meta={'plugin': current_plugin.slug}, signals=current_plugin.signal.signals)
 
 
 @component_route('/attachment/static/<path:filename>', 'attachment_static')
