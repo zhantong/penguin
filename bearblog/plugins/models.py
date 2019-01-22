@@ -14,7 +14,6 @@ from bearblog.settings import add_default_cateogry
 
 class Plugin:
     plugins = {}
-    Component._component_search_scope.append(plugins)
 
     component = Component.find_component('plugins')
 

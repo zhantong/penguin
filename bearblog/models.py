@@ -209,14 +209,10 @@ class Signal:
 
 class Component:
     _components = {}
-    _component_search_scope = [_components]
 
     @classmethod
     def find_component(cls, slug):
-        for components in cls._component_search_scope:
-            if slug in components:
-                return components[slug]
-        return None
+        return cls._components.get(slug, None)
 
     def __init__(self, name, directory, slug=None, show_in_sidebar=True, config=None):
         if slug is None:
