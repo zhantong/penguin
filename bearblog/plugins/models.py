@@ -2,9 +2,8 @@ import inspect
 import sys
 import os.path
 from pathlib import Path
-from urllib.parse import urlencode
 
-from flask import url_for, render_template, request
+from flask import render_template, request
 from werkzeug.routing import Map
 
 from bearblog.models import Signal, Component
@@ -31,9 +30,7 @@ class Plugin:
         self.slug = slug
         self.directory = directory
         self.show_in_sidebar = show_in_sidebar
-        self.routes = {}
         self.signal = Signal(self)
-        self.template_context = {}
         self.rule_map = Map()
         self.view_functions = {}
         self.config = config or {}
@@ -49,13 +46,6 @@ class Plugin:
             endpoint, params = self.urls.match('/' + path, method=request.method)
             return self.view_functions[endpoint](**params)
 
-    def route(self, blueprint, rule, name=None, **kwargs):
-        def wrap(f):
-            self.routes[rule] = Route(self, blueprint, rule, f, name)
-            return f
-
-        return wrap
-
     @classmethod
     def view_route(cls, rule, endpoint, plugin=None, _component='plugins', **kwargs):
         if plugin is None:
@@ -69,15 +59,6 @@ class Plugin:
             Component.view_route('/plugins/' + self.slug + rule, 'plugins_' + self.slug + '_' + endpoint, _component, **kwargs)(f)
 
         return wrap
-
-    def request(self, path, **kwargs):
-        rule = '/' + path.split('/')[1]
-        self.routes[rule].func(**kwargs)
-
-    def url_for(self, rule, **values):
-        if len(values) == 0:
-            return self.routes[rule].path()
-        return self.routes[rule].path() + '?' + urlencode(values)
 
     @classmethod
     def view_url_for(cls, endpoint, plugin=None, _component='plugins', **kwargs):
@@ -95,11 +76,7 @@ class Plugin:
         return Path(self.slug, 'templates', *args).as_posix()
 
     def render_template(self, *args, **kwargs):
-        return render_template(self.template_path(*args), **self.template_context, **kwargs)
-
-    def context_func(self, f):
-        self.template_context[f.__name__] = f
-        return f
+        return render_template(self.template_path(*args), **kwargs)
 
 
 class PluginProxy:
@@ -122,15 +99,3 @@ class PluginProxy:
                 if plugin_slug in Plugin.plugins:
                     return Plugin.plugins[plugin_slug]
             frame = frame.f_back
-
-
-class Route:
-    def __init__(self, plugin, blueprint, rule, func, name=None):
-        self.plugin = plugin
-        self.blueprint = blueprint
-        self.rule = rule
-        self.func = func
-        self.name = name
-
-    def path(self):
-        return url_for(self.blueprint + '.route', path='plugins/' + self.plugin.slug + self.rule)

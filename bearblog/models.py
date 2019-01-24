@@ -225,7 +225,6 @@ class Component:
         self.directory = directory
         self.show_in_sidebar = show_in_sidebar
         self.signal = Signal(self)
-        self.template_context = {}
         self.config = config or {}
         self.view_functions = {}
         self.rule_map = Map()
@@ -281,7 +280,7 @@ class Component:
         return Path(self.slug, 'templates', *args).as_posix()
 
     def render_template(self, *args, **kwargs):
-        return render_template(self.template_path(*args), **self.template_context, **kwargs)
+        return render_template(self.template_path(*args), **kwargs)
 
 
 class ComponentProxy:
