@@ -15,7 +15,7 @@ from bearblog.extensions import db
 from bearblog.models import Role
 from config import config
 from ._globals import *
-from .extensions import bootstrap, db, login_manager, csrf, moment
+from .extensions import bootstrap, db, login_manager, CORS, moment
 from .models import Component, Signal
 
 _current_component = Component('bearblog', 'bearblog', show_in_sidebar=False)
@@ -57,7 +57,7 @@ def register_extensions(app):
     bootstrap.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
-    csrf.init_app(app)
+    CORS(app)
     moment.init_app(app)
 
 
