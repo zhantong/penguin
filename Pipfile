@@ -18,6 +18,7 @@ awesome-slugify = "*"
 jieba = "*"
 markdown2 = "*"
 phpserialize = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.7"
