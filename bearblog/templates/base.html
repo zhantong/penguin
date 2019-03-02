@@ -2,27 +2,6 @@
 
 {% block title %}{{ get_setting('site_name').value }}{% endblock %}
 
-{% block navbar %}
-    {% set custom_navbar=custom_navbar() %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
-        <a class="navbar-brand" href="/">{{ custom_navbar['brand'] }}</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                {% for item in custom_navbar['items'] %}
-                    <li class="nav-item"><a class="nav-link" href="{{ item['link'] }}">{{ item['name'] }}</a></li>
-                {% endfor %}
-            </ul>
-            {% for template in custom_navbar['templates'] %}
-                {{ template['template']|safe }}
-            {% endfor %}
-        </div>
-    </nav>
-{% endblock %}
-
-
 {% block content %}
     <div class="container-fluid">
         <div class="row flex-xl-nowrap mt-3">
