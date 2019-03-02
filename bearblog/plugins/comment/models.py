@@ -35,5 +35,14 @@ class Comment(db.Model):
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = markdown2.markdown(value)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'body': self.body,
+            'bodyHtml': self.body_html,
+            'timestamp': self.timestamp,
+            'author': self.author.to_json()
+        }
+
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)

@@ -38,3 +38,19 @@ class Article(db.Model):
     @staticmethod
     def query_published():
         return Article.query.filter_by(status='published')
+
+    def to_json(self, level='basic'):
+        json = {
+            'id': self.id,
+            'number': self.number,
+            'title': self.title,
+            'bodyAbstract': self.body_abstract,
+            'timestamp': self.timestamp,
+            'author': self.author.to_json()
+        }
+        if level == 'basic':
+            return json
+        json['body'] = self.body
+        json['bodyHtml'] = self.body_html
+        if level == 'full':
+            return json

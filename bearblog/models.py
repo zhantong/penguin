@@ -71,6 +71,15 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def to_json(self, level='basic'):
+        json = {
+            'id': self.id,
+            'username': self.username,
+            'name': self.name
+        }
+        if level == 'basic':
+            return json
+
 
 @login_manager.user_loader
 def load_user(user_id):
