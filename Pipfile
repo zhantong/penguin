@@ -17,6 +17,7 @@ flask-moment = "*"
 awesome-slugify = "*"
 jieba = "*"
 phpserialize = "*"
+pymysql = "*"
 flask-cors = "*"
 mistune = "*"
 
