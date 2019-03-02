@@ -12,12 +12,6 @@
       "return_type": "single"
     },
     {
-      "name": "markdown2_extra",
-      "return_type": "list",
-      "managed": true,
-      "managed_default": "all"
-    },
-    {
       "name": "meta",
       "return_type": "list",
       "managed": true,
@@ -78,6 +72,10 @@
       "return_type": "list",
       "managed": true,
       "managed_default": "none"
+    },
+    {
+      "name": "widget_api",
+      "return_type": "single"
     }
   ]
 }

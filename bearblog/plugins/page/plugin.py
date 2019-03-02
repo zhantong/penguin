@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from uuid import uuid4
 
-import markdown2
+import mistune
 from flask import request, session, make_response, flash, jsonify, send_from_directory, abort
 
 from bearblog.plugins import current_plugin, plugin_url_for, plugin_route
@@ -245,9 +245,23 @@ RE_HTML_TAGS = re.compile(r'<[^<]+?>')
 
 
 def on_changed_article_body(target, value, oldvalue, initiator):
+    class Renderer(mistune.Renderer):
+        def __init__(self):
+            super().__init__()
+            self.toc_count = 0
+
+        def header(self, text, level, raw=None):
+            rv = '<h%d id="toc-%d">%s</h%d>\n' % (
+                level, self.toc_count, text, level
+            )
+            self.toc_count += 1
+            return rv
+
+    renderer = Renderer()
+    markdown = mistune.Markdown(renderer=renderer)
+
     if Signal.send('should_compile_markdown_when_body_change', page=target):
-        html = markdown2.markdown(value)
-        target.body_html = html
+        target.body_html = markdown(value)
         target.body_abstract = RE_HTML_TAGS.sub('', target.body_html)[:200] + '...'
 
 

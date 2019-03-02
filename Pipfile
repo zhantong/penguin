@@ -16,9 +16,9 @@ flask-login = "*"
 flask-moment = "*"
 awesome-slugify = "*"
 jieba = "*"
-markdown2 = "*"
 phpserialize = "*"
 flask-cors = "*"
+mistune = "*"
 
 [requires]
 python_version = "3.7"
