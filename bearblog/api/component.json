@@ -1,0 +1,8 @@
+{
+  "id": "api",
+  "name": "api",
+  "show_in_sidebar": false,
+  "signals": [
+  ],
+  "url_prefix": "/api"
+}
