@@ -8,7 +8,7 @@ import click
 import flask_whooshalchemyplus
 import jinja2
 import redis
-from flask import Flask
+from flask import Flask, jsonify
 from rq import Connection, Worker
 
 from bearblog.extensions import db
@@ -26,11 +26,18 @@ Signal = Signal(None)
 Signal.set_default_scope(_current_component.slug)
 
 
+class MyFlask(Flask):
+    def make_response(self, rv):
+        if isinstance(rv, dict) or isinstance(rv, list):
+            return jsonify(rv)
+        return super().make_response(rv)
+
+
 def create_app(config_name=None):
     if config_name is None:
         config_name = os.environ.get('FLASK_CONFIG', 'default')
 
-    app = Flask(__name__)
+    app = MyFlask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
