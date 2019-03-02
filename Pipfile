@@ -20,6 +20,7 @@ phpserialize = "*"
 pymysql = "*"
 flask-cors = "*"
 mistune = "*"
+flask-wtf = "*"
 
 [requires]
 python_version = "3.7"
