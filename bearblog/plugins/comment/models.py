@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import markdown2
+import mistune
 
 from bearblog.extensions import db
 
@@ -33,7 +33,21 @@ class Comment(db.Model):
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
-        target.body_html = markdown2.markdown(value)
+        class Renderer(mistune.Renderer):
+            def __init__(self):
+                super().__init__()
+                self.toc_count = 0
+
+            def header(self, text, level, raw=None):
+                rv = '<h%d id="toc-%d">%s</h%d>\n' % (
+                    level, self.toc_count, text, level
+                )
+                self.toc_count += 1
+                return rv
+
+        renderer = Renderer()
+        markdown = mistune.Markdown(renderer=renderer)
+        target.body_html = markdown(value)
 
     def to_json(self):
         return {
