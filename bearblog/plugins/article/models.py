@@ -4,6 +4,7 @@ from random import randint
 from jieba.analyse.analyzer import ChineseAnalyzer
 
 from bearblog.extensions import db
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 
 def random_number():
@@ -23,15 +24,15 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     number = db.Column(db.Integer, default=random_number, unique=True)
     title = db.Column(db.String(200), default='')
-    body = db.Column(db.Text, default='')
-    body_html = db.Column(db.Text)
+    body = db.Column(LONGTEXT, default='')
+    body_html = db.Column(LONGTEXT)
     body_abstract = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('User', backref='articles')
-    repository_id = db.Column(db.String)
+    repository_id = db.Column(db.String(36))
     status = db.Column(db.String(200), default='')
-    version_remark = db.Column(db.String(), default='')
+    version_remark = db.Column(db.TEXT, default='')
     version_timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @staticmethod

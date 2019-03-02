@@ -30,9 +30,9 @@ class Page(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship(User, backref='pages')
-    repository_id = db.Column(db.String)
+    repository_id = db.Column(db.String(36))
     status = db.Column(db.String(200), default='')
-    version_remark = db.Column(db.String(), default='')
+    version_remark = db.Column(db.TEXT, default='')
     version_timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @hybrid_property
