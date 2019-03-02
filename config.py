@@ -8,7 +8,8 @@ class Config:
     UPLOAD_FOLDER = 'uploads'
     TEMP_FOLDER = 'temp'
     BOOTSTRAP_SERVE_LOCAL = True
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False,
+    JSON_AS_ASCII = False
 
     @staticmethod
     def init_app(app):
