@@ -5,7 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 
 import mistune
-from flask import request, make_response, url_for, session, flash, jsonify, send_from_directory
+from flask import request, url_for, flash, jsonify, send_from_directory
 
 from bearblog.plugins import current_plugin, plugin_route, plugin_url_for
 from .models import Article
@@ -21,30 +21,6 @@ Signal.set_default_scope(current_plugin.slug)
 @component_route('/article/static/<path:filename>', 'article_static')
 def article_static(filename):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
-
-
-@component_route('/archives/<int:number>.html', 'show_article', 'main')
-def show_article(number):
-    def get_articles(repository_id):
-        return Article.query.filter_by(repository_id=repository_id).order_by(Article.timestamp.desc()).all()
-
-    article = Article.query.filter_by(number=number)
-    if 'version' in request.args:
-        article = article.filter_by(number=request.args['version'])
-    article = article.first_or_404()
-    cookies_to_set = {}
-    metas = Signal.send('meta', article=article)
-    header_keywords = Signal.send('header_keyword', article=article)
-    widgets = Signal.send('show_article_widget', session=session, article=article)
-    right_widgets = widgets['right']
-    left_widgets = widgets['left']
-    after_article_widgets = widgets['bottom']
-    Signal.send('on_showing_article', article=article, request=request, cookies_to_set=cookies_to_set)
-    Signal.send('modify_article_when_showing', article=article)
-    resp = make_response(current_plugin.render_template('article.html', article=article, after_article_widgets=after_article_widgets, left_widgets=left_widgets, right_widgets=right_widgets, get_articles=get_articles, metas=metas, header_keywords=header_keywords))
-    for key, value in cookies_to_set.items():
-        resp.set_cookie(key, value)
-    return resp
 
 
 @Signal.connect('admin_sidebar_item', 'plugins')
@@ -190,25 +166,6 @@ def get_article(article_id):
     return Article.query.get(article_id)
 
 
-@Signal.connect('widget', 'main')
-def main_widget(request):
-    def get_metas(article):
-        return Signal.send('article_list_item_meta', article=article)
-
-    page = request.args.get('page', 1, type=int)
-    query = Article.query_published().order_by(Article.timestamp.desc())
-    query = {'query': query}
-    filter(query, request.args)
-    query = query['query']
-    pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
-    articles = pagination.items
-    return {
-        'slug': 'article_list',
-        'name': '文章列表',
-        'html': current_plugin.render_template('widget_article_list', 'widget.html', articles=articles, pagination=pagination, request_params=request.args, get_metas=get_metas)
-    }
-
-
 def filter(query, params):
     if 'search' in request.args and request.args['search'] != '':
         query['query'] = query['query'].whoosh_search(request.args['search'])
@@ -281,11 +238,6 @@ def _meta_publish_datetime(article):
 
 @Signal.connect('meta')
 def meta_publish_datetime(article):
-    return _meta_publish_datetime(article)
-
-
-@Signal.connect('article_list_item_meta')
-def article_list_item_meta(article):
     return _meta_publish_datetime(article)
 
 

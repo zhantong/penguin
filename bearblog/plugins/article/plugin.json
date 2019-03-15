@@ -70,11 +70,11 @@
     {
       "name": "article_list_item_meta",
       "return_type": "list",
-      "managed": true,
+      "managed": false,
       "managed_default": "none"
     },
     {
-      "name": "widget_api",
+      "name": "api_proxy",
       "return_type": "single"
     }
   ]

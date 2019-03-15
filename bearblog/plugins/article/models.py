@@ -4,7 +4,12 @@ from random import randint
 from jieba.analyse.analyzer import ChineseAnalyzer
 
 from bearblog.extensions import db
+from bearblog.plugins import current_plugin
 from sqlalchemy.dialects.mysql import LONGTEXT
+from bearblog.models import Signal
+
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
 
 
 def random_number():
@@ -46,7 +51,8 @@ class Article(db.Model):
             'title': self.title,
             'bodyAbstract': self.body_abstract,
             'timestamp': self.timestamp,
-            'author': self.author.to_json()
+            'author': self.author.to_json(),
+            'meta': Signal.send('article_list_item_meta', article=self)
         }
         if level == 'basic':
             return json
