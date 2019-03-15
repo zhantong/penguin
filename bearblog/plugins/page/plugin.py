@@ -159,7 +159,7 @@ def get_admin_page_list(params):
     page = 1
     if 'page' in params:
         page = int(params['page'])
-    query = db.session.query(Page.repository_id).group_by(Page.repository_id).order_by(Page.version_timestamp.desc())
+    query = db.session.query(Page.repository_id).group_by(Page.repository_id)
     query = {'query': query}
     filter(query, params=request.args)
     query = query['query']
