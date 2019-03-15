@@ -21,6 +21,7 @@ pymysql = "*"
 flask-cors = "*"
 mistune = "*"
 flask-wtf = "*"
+cryptography = "*"
 
 [requires]
 python_version = "3.7"
