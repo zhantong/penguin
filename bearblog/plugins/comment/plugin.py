@@ -235,7 +235,11 @@ def article_meta(article):
 
 @Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
-    return _article_meta(article)
+    return {
+        'name': '评论数',
+        'slug': current_plugin.slug,
+        'value': len(article.comments)
+    }
 
 
 @Signal.connect('meta', 'page')

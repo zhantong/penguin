@@ -167,7 +167,11 @@ def article_meta(article):
 
 @Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
-    return _article_meta(article)
+    return {
+        'name': '分类',
+        'slug': current_plugin.slug,
+        'value': [category.to_json() for category in article.categories]
+    }
 
 
 @Signal.connect('header_keyword', 'article')

@@ -71,7 +71,13 @@ def article_meta(article):
 
 @Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
-    return _article_meta(article)
+    view_count = ViewCount.query.filter_by(repository_id=article.repository_id).first()
+    if view_count is not None:
+        return {
+            'name': '阅读量',
+            'slug': current_plugin.slug,
+            'value': view_count.count
+        }
 
 
 @Signal.connect('meta', 'page')

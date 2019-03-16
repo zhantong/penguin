@@ -162,7 +162,11 @@ def article_meta(article):
 
 @Signal.connect('article_list_item_meta', 'article')
 def article_list_item_meta(article):
-    return _article_meta(article)
+    return {
+        'name': '标签',
+        'slug': current_plugin.slug,
+        'value': [tag.to_json() for tag in article.tags]
+    }
 
 
 @Signal.connect('custom_list_column', 'article')
