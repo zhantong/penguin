@@ -34,3 +34,12 @@ class Tag(db.Model):
                 'tag': self.slug
             }
         }
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'description': self.description,
+            'articleCount': len(self.articles)
+        }
