@@ -147,6 +147,44 @@ def show_widget(session, comments, meta):
     }
 
 
+@Signal.connect('api_proxy', 'article')
+def api_proxy(widget, path, request, article):
+    if widget == 'comment':
+        if request.method == 'POST':
+            splits = path.split('/')
+            if len(splits) == 1:
+                comment_id = 0
+            else:
+                comment_id = int(splits[1])
+            data = request.json
+            if request.headers.getlist('X-Forwarded-For'):
+                ip = request.headers.getlist('X-Forwarded-For')[0]
+            else:
+                ip = request.remote_addr
+            author = User.create(role=Role.guest(), name=data['name'], email=data['email'])
+            db.session.add(author)
+            db.session.flush()
+            agent = request.user_agent.string
+            comment = Comment(body=data['content'], parent=comment_id, author=author, ip=ip, agent=agent)
+            db.session.add(comment)
+            db.session.commit()
+            article.comments.append(comment)
+            db.session.commit()
+            return jsonify({'result': 'OK'})
+        else:
+            def convert(comments):
+                result = []
+                for comment in comments:
+                    result.append({
+                        'comment': comment['comment'].to_json(),
+                        'children': convert(comment['children'])
+                    })
+                return result
+
+            comments = format_comments(article.comments)
+            return jsonify({'comments': convert(comments)})
+
+
 @Signal.connect('show_article_widget', 'article')
 def show_article_widget(session, article):
     meta = {
