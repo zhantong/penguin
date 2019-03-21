@@ -60,3 +60,8 @@ class Article(db.Model):
         json['bodyHtml'] = self.body_html
         if level == 'full':
             return json
+        json['repositoryId'] = self.repository_id
+        json['status'] = self.status
+        json['versionTimestamp'] = self.version_timestamp
+        if level == 'admin':
+            return json
