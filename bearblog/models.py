@@ -248,8 +248,8 @@ class Component:
                 self.blueprint = Blueprint(self.name, self.slug, url_prefix=self.config['url_prefix'])
             self.urls = self.rule_map.bind('', '/')
 
-            @self.blueprint.route('/', defaults={'path': ''})
-            @self.blueprint.route('/<path:path>', methods=['GET', 'POST'])
+            @self.blueprint.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+            @self.blueprint.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
             def route(path):
                 endpoint, params = self.urls.match('/' + path, method=request.method)
                 return self.view_functions[endpoint](**params)
