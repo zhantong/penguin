@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, Response
 
 from bearblog import component_route
 from .models import Article
@@ -29,10 +29,18 @@ def articles():
     }
 
 
-@component_route('/article/<int:number>', 'article', 'api')
+@component_route('/article/<int:number>', 'article', 'api', methods=['GET'])
 def article(number):
     article = Article.query.filter_by(number=number).first_or_404()
     return article.to_json(level='full')
+
+
+@component_route('/admin/article/<int:number>', 'delete_article', 'api', methods=['DELETE'])
+def delete_article(number):
+    article = Article.query.filter_by(number=number).first_or_404()
+    db.session.delete(article)
+    db.session.commit()
+    return Response(status=200)
 
 
 @component_route('/article/<int:number>/<path:path>', 'api_proxy', 'api', methods=['GET', 'POST'])
