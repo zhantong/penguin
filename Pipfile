@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 flask = "*"
 python-dotenv = "*"
-flask-whooshalchemyplus = "*"
+flask-whooshalchemyplus = "0.7.3"
 redis = "*"
 rq = "*"
 bootstrap-flask = "*"
@@ -22,6 +22,7 @@ flask-cors = "*"
 mistune = "*"
 flask-wtf = "*"
 cryptography = "*"
+python-dateutil = "*"
 
 [requires]
 python_version = "3.7"

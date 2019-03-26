@@ -1,4 +1,6 @@
 from flask import request, Response
+import dateutil.parser
+from uuid import uuid4
 
 from bearblog import component_route
 from .models import Article
@@ -35,9 +37,36 @@ def article(number):
     return article.to_json(level='full')
 
 
-@component_route('/admin/article/<int:number>', 'delete_article', 'api', methods=['DELETE'])
-def delete_article(number):
-    article = Article.query.filter_by(number=number).first_or_404()
+@component_route('/admin/article/<int:id>', 'admin_article', 'api', methods=['GET'])
+def admin_article(id):
+    article = Article.query.get(int(id))
+    return article.to_json(level='admin')
+
+
+@component_route('/admin/article/<int:id>', 'update_article', 'api', methods=['PATCH'])
+def update_article(id):
+    data = request.get_json()
+    title = data['title']
+    body = data['body']
+    timestamp = dateutil.parser.parse(data['timestamp'])
+    article = Article.query.get(int(id))
+    if article.repository_id is None:
+        repository_id = str(uuid4())
+    else:
+        repository_id = article.repository_id
+    new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status='published')
+    Signal.send('duplicate', old_article=article, new_article=new_article)
+    # widgets_dict = json.loads(request.form['widgets'])
+    # for slug, js_data in widgets_dict.items():
+    #     Signal.send('submit_edit_widget', slug=slug, js_data=js_data, article=new_article)
+    db.session.add(new_article)
+    db.session.commit()
+    return admin_article(new_article.id)
+
+
+@component_route('/admin/article/<int:id>', 'delete_article', 'api', methods=['DELETE'])
+def delete_article(id):
+    article = Article.query.get(int(id))
     db.session.delete(article)
     db.session.commit()
     return Response(status=200)
