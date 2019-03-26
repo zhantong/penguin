@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime,timezone
 from random import randint
 
 from jieba.analyse.analyzer import ChineseAnalyzer
@@ -50,7 +50,7 @@ class Article(db.Model):
             'number': self.number,
             'title': self.title,
             'bodyAbstract': self.body_abstract,
-            'timestamp': self.timestamp,
+            'timestamp': self.timestamp.replace(tzinfo=timezone.utc).isoformat(),
             'author': self.author.to_json(),
             'meta': Signal.send('article_list_item_meta', article=self)
         }
