@@ -271,6 +271,8 @@ class Component:
             self.rule_map.add(Rule(rule, endpoint=endpoint, methods=kwargs.get('methods', None) or ('GET',)))
             self.view_functions[endpoint] = f
 
+            return f
+
         return wrap
 
     @classmethod
