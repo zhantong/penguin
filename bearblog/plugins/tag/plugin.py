@@ -126,6 +126,11 @@ def article_edit_widget(article):
     return current_plugin.render_template('widget_edit_article.html', all_tag_name=all_tag_name, tag_names=tag_names)
 
 
+@Signal.connect('get_admin_article', 'article')
+def get_admin_article(article):
+    return 'tag', [tag.name for tag in article.tags]
+
+
 @Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'tag':
@@ -135,6 +140,21 @@ def article_submit_edit_widget(slug, js_data, article):
             if item['name'] == 'tag_name':
                 tag_names.append(item['value'])
         tag_names = set(tag_names)
+        for tag_name in tag_names:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if tag is None:
+                tag = Tag(name=tag_name, slug=slugify(tag_name))
+                db.session.add(tag)
+                db.session.flush()
+            tags.append(tag)
+        article.tags = tags
+
+
+@Signal.connect('update_article', 'article')
+def update_article(article, data):
+    if 'tag' in data:
+        tags = []
+        tag_names = set(data['tag'])
         for tag_name in tag_names:
             tag = Tag.query.filter_by(name=tag_name).first()
             if tag is None:

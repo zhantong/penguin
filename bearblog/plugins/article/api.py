@@ -40,7 +40,9 @@ def article(number):
 @component_route('/admin/article/<int:id>', 'admin_article', 'api', methods=['GET'])
 def admin_article(id):
     article = Article.query.get(int(id))
-    return article.to_json(level='admin')
+    json_article = article.to_json(level='admin')
+    json_article['plugin'] = Signal.send('get_admin_article', article=article)
+    return json_article
 
 
 @component_route('/admin/article/<int:id>', 'update_article', 'api', methods=['PATCH'])
@@ -56,9 +58,7 @@ def update_article(id):
         repository_id = article.repository_id
     new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status='published')
     Signal.send('duplicate', old_article=article, new_article=new_article)
-    # widgets_dict = json.loads(request.form['widgets'])
-    # for slug, js_data in widgets_dict.items():
-    #     Signal.send('submit_edit_widget', slug=slug, js_data=js_data, article=new_article)
+    Signal.send('update_article', article=new_article, data=article.plugin)
     db.session.add(new_article)
     db.session.commit()
     return admin_article(new_article.id)

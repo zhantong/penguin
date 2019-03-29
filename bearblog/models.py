@@ -183,6 +183,12 @@ class Signal:
                     else:
                         result.append(item_result)
                 return result
+            if return_type == 'dict':
+                result = {}
+                for receiver in signal['receivers'].values():
+                    key, value = cls.call_receiver_func(receiver['func'], kwargs)
+                    result[key] = value
+                return result
             if return_type == 'single_not_none':
                 for receiver in signal['receivers'].values():
                     item_result = cls.call_receiver_func(receiver['func'], kwargs)

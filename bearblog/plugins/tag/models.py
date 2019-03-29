@@ -35,7 +35,12 @@ class Tag(db.Model):
             }
         }
 
-    def to_json(self):
+    def to_json(self, level='basic'):
+        json = {
+            'name': self.name
+        }
+        if level == 'basic':
+            return json
         return {
             'id': self.id,
             'name': self.name,
