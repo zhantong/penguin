@@ -83,6 +83,11 @@ def article_edit_widget(article):
     return current_plugin.render_template('widget_edit_article.html', all_category=all_category, category_ids=category_ids)
 
 
+@Signal.connect('get_admin_article', 'article')
+def get_admin_article(article):
+    return 'category', [category.id for category in article.categories]
+
+
 @Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'category':
@@ -91,6 +96,12 @@ def article_submit_edit_widget(slug, js_data, article):
             if item['name'] == 'category-id':
                 category_ids.append(int(item['value']))
         article.categories = [Category.query.get(category_id) for category_id in category_ids]
+
+
+@Signal.connect('update_article', 'article')
+def update_article(article, data):
+    if 'category' in data:
+        article.categories = [Category.query.get(category_id) for category_id in data['category']]
 
 
 def delete(category_id):

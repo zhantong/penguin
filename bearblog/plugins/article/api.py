@@ -58,7 +58,7 @@ def update_article(id):
         repository_id = article.repository_id
     new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status='published')
     Signal.send('duplicate', old_article=article, new_article=new_article)
-    Signal.send('update_article', article=new_article, data=article.plugin)
+    Signal.send('update_article', article=new_article, data=data['plugin'])
     db.session.add(new_article)
     db.session.commit()
     return admin_article(new_article.id)
