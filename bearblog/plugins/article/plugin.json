@@ -78,6 +78,10 @@
       "return_type": "single"
     },
     {
+      "name": "admin_api_proxy",
+      "return_type": "single"
+    },
+    {
       "name": "get_admin_article",
       "return_type": "dict"
     }

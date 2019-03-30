@@ -79,6 +79,13 @@ def api_proxy(number, path):
     return Signal.send('api_proxy', widget=widget, path=path, request=request, article=article)
 
 
+@component_route('/admin/article/<int:id>/<path:path>', 'admin_api_proxy', 'api', methods=['GET', 'POST', 'DELETE'])
+def admin_api_proxy(id, path):
+    article = Article.query.get(id)
+    widget = path.split('/')[0]
+    return Signal.send('admin_api_proxy', widget=widget, path=path, request=request, article=article)
+
+
 @component_route('/admin/articles', 'admin_articles', 'api')
 def admin_articles():
     def get_articles(repository_id):

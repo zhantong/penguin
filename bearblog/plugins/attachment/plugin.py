@@ -2,6 +2,7 @@ import json
 import os.path
 import uuid
 from datetime import datetime
+import base64
 
 from flask import request, jsonify, current_app, send_from_directory
 
@@ -93,6 +94,41 @@ def upload():
         'relative_path': random_filename,
         'delete_url': component_url_for('.upload_delete', 'admin', id=attachment.id)
     })
+
+
+@Signal.connect('admin_api_proxy', 'article')
+def admin_api_proxy(widget, path, request, article):
+    if widget == 'attachment':
+        if request.method == 'POST':
+            data = request.get_json()
+            filename = data['filename']
+            if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in get_setting('allowed_upload_file_extensions').value:
+                return jsonify({'message': '禁止上传的文件类型'}), 400
+            extension = filename.rsplit('.', 1)[1].lower()
+            random_filename = uuid.uuid4().hex + '.' + extension
+            abs_file_path = os.path.join(current_app.config['TEMP_FOLDER'], random_filename)
+            os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+            with open(abs_file_path, 'wb') as f:
+                f.write(base64.b64decode(data['base64']))
+            attachment = Attachment.create(abs_file_path, original_filename=filename, file_extension=extension)
+            db.session.add(attachment)
+            article.attachments.append(attachment)
+            db.session.commit()
+            return jsonify({'id': attachment.id}), 201
+        if request.method == 'DELETE':
+            splits = path.split('/')
+            attachment_id = int(splits[1])
+            attachment = Attachment.query.get(attachment_id)
+            db.session.delete(attachment)
+            db.session.commit()
+            return jsonify({
+                'message': '删除成功'
+            })
+    if widget == 'attachments':
+        if request.method == 'GET':
+            return {
+                'value': [attachment.to_json() for attachment in article.attachments]
+            }
 
 
 @component_route('/upload/<int:id>', 'upload_delete', 'admin', methods=['DELETE'])

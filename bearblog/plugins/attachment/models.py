@@ -62,6 +62,15 @@ class Attachment(db.Model):
         abs_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], target.file_path)
         os.remove(abs_file_path)
 
+    def to_json(self, level='basic'):
+        json = {
+            'id': self.id,
+            'filename': self.original_filename,
+            'size': self.file_size
+        }
+        if level == 'basic':
+            return json
+
 
 db.event.listen(Attachment.file_path, 'set', Attachment.on_change_file_path)
 db.event.listen(Attachment, 'after_delete', Attachment.after_delete)
