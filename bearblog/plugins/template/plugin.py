@@ -43,6 +43,11 @@ def article_edit_widget(article):
     return get_widget(article.template)
 
 
+@Signal.connect('get_admin_article', 'article')
+def get_admin_article(article):
+    return 'template', article.template.id if article.template is not None else None
+
+
 @Signal.connect('edit_widget', 'page')
 def page_edit_widget(page):
     return get_widget(page.template)
@@ -55,6 +60,13 @@ def article_submit_edit_widget(slug, js_data, article):
             if item['name'] == 'template-id':
                 if item['value'] != '':
                     article.template = Template.query.get(int(item['value']))
+
+
+@Signal.connect('update_article', 'article')
+def update_article(article, data):
+    if 'template' in data:
+        if data['template'] is not None:
+            article.template = Template.query.get(data['template'])
 
 
 @Signal.connect('submit_edit_widget', 'page')
