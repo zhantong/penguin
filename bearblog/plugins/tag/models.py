@@ -41,7 +41,11 @@ class Tag(db.Model):
         }
         if level.startswith('admin_'):
             json['id'] = self.id
+            json['countArticle'] = len(self.articles)
             if level == 'admin_brief':
+                return json
+            json['description'] = self.description
+            if level == 'admin_full':
                 return json
         else:
             if level == 'brief':
