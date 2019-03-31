@@ -35,16 +35,21 @@ class Tag(db.Model):
             }
         }
 
-    def to_json(self, level='basic'):
+    def to_json(self, level='brief'):
         json = {
             'name': self.name
         }
-        if level == 'basic':
-            return json
-        return {
-            'id': self.id,
-            'name': self.name,
-            'slug': self.slug,
-            'description': self.description,
-            'articleCount': len(self.articles)
-        }
+        if level.startswith('admin_'):
+            json['id'] = self.id
+            if level == 'admin_brief':
+                return json
+        else:
+            if level == 'brief':
+                return json
+            return {
+                'id': self.id,
+                'name': self.name,
+                'slug': self.slug,
+                'description': self.description,
+                'articleCount': len(self.articles)
+            }

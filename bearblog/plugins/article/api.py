@@ -41,7 +41,7 @@ def article(number):
 @component_route('/admin/article/<int:id>', 'admin_article', 'api', methods=['GET'])
 def admin_article(id):
     article = Article.query.get(int(id))
-    json_article = article.to_json(level='admin')
+    json_article = article.to_json(level='admin_full')
     json_article['plugin'] = Signal.send('get_admin_article', article=article)
     return json_article
 
@@ -100,5 +100,5 @@ def admin_articles():
     pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
     repository_ids = [item[0] for item in pagination.items]
     return {
-        'value': [{'repositoryId': repository_id, 'articles': [article.to_json('admin') for article in get_articles(repository_id)]} for repository_id in repository_ids]
+        'value': [{'repositoryId': repository_id, 'articles': [article.to_json('admin_brief') for article in get_articles(repository_id)]} for repository_id in repository_ids]
     }

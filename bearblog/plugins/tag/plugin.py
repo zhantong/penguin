@@ -131,6 +131,11 @@ def get_admin_article(article):
     return 'tag', [tag.name for tag in article.tags]
 
 
+@Signal.connect('to_json', 'article')
+def article_to_json(article, level):
+    return 'tag', [tag.to_json(level) for tag in article.tags]
+
+
 @Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'tag':

@@ -88,6 +88,11 @@ def get_admin_article(article):
     return 'category', [category.id for category in article.categories]
 
 
+@Signal.connect('to_json', 'article')
+def article_to_json(article, level):
+    return 'category', [category.to_json(level) for category in article.categories]
+
+
 @Signal.connect('submit_edit_widget', 'article')
 def article_submit_edit_widget(slug, js_data, article):
     if slug == 'category':

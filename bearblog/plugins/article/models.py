@@ -1,4 +1,4 @@
-from datetime import datetime,timezone
+from datetime import datetime, timezone
 from random import randint
 
 from jieba.analyse.analyzer import ChineseAnalyzer
@@ -44,24 +44,34 @@ class Article(db.Model):
     def query_published():
         return Article.query.filter_by(status='published')
 
-    def to_json(self, level='basic'):
+    def to_json(self, level='brief'):
         json = {
             'id': self.id,
             'number': self.number,
             'title': self.title,
-            'bodyAbstract': self.body_abstract,
             'timestamp': self.timestamp.replace(tzinfo=timezone.utc).isoformat(),
-            'author': self.author.to_json(),
-            'meta': Signal.send('article_list_item_meta', article=self)
+            'author': self.author.to_json(level)
         }
-        if level == 'basic':
-            return json
-        json['body'] = self.body
-        json['bodyHtml'] = self.body_html
-        if level == 'full':
-            return json
-        json['repositoryId'] = self.repository_id
-        json['status'] = self.status
-        json['versionTimestamp'] = self.version_timestamp
-        if level == 'admin':
-            return json
+        json['plugin'] = Signal.send('to_json', article=self, level=level)
+        if level.startswith('admin_'):
+            json['repositoryId'] = self.repository_id
+            json['status'] = self.status
+            json['versionTimestamp'] = self.version_timestamp
+            if level == 'admin_brief':
+                return json
+            json['bodyAbstract'] = self.body_abstract
+            if level == 'admin_basic':
+                return json
+            json['body'] = self.body
+            if level == 'admin_full':
+                return json
+        else:
+            if level == 'brief':
+                return json
+            json['bodyAbstract'] = self.body_abstract
+            if level == 'basic':
+                return json
+            json['body'] = self.body
+            json['bodyHtml'] = self.body_html
+            if level == 'full':
+                return json

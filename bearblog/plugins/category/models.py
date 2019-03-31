@@ -35,7 +35,17 @@ class Category(db.Model):
             }
         }
 
-    def to_json(self):
+    def to_json(self, level='brief'):
+        json = {
+            'id': self.id,
+            'name': self.name
+        }
+        if level.startswith('admin_'):
+            if level == 'admin_brief':
+                return json
+        else:
+            if level == 'brief':
+                return json
         return {
             'id': self.id,
             'name': self.name,
