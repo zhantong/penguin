@@ -1,6 +1,7 @@
 from flask import request, Response
 import dateutil.parser
 from uuid import uuid4
+from sqlalchemy import func
 
 from bearblog import component_route
 from .models import Article
@@ -92,7 +93,7 @@ def admin_articles():
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
 
     page = request.args.get('page', 1, type=int)
-    query = db.session.query(Article.repository_id).order_by(Article.version_timestamp.desc())
+    query = db.session.query(Article.repository_id).order_by(func.max(Article.version_timestamp).desc()).group_by(Article.repository_id)
     query = {'query': query}
     filter(query, request.args)
     query = query['query']
