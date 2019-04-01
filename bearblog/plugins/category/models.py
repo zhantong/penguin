@@ -41,7 +41,11 @@ class Category(db.Model):
             'name': self.name
         }
         if level.startswith('admin_'):
+            json['countArticle'] = len(self.articles)
             if level == 'admin_brief':
+                return json
+            json['description'] = self.description
+            if level == 'admin_full':
                 return json
         else:
             if level == 'brief':
