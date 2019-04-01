@@ -49,14 +49,25 @@ class Comment(db.Model):
         markdown = mistune.Markdown(renderer=renderer)
         target.body_html = markdown(value)
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'body': self.body,
-            'bodyHtml': self.body_html,
-            'timestamp': self.timestamp,
-            'author': self.author.to_json()
+    def to_json(self, level='brief'):
+        def get_comment_to(comment):
+            if comment.article is not None:
+                return comment.article.to_json('admin_brief')
+            if comment.page is not None:
+                return comment.page.to_json('admin_brief')
+
+        json = {
+            'id': self.id
         }
+        if level.startswith('admin_'):
+            json['body'] = self.body
+            json['timestamp'] = self.timestamp
+            json['author'] = self.author.to_json('admin_brief')
+            json['ip'] = self.ip
+            json['body'] = self.body
+            json['to'] = get_comment_to(self)
+            if level == 'admin_full':
+                return json
 
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)

@@ -75,10 +75,15 @@ class User(UserMixin, db.Model):
         json = {
             'id': self.id,
             'username': self.username,
-            'name': self.name
+            'name': self.name,
         }
-        if level == 'basic':
-            return json
+        if level.startswith('admin_'):
+            json['email'] = self.email
+            if level == 'admin_brief':
+                return json
+        else:
+            if level == 'basic':
+                return json
 
 
 @login_manager.user_loader
