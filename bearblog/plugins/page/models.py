@@ -6,6 +6,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from bearblog.extensions import db
 from bearblog.models import User
 from bearblog.utils import slugify
+from bearblog.models import Signal
+from bearblog.plugins import current_plugin
+
+Signal = Signal(None)
+Signal.set_default_scope(current_plugin.slug)
 
 
 def random_number():
@@ -52,10 +57,32 @@ class Page(db.Model):
             'id': self.id,
             'number': self.number,
             'title': self.title,
-            'bodyAbstract': self.body_abstract,
             'timestamp': self.timestamp,
             'author': self.author.to_json()
         }
+        json['plugin'] = Signal.send('to_json', page=self, level=level)
+        if level.startswith('admin_'):
+            json['repositoryId'] = self.repository_id
+            json['status'] = self.status
+            json['versionTimestamp'] = self.version_timestamp
+            if level == 'admin_brief':
+                return json
+            json['bodyAbstract'] = self.body_abstract
+            if level == 'admin_basic':
+                return json
+            json['body'] = self.body
+            if level == 'admin_full':
+                return json
+        else:
+            if level == 'brief':
+                return json
+            json['bodyAbstract'] = self.body_abstract
+            if level == 'basic':
+                return json
+            json['body'] = self.body
+            json['bodyHtml'] = self.body_html
+            if level == 'full':
+                return json
         if level == 'basic':
             return json
         json['body'] = self.body
