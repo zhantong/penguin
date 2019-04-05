@@ -1,6 +1,6 @@
 from bearblog import Signal
 
-from . import component, models
+from . import component, models, api
 
 get_setting = models.Settings.get_setting
 add_default_cateogry = models.Settings.add_default_category

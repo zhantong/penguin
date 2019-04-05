@@ -87,3 +87,17 @@ class Settings(db.Model):
     @classmethod
     def add_default_category(cls, path, category):
         cls._default_categories[path] = category
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'rawValue': self._value,
+            'value': self.value,
+            'description': self.description,
+            'rawValueType': self.value_type,
+            'category': self.category,
+            'timestamp': self.timestamp,
+            'visibility': self.visibility
+        }
