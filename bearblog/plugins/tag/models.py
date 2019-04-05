@@ -37,7 +37,8 @@ class Tag(db.Model):
 
     def to_json(self, level='brief'):
         json = {
-            'name': self.name
+            'name': self.name,
+            'slug': self.slug
         }
         if level.startswith('admin_'):
             json['id'] = self.id
@@ -53,7 +54,6 @@ class Tag(db.Model):
             return {
                 'id': self.id,
                 'name': self.name,
-                'slug': self.slug,
                 'description': self.description,
                 'articleCount': len(self.articles)
             }

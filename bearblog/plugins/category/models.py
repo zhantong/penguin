@@ -38,6 +38,7 @@ class Category(db.Model):
     def to_json(self, level='brief'):
         json = {
             'id': self.id,
+            'slug': self.slug,
             'name': self.name
         }
         if level.startswith('admin_'):
@@ -53,7 +54,6 @@ class Category(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'slug': self.slug,
             'description': self.description,
             'articleCount': len(self.articles)
         }
