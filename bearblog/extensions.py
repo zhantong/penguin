@@ -8,6 +8,7 @@ from flask_jwt_extended import JWTManager
 bootstrap = Bootstrap()
 moment = Moment()
 db = SQLAlchemy()
+jwt = JWTManager()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'

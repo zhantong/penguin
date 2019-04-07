@@ -10,6 +10,8 @@ class Config:
     BOOTSTRAP_SERVE_LOCAL = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False,
     JSON_AS_ASCII = False
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = ['access']
 
     @staticmethod
     def init_app(app):
