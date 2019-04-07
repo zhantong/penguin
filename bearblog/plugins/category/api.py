@@ -11,14 +11,14 @@ def categories():
     return {'categories': [category.to_json() for category in all_category]}
 
 
-@component_route('/admin/categories', 'get_categories', 'api')
+@component_route('/categories', 'get_categories', 'api_admin')
 def get_categories():
     return {
         'value': [category.to_json('admin_brief') for category in Category.query.all()]
     }
 
 
-@component_route('/admin/category/<int:id>', 'delete_category', 'api', methods=['DELETE'])
+@component_route('/category/<int:id>', 'delete_category', 'api_admin', methods=['DELETE'])
 def delete_category(id):
     category = Category.query.get(int(id))
     db.session.delete(category)
@@ -26,13 +26,13 @@ def delete_category(id):
     return Response(status=200)
 
 
-@component_route('/admin/category/<int:id>', 'admin_category', 'api', methods=['GET'])
+@component_route('/category/<int:id>', 'admin_category', 'api_admin', methods=['GET'])
 def admin_category(id):
     category = Category.query.get(int(id))
     return category.to_json(level='admin_full')
 
 
-@component_route('/admin/category/<int:id>', 'update_category', 'api', methods=['PATCH'])
+@component_route('/category/<int:id>', 'update_category', 'api_admin', methods=['PATCH'])
 def update_category(id):
     data = request.get_json()
     category = Category.query.get(id)

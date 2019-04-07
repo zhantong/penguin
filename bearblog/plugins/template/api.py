@@ -7,7 +7,7 @@ Signal = Signal(None)
 Signal.set_default_scope(current_plugin.slug)
 
 
-@component_route('/admin/templates', 'get_templates', 'api')
+@component_route('/templates', 'get_templates', 'api_admin')
 def get_templates():
     return {
         'value': [{'id': template.id, 'name': template.name} for template in Template.query.all()]

@@ -41,7 +41,7 @@ def pages():
     return {'pages': more}
 
 
-@component_route('/admin/pages', 'admin_pages', 'api')
+@component_route('/pages', 'admin_pages', 'api_admin')
 def admin_pages():
     def get_pages(repository_id):
         return Page.query.filter_by(repository_id=repository_id).order_by(Page.version_timestamp.desc()).all()
@@ -58,7 +58,7 @@ def admin_pages():
     }
 
 
-@component_route('/admin/page/<int:id>', 'delete_page', 'api', methods=['DELETE'])
+@component_route('/page/<int:id>', 'delete_page', 'api_admin', methods=['DELETE'])
 def delete_page(id):
     page = Page.query.get(int(id))
     db.session.delete(page)
@@ -66,14 +66,14 @@ def delete_page(id):
     return Response(status=200)
 
 
-@component_route('/admin/page/<int:id>', 'admin_page', 'api', methods=['GET'])
+@component_route('/page/<int:id>', 'admin_page', 'api_admin', methods=['GET'])
 def admin_page(id):
     page = Page.query.get(int(id))
     json_page = page.to_json(level='admin_full')
     return json_page
 
 
-@component_route('/admin/page/<int:id>', 'update_page', 'api', methods=['PATCH'])
+@component_route('/page/<int:id>', 'update_page', 'api_admin', methods=['PATCH'])
 def update_page(id):
     data = request.get_json()
     title = data['title']

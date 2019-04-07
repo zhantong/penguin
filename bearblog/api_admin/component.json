@@ -1,0 +1,8 @@
+{
+  "id": "api_admin",
+  "name": "api_admin",
+  "show_in_sidebar": false,
+  "signals": [
+  ],
+  "url_prefix": "/api/admin"
+}

@@ -24,14 +24,14 @@ def latest_comments():
     }
 
 
-@component_route('/admin/comments', 'get_comments', 'api')
+@component_route('/comments', 'get_comments', 'api_admin')
 def get_comments():
     return {
         'value': [comment.to_json('admin_full') for comment in Comment.query.order_by(desc(Comment.timestamp)).all()]
     }
 
 
-@component_route('/admin/comment/<int:id>', 'delete_comment', 'api', methods=['DELETE'])
+@component_route('/comment/<int:id>', 'delete_comment', 'api_admin', methods=['DELETE'])
 def delete_comment(id):
     comment = Comment.query.get(int(id))
     db.session.delete(comment)

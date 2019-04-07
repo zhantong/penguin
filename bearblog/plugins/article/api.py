@@ -38,7 +38,7 @@ def article(number):
     return article.to_json(level='full')
 
 
-@component_route('/admin/article/<int:id>', 'admin_article', 'api', methods=['GET'])
+@component_route('/article/<int:id>', 'admin_article', 'api_admin', methods=['GET'])
 def admin_article(id):
     article = Article.query.get(int(id))
     json_article = article.to_json(level='admin_full')
@@ -46,7 +46,7 @@ def admin_article(id):
     return json_article
 
 
-@component_route('/admin/article/<int:id>', 'update_article', 'api', methods=['PATCH'])
+@component_route('/article/<int:id>', 'update_article', 'api_admin', methods=['PATCH'])
 def update_article(id):
     data = request.get_json()
     title = data['title']
@@ -65,7 +65,7 @@ def update_article(id):
     return admin_article(new_article.id)
 
 
-@component_route('/admin/article/<int:id>', 'delete_article', 'api', methods=['DELETE'])
+@component_route('/article/<int:id>', 'delete_article', 'api_admin', methods=['DELETE'])
 def delete_article(id):
     article = Article.query.get(int(id))
     db.session.delete(article)
@@ -80,14 +80,14 @@ def api_proxy(number, path):
     return Signal.send('api_proxy', widget=widget, path=path, request=request, article=article)
 
 
-@component_route('/admin/article/<int:id>/<path:path>', 'admin_api_proxy', 'api', methods=['GET', 'POST', 'DELETE'])
+@component_route('/article/<int:id>/<path:path>', 'admin_api_proxy', 'api_admin', methods=['GET', 'POST', 'DELETE'])
 def admin_api_proxy(id, path):
     article = Article.query.get(id)
     widget = path.split('/')[0]
     return Signal.send('admin_api_proxy', widget=widget, path=path, request=request, article=article)
 
 
-@component_route('/admin/articles', 'admin_articles', 'api')
+@component_route('/articles', 'admin_articles', 'api_admin')
 def admin_articles():
     def get_articles(repository_id):
         return Article.query.filter_by(repository_id=repository_id).order_by(Article.version_timestamp.desc()).all()
