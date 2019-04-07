@@ -2,13 +2,14 @@ from flask import request, Response
 import dateutil.parser
 from uuid import uuid4
 from sqlalchemy import func
+from flask_jwt_extended import get_jwt_identity
 
 from bearblog import component_route
 from .models import Article
 from bearblog.settings import get_setting
 from .plugin import filter
 from bearblog.plugins import current_plugin
-from bearblog.models import Signal
+from bearblog.models import Signal, User
 from bearblog.extensions import db
 
 Signal = Signal(None)
@@ -102,3 +103,18 @@ def admin_articles():
     return {
         'value': [{'repositoryId': repository_id, 'articles': [article.to_json('admin_brief') for article in get_articles(repository_id)]} for repository_id in repository_ids]
     }
+
+
+@component_route('/articles', 'create_article', 'api_admin', methods=['POST'])
+def create_article():
+    data = request.get_json()
+    title = data['title']
+    body = data['body']
+    timestamp = dateutil.parser.parse(data['timestamp'])
+    current_username = get_jwt_identity()
+    user = User.query.filter_by(username=current_username).first()
+    new_article = Article(title=title, body=body, timestamp=timestamp, author=user, repository_id=str(uuid4()), status='published')
+    Signal.send('update_article', article=new_article, data=data['plugin'])
+    db.session.add(new_article)
+    db.session.commit()
+    return admin_article(new_article.id)
