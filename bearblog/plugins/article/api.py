@@ -53,12 +53,13 @@ def update_article(id):
     title = data['title']
     body = data['body']
     timestamp = dateutil.parser.parse(data['timestamp'])
+    status = data['status']
     article = Article.query.get(int(id))
     if article.repository_id is None:
         repository_id = str(uuid4())
     else:
         repository_id = article.repository_id
-    new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status='published')
+    new_article = Article(title=title, body=body, timestamp=timestamp, author=article.author, repository_id=repository_id, status=status)
     Signal.send('duplicate', old_article=article, new_article=new_article)
     Signal.send('update_article', article=new_article, data=data['plugin'])
     db.session.add(new_article)
@@ -111,9 +112,10 @@ def create_article():
     title = data['title']
     body = data['body']
     timestamp = dateutil.parser.parse(data['timestamp'])
+    status = data['status']
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first()
-    new_article = Article(title=title, body=body, timestamp=timestamp, author=user, repository_id=str(uuid4()), status='published')
+    new_article = Article(title=title, body=body, timestamp=timestamp, author=user, repository_id=str(uuid4()), status=status)
     Signal.send('update_article', article=new_article, data=data['plugin'])
     db.session.add(new_article)
     db.session.commit()
