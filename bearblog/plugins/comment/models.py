@@ -64,9 +64,14 @@ class Comment(db.Model):
             json['timestamp'] = self.timestamp
             json['author'] = self.author.to_json('admin_brief')
             json['ip'] = self.ip
-            json['body'] = self.body
             json['to'] = get_comment_to(self)
             if level == 'admin_full':
+                return json
+        else:
+            json['body'] = self.body
+            json['timestamp'] = self.timestamp
+            json['author'] = self.author.to_json('basic')
+            if level == 'basic':
                 return json
 
 

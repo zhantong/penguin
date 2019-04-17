@@ -176,13 +176,16 @@ def api_proxy(widget, path, request, article):
                 result = []
                 for comment in comments:
                     result.append({
-                        'comment': comment['comment'].to_json(),
+                        'comment': comment['comment'].to_json('basic'),
                         'children': convert(comment['children'])
                     })
                 return result
 
             comments = format_comments(article.comments)
-            return jsonify({'comments': convert(comments)})
+            return jsonify({
+                'count': len(article.comments),
+                'value': convert(comments)
+            })
 
 
 @Signal.connect('show_article_widget', 'article')
@@ -278,6 +281,11 @@ def article_list_item_meta(article):
         'slug': current_plugin.slug,
         'value': len(article.comments)
     }
+
+
+@Signal.connect('to_json', 'article')
+def article_to_json(article, level):
+    return 'comment', len(article.comments)
 
 
 @Signal.connect('meta', 'page')

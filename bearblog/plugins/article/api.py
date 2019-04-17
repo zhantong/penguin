@@ -26,7 +26,7 @@ def articles():
     pagination = query.paginate(page, per_page=get_setting('items_per_page').value, error_out=False)
     articles = pagination.items
     return {
-        'articles': [article.to_json() for article in articles],
+        'articles': [article.to_json('basic') for article in articles],
         'page': pagination.page,
         'next_page_num': pagination.next_num,
         'prev_page_num': pagination.per_page

@@ -80,6 +80,12 @@ def article_list_item_meta(article):
         }
 
 
+@Signal.connect('to_json', 'article')
+def article_to_json(article):
+    view_count = ViewCount.query.filter_by(repository_id=article.repository_id).first()
+    return 'viewCount', view_count.count if view_count is not None else 0
+
+
 @Signal.connect('meta', 'page')
 def page_meta(page):
     return get_rendered_view_count(page.repository_id)
