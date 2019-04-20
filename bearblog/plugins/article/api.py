@@ -27,9 +27,14 @@ def articles():
     articles = pagination.items
     return {
         'articles': [article.to_json('basic') for article in articles],
-        'page': pagination.page,
-        'next_page_num': pagination.next_num,
-        'prev_page_num': pagination.per_page
+        'pagination': {
+            'prevNum': pagination.prev_num,
+            'nextNum': pagination.next_num,
+            'page': pagination.page,
+            'pages': pagination.pages,
+            'perPage': pagination.per_page,
+            'total': pagination.total
+        }
     }
 
 
