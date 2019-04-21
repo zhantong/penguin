@@ -51,9 +51,4 @@ class Category(db.Model):
         else:
             if level == 'brief':
                 return json
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'articleCount': len(self.articles)
-        }
+        return json
