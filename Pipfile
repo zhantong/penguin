@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 flask = "*"
 python-dotenv = "*"
-flask-whooshalchemyplus = "*"
+flask-whooshalchemyplus = {git = "https://github.com/Revolution1/Flask-WhooshAlchemyPlus.git",ref = "0.7.5"}
 redis = "*"
 rq = "*"
 bootstrap-flask = "*"
