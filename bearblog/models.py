@@ -148,9 +148,10 @@ class Signal:
         if 'return_type' in cls._signals[signal_name]:
             return_type = cls._signals[signal_name]['return_type']
             if return_type == 'single':
-                if len(signal.get('receivers', {})) != 1:
-                    return cls._signals[signal_name].get('default', None)
-                return cls.call_receiver_func(next(iter(signal['receivers'].values()))['func'], kwargs)
+                for receiver in signal['receivers'].values():
+                    item_result = cls.call_receiver_func(receiver['func'], kwargs)
+                    if item_result is not None:
+                        return item_result
             if return_type == 'list':
                 if not signal.get('managed', False):
                     result = []
