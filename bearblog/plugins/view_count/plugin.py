@@ -1,4 +1,4 @@
-import json
+from flask import jsonify, current_app
 
 from bearblog.plugins import current_plugin
 from .models import ViewCount
@@ -6,32 +6,18 @@ from bearblog.models import Signal
 from bearblog.extensions import db
 
 
-def viewing(repository_id, request, cookies_to_set):
-    view_count_repository_ids = request.cookies.get('view_count_repository_ids')
-    if view_count_repository_ids is None:
-        view_count_repository_ids = []
-    else:
-        view_count_repository_ids = json.loads(view_count_repository_ids)
-    if repository_id not in view_count_repository_ids:
-        view_count = ViewCount.query.filter_by(repository_id=repository_id).first()
-        if view_count is None:
-            view_count = ViewCount(repository_id=repository_id, count=0)
-            db.session.add(view_count)
-            db.session.flush()
-        view_count.count += 1
-        db.session.commit()
-        view_count_repository_ids.append(repository_id)
-        cookies_to_set['view_count_repository_ids'] = json.dumps(view_count_repository_ids)
-
-
-@Signal.connect('on_showing_article', 'article')
-def on_showing_article(article, request, cookies_to_set):
-    viewing(article.repository_id, request, cookies_to_set)
-
-
-@Signal.connect('on_showing_page', 'page')
-def on_showing_article(page, request, cookies_to_set):
-    viewing(page.repository_id, request, cookies_to_set)
+@Signal.connect('api_proxy', 'article')
+def article_api_proxy(widget, path, request, article):
+    if widget == 'viewCount':
+        if request.headers['Authorization'] == current_app.config['SECRET_KEY']:
+            view_count = ViewCount.query.filter_by(repository_id=article.repository_id).first()
+            if view_count is None:
+                view_count = ViewCount(repository_id=article.repository_id, count=0)
+                db.session.add(view_count)
+                db.session.flush()
+            view_count.count += 1
+            db.session.commit()
+            return jsonify({'success': True})
 
 
 def restore(repository_id, count):
